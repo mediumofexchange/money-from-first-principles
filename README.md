@@ -27,7 +27,7 @@ This takes a third route: a **grammar** instead of a money. One object, general 
                is signed. what it pays may move with time.
 ```
 
-The first line fixes what each written unit owes. How many of a guarantor's units go live can still move on somebody else's signature, which §16 works through.
+The first line fixes what each written unit owes.
 
 The four fields are derived in three steps, and each step answers a failure in the one before. Where the text picks between options rather than following a forced step, it says so.
 

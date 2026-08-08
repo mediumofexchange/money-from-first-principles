@@ -27,8 +27,6 @@ This takes a third route: a **grammar** instead of a money. One object, general 
                is signed. what it pays may move with time.
 ```
 
-The first line fixes what each written unit owes.
-
 The four fields are derived in three steps, and each step answers a failure in the one before. Where the text picks between options rather than following a forced step, it says so.
 
 The object spans the two questions that sort money: reputation or collateral behind the promise, and one hand or many running it. A wallet holds positions at several points at once and moves between them as trust grows in one place and dies in another. Every move is a trade. Move toward collateral and you buy trustlessness, paying in elasticity and liquidity. Move toward reputation and you buy money creation, paying in cyclicality. Move toward a single operator and you buy convenience, paying in that operator's failure modes. The holder decides what they value and where the risk sits.

@@ -274,7 +274,7 @@ Short intervals cost fees, long ones cost exposure, and there is no third option
 
 **If a backer's key is stolen**, the damage is unbounded and permanent, since K alone authorises issuance and nothing expires. So K may publish a **revocation**: witnessed, and prospective, so existing claims keep their terms and no further issuance is valid.
 
-It is per venue, and effective for each backing at its witnessed index on that backing's declared venue, published by K to every venue its backings name. The boundary is the index rather than the signing clock, so issuance witnessed before the revocation stands, anything witnessed after is void, and a thief's unwitnessed batch dies with it.
+It is per venue, and effective for each backing at its witnessed index on that backing's declared venue, published by K to every venue its backings name. The boundary is the index rather than the signing clock, so issuance witnessed before the revocation stands, anything witnessed after is void, and a thief's unwitnessed batch dies with it. A payout reading this backing's own outstanding count (invariant 19) reads what stands rather than what was committed, or a revoked thief dilutes every holder by issuing on.
 
 A thief's purpose is to issue, so it revokes only on the way out, destroying the name permanently, since de-revocation would carry the same K. Revocation is the one act no later signature can repair. That is the strongest argument for a threshold K, and for the right to nominate an attester under **E**. Acceptance should attach to a history under **continuous** control, and a break in that control is worth publishing.
 

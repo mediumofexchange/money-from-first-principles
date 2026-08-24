@@ -194,7 +194,7 @@ Cycles need no rule against them. For A to require B while B requires A, each ba
 
 ## 8b. Closure, and what R costs
 
-The full chain under a requirement is its **closure**. Closures are written with a `closure(S)` macro, expanded before hashing ([Construction §C0](construction.md#c0-invariants)), and counts add up where paths meet. If *b* relies on *x* and *y*, and each of those relies on *z* at 1, then closure({x:1, y:1}) = {x:1, y:1, z:2}. Two units of *z*, because presenting at *x* alone would leave *y* without the *z* it needs. Multiplicities grow like a matrix power, so wallets cap closure size.
+The full chain under a requirement is its **closure**. Closures are written with a `closure(S)` macro, expanded before hashing ([Construction §C0](construction.md#c0-invariants)), and counts add up where paths meet. If *b* relies on *x* and *y*, and each of those relies on *z* at 1, then closure({x:1, y:1}) = {x:1, y:1, z:2}. Two units of *z*, because presenting at *x* alone would leave *y* without the *z* it needs. A target the set also names directly is a floor, not a second contribution: closure({x:1, z:1}), with *x* relying on *z* at 2, is {x:1, z:2}, not z:3 — the set hands the *z* over once, and summing would make closed(*b*) below false for every set with any depth, since a closure would no longer be its own closure. Multiplicities grow like a matrix power, so wallets cap closure size.
 
 Anyone can compute **closed(b)**, whether R(b) equals its own closure. An unclosed requirement is readable: the backer takes in a set it cannot fully unwind, usually because it means to sell it.
 

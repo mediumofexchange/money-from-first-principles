@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Medium of Exchange</title>
+<meta name="description" content="Almost all money is somebody's promise. A derivation of the smallest object that can carry one, and a protocol built from it.">
+<link rel="canonical" href="https://mediumofexchange.org/">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mediumofexchange.org/">
+<meta property="og:title" content="Medium of Exchange">
+<meta property="og:description" content="Almost all money is somebody's promise. A derivation of the smallest object that can carry one, and a protocol built from it.">
+<meta name="twitter:card" content="summary">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>">
+
+<style>
+:root {
+  --bg: #fbfaf8;
+  --fg: #1a1a18;
+  --muted: #5f5d57;
+  --faint: #8a8880;
+  --rule: #e2ded6;
+  --card: #ffffff;
+  --accent: #7a4a1e;
+  --code-bg: #f3f0ea;
+  --measure: 34rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14140f;
+    --fg: #eceae4;
+    --muted: #a7a49b;
+    --faint: #7e7b73;
+    --rule: #2e2d27;
+    --card: #1b1b16;
+    --accent: #d8a76a;
+    --code-bg: #201f1a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14140f;
+  --fg: #eceae4;
+  --muted: #a7a49b;
+  --faint: #7e7b73;
+  --rule: #2e2d27;
+  --card: #1b1b16;
+  --accent: #d8a76a;
+  --code-bg: #201f1a;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 48rem; margin: 0 auto; padding: 0 1.5rem; }
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { text-decoration-thickness: 2px; }
+
+header { padding: 5rem 0 0; }
+h1 {
+  font-size: clamp(2.1rem, 6vw, 3rem);
+  line-height: 1.1;
+  margin: 0 0 .6rem;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+.tagline {
+  font-size: clamp(1.05rem, 2.4vw, 1.2rem);
+  color: var(--muted);
+  margin: 0 0 2.5rem;
+  max-width: var(--measure);
+}
+.lede { max-width: var(--measure); }
+.lede p { margin: 0 0 1.15rem; }
+.lede strong { font-weight: 600; }
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 3.5rem 0;
+}
+
+h2 {
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--faint);
+  font-weight: 600;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  margin: 0 0 1.25rem;
+}
+
+/* The object diagram */
+.object {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 1.25rem;
+  overflow-x: auto;
+  margin: 0 0 1rem;
+}
+.object pre {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: .78rem;
+  line-height: 1.7;
+  color: var(--fg);
+  white-space: pre;
+}
+.object .k { color: var(--accent); font-weight: 600; }
+.object .c { color: var(--faint); }
+
+.note { color: var(--muted); font-size: .93rem; max-width: var(--measure); }
+
+/* Document / link cards */
+.docs { display: grid; gap: .75rem; margin: 0; padding: 0; list-style: none; }
+.docs li {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--card);
+  padding: 1.05rem 1.2rem;
+}
+.docs .t {
+  display: block;
+  font-weight: 600;
+  font-size: 1.02rem;
+  margin-bottom: .2rem;
+  letter-spacing: -0.01em;
+}
+.docs .d { color: var(--muted); font-size: .93rem; display: block; }
+.docs .tag {
+  display: inline-block;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: .66rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--faint);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: .1rem .4rem;
+  margin-left: .5rem;
+  vertical-align: 2px;
+  font-weight: 500;
+}
+
+code, kbd {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: .85em;
+  background: var(--code-bg);
+  padding: .12em .38em;
+  border-radius: 3px;
+}
+pre.cmd {
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: .85rem 1.1rem;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: .84rem;
+  margin: 0 0 .9rem;
+}
+pre.cmd code { background: none; padding: 0; font-size: inherit; }
+
+.names { max-width: var(--measure); margin: 0; padding: 0; list-style: none; }
+.names li { margin: 0 0 1rem; color: var(--muted); }
+.names b { color: var(--fg); font-weight: 600; }
+
+footer {
+  margin: 4rem 0 0;
+  padding: 2rem 0 4rem;
+  border-top: 1px solid var(--rule);
+  color: var(--faint);
+  font-size: .87rem;
+}
+footer p { margin: 0 0 .5rem; max-width: var(--measure); }
+footer a { color: var(--muted); }
+
+.warn {
+  border-left: 2px solid var(--accent);
+  padding-left: 1rem;
+  color: var(--muted);
+  font-size: .93rem;
+  max-width: var(--measure);
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Medium of Exchange</h1>
+  <p class="tagline">Almost all money is somebody&rsquo;s promise.</p>
+</header>
+
+<div class="lede">
+  <p>A banknote, a bank deposit, a gift card, an IOU between neighbours: in each case someone has said they will pay.</p>
+  <p>This is a derivation of the smallest object that can carry a promise, and a demonstration that the rest of money is built by combining copies of it.</p>
+  <p>Today, making money is a licensed activity. The usual answers are to fix the institution, which keeps the licence, or to escape it with money fully backed by something scarce &mdash; which builds something real, and stays small, because it creates almost no money. This takes a third route: a <strong>grammar</strong> instead of a money. One object, general enough to write fiat, a bank deposit, a bill of exchange, a stablecoin and a neighbour&rsquo;s word.</p>
+</div>
+
+<hr>
+
+<h2>The object</h2>
+<div class="object">
+<pre>  <span class="c">one object</span>   a backing    <span class="k">B = (K, P, R, E)</span>
+                 <span class="k">K</span>  who owes
+                 <span class="k">P</span>  what one unit pays
+                 <span class="k">R</span>  what must be handed over alongside it
+                 <span class="k">E</span>  who says a claim has not already been spent
+
+  <span class="c">one carrier</span>  a claim      a quantity held against a backing.
+                            Bearer: whoever holds it, owns it.
+  <span class="c">one holding</span>  a wallet     a set of claims, plus any bare assets
+
+  <span class="c">the law</span>      nothing you owe (your written maximum) grows
+               without your signature.
+               nothing you hold leaves without your signature.
+
+  <span class="c">asymmetry</span>    what must accompany a claim is fixed when the backing
+               is signed. what it pays may move with time.</pre>
+</div>
+<p class="note">The four fields are derived in three steps, and each step answers a failure in the one before. Out of the object and the law come some of what merchant law took five centuries to find, plus banks, market makers, credit ratings, derivatives and a private lender of last resort &mdash; each as a role anyone can take, rather than a licence somebody has to grant.</p>
+
+<hr>
+
+<h2>Read</h2>
+<ul class="docs">
+  <li>
+    <a class="t" href="https://github.com/mediumofexchange/money-from-first-principles/blob/main/money-from-first-principles.md">Money from First Principles<span class="tag">the paper</span></a>
+    <span class="d">Why, the derivation, the law, what emerges, and the limits. Stands alone, and locates every money you already know inside the object. There is a glossary at the end.</span>
+  </li>
+  <li>
+    <a class="t" href="https://github.com/mediumofexchange/money-from-first-principles/blob/main/construction.md">Construction<span class="tag">the protocol</span></a>
+    <span class="d">Reference card, invariants, claim layer, sequencing, dishonour, threat model, build order, and every alternative refused. For building it.</span>
+  </li>
+  <li>
+    <a class="t" href="https://github.com/mediumofexchange/money-from-first-principles/blob/main/extensions.md">Extensions<span class="tag">profiles</span></a>
+    <span class="d">What need builds on the core: triggers, pro-rata, references, unitload, the Chaumian profile. Each with the need that summons it and the price it charges.</span>
+  </li>
+</ul>
+
+<hr>
+
+<h2>Build</h2>
+<ul class="docs">
+  <li>
+    <a class="t" href="https://github.com/mediumofexchange/reference-ts">reference-ts<span class="tag">typescript</span></a>
+    <span class="d">The transparent setting: encoding, issuance, swaps, sequencing, presentation, dishonour, succession, recovery. 784 tests, one file per invariant.</span>
+  </li>
+</ul>
+<pre class="cmd"><code>npm install @mediumofexchange/reference@next</code></pre>
+<p class="warn">Early, and the API moves &mdash; hence the <code>next</code> tag. The wire format is not stable. Nothing here has been deployed, audited, or used for anything that matters.</p>
+
+<hr>
+
+<h2>Names</h2>
+<ul class="names">
+  <li><b>Money from First Principles</b> is the paper, and keeps its name. An argument is cited, not versioned.</li>
+  <li><b>The Medium of Exchange Protocol</b> is what Construction and Extensions define: the object, the law, and the machinery around them. This is the thing that gets built.</li>
+  <li><b>mediumofexchange.org</b> is this page, with the <a href="https://github.com/mediumofexchange">org</a> and the <code>@mediumofexchange</code> npm scope behind it.</li>
+</ul>
+
+<footer>
+  <p>Concentration will still happen, and large backers and banks will grow back. What goes is the legal moat. A village, a supply chain or a trade association can run its own money alongside the established one.</p>
+  <p><strong>None of it has been built yet.</strong></p>
+  <p style="margin-top:1.5rem">CC0 1.0 Universal &mdash; public domain dedication. &middot; <a href="https://github.com/mediumofexchange">github.com/mediumofexchange</a></p>
+</footer>
+
+</div>
+</body>
+</html>

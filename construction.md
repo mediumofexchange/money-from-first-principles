@@ -4,6 +4,8 @@
 
 [Money from First Principles](money-from-first-principles.md) derives the object. This is the machinery. It assumes **B = (K, P, R, E)** and the law.
 
+This document and [Extensions](extensions.md) are the **Medium of Exchange Protocol**: the normative part, and what an implementation tracks. The paper argues; this specifies. Where the two disagree, one of them is wrong and it should be said out loud rather than worked around — see [§C0](#c0-invariants) for what an implementation must never violate, and [reference-ts](https://github.com/mediumofexchange/reference-ts) for one implementation of it.
+
 - **[The card](#the-design-in-one-page)**: the object, the law, presentation and the wallet layer on one page.
 - **[§C0](#c0-invariants)**: what an implementation must never violate.
 - **[§C0b](#c0b-the-payout-language-and-the-publication-layer)**: the payout language, and what publishing means.

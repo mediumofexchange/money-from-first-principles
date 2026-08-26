@@ -54,8 +54,46 @@ Most readers arrive holding a position, and nearly all of them sit somewhere ins
 
 ## Read
 
+The paper is the argument. Construction and Extensions are the **Medium of
+Exchange Protocol** — the normative part, and what an implementation tracks.
+
 | | |
 |---|---|
 | **[Money from First Principles](money-from-first-principles.md)** | The paper. Why, the derivation, the law, what emerges, and the limits. Stands alone. [§17](money-from-first-principles.md#17-every-money-is-a-setting) and [Appendix B](money-from-first-principles.md#appendix-b-the-field-worked) locate every money you already know inside the object. There is a [glossary](money-from-first-principles.md#glossary) at the end. |
-| **[Construction](construction.md)** | Reference card, invariants, claim layer, sequencing, dishonour, threat model, build order, and every alternative refused. For building it. |
-| **[Extensions](extensions.md)** | What need builds on the core: triggers, pro-rata, references, unitload, the Chaumian profile. Each with the need that summons it and the price it charges. |
+| **[Construction](construction.md)** | The protocol. Reference card, invariants, claim layer, sequencing, dishonour, threat model, build order, and every alternative refused. For building it. |
+| **[Extensions](extensions.md)** | Optional profiles on top of the core: triggers, pro-rata, references, unitload, the Chaumian profile. Each with the need that summons it and the price it charges. |
+
+## Build
+
+The protocol has one implementation so far, and it is a reference rather than a
+product — code to read and check the derivation against, not code to run
+anything on.
+
+| | |
+|---|---|
+| **[reference-ts](https://github.com/mediumofexchange/reference-ts)** | TypeScript. The transparent setting: encoding, issuance, swaps, sequencing, presentation, dishonour, succession, recovery. 784 tests, one file per invariant. |
+
+```
+npm install @mediumofexchange/reference@next
+```
+
+Early, and the API moves — hence the `next` tag. Nothing here has been
+deployed, audited, or used for anything that matters.
+
+## Names
+
+Three, because they do three different jobs and change at different rates.
+
+- **Money from First Principles** is the paper, and keeps its name. An
+  argument is cited, not versioned.
+- **The Medium of Exchange Protocol** is what Construction and Extensions
+  define: the object, the law, and the machinery around them. This is the
+  thing that gets built.
+- **[mediumofexchange.org](https://mediumofexchange.org)** is the front door,
+  with the [org](https://github.com/mediumofexchange) and the
+  `@mediumofexchange` npm scope behind it.
+
+## Licence
+
+CC0 1.0 Universal — public domain dedication. No permission needed, for
+anything, ever. If you build a money on this, you owe nobody here a thing.

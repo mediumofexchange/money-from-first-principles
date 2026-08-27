@@ -114,8 +114,8 @@ keeps them apart on purpose.
 
 ## Working here
 
-Prose changes only; there is nothing to build or test. Bob is learning
-TypeScript and git — explain in plain language when asked, and prefer a
-readable sentence to a clever one, in the text as much as in the code.
+Prose changes only; there is nothing to build or test. Explain in plain
+language when asked, and prefer a readable sentence to a clever one, in the
+text as much as in the code — a reader has to be convinced by one pass.
 
 Small commits, one change per branch, and never push without asking.

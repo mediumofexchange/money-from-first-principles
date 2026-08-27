@@ -4,10 +4,11 @@
 
 [Money from First Principles](money-from-first-principles.md) derives the object. This is the machinery. It assumes **B = (K, P, R, E)** and the law.
 
-This document and [Extensions](extensions.md) are the **Medium of Exchange Protocol**: the normative part, and what an implementation tracks. The paper argues; this specifies. Where the two disagree, one of them is wrong and it should be said out loud rather than worked around — see [§C0](#c0-invariants) for what an implementation must never violate, and [reference-ts](https://github.com/mediumofexchange/reference-ts) for one implementation of it.
+This document and [Extensions](extensions.md) are the **Medium of Exchange Protocol**: the normative part, and what an implementation tracks. The paper argues; this specifies. Where the two disagree, one of them is wrong and it should be said out loud rather than worked around — see [§C0](#c0-invariants) for what an implementation must never violate, [§C0a](#c0a-what-may-be-added) for the test anything added here has to pass, and [reference-ts](https://github.com/mediumofexchange/reference-ts) for one implementation of it.
 
 - **[The card](#the-design-in-one-page)**: the object, the law, presentation and the wallet layer on one page.
 - **[§C0](#c0-invariants)**: what an implementation must never violate.
+- **[§C0a](#c0a-what-may-be-added)**: the test a change to this document has to pass.
 - **[§C0b](#c0b-the-payout-language-and-the-publication-layer)**: the payout language, and what publishing means.
 - **[§C1](#c1-claims-and-wallets)**: claims: issuance, blinding, swaps, leaks, successors.
 - **[§C2](#c2-sequencing)**: ordering, witnessing, and the interval that sets most security properties.
@@ -168,6 +169,23 @@ Everything else is a way of satisfying these. An implementation that violates on
 25. **The receiver generates the secret.** The payee creates and blinds it, and the payer never learns it. The wrong version, where the payer generates the secret, obtains the signature, hands over the claim and can then spend it first, is the classic footgun in this family, and nothing else here catches it. The one exception is the offline class ([§C2b](#c2b-failure-silence-and-recovery)), caught instead by identity revelation.
 26. **The swap is idempotent, and so is presentation.** A repeated request returns the identical prior response; under blinding, blinding factors derive deterministically from a holder secret, so a replay returns the same signature. Without this, a sequencer that marks claims spent and then crashes destroys money. The rule covers locks and releases, so partition recovery simply repeats the request. And every void record **commits to the replacement it authorises**, so a sequencer that voids and withholds the reissue cannot deny what it owed. A crash loses nothing, and the withholding is a countable non-service object ([§C2b](#c2b-failure-silence-and-recovery)).
 27. Settling a published demand voids the exact claims offered, and only on the holder's release signature. A backer must never void unilaterally, or non-payment can be recorded as settlement.
+
+## C0a. What may be added
+
+[§C0](#c0-invariants) binds an implementation. This binds the protocol, and it is the test a change to this document has to pass.
+
+Everything specified here is read twice: by somebody deciding whether to accept a promise, and by somebody deciding whether an implementation is honest. Both readings are part of the security model, because a protocol nobody can audit is not secure whatever its proofs say. Every mechanism added is a permanent charge on both readers, paid on every future reading, by everyone.
+
+So an addition earns its place:
+
+1. **One mechanism per property.** A property enforced in two places must be checked in two places and can be broken in two. Before adding a mechanism, ask which existing one should be generalised to reach the case.
+2. **No patch on a patch.** A rule that exists to close the gap left by another rule says the first rule is in the wrong place. Move it rather than fencing it, even when fencing is smaller.
+3. **Name what it replaces.** An addition should say which rule it retires, or say plainly why nothing could be generalised to cover it.
+4. **Derive it from the object and the law**, or from a failure they cannot answer. A rule needing a special case beside them is usually answering the wrong question.
+5. **State the cost.** Every step in the paper names what it gives up. A rule that appears to cost nothing has not been examined yet.
+6. **If only some deployments need it, it is an Extension.** The core is what every implementation must do; [Extensions](extensions.md) is where a need that summons its own price belongs.
+
+An addition that makes one case work and leaves every reader one more thing to check has made the system worse, however local the improvement looks. The [Appendix](#appendix-alternatives-and-what-they-cost) records alternatives refused on exactly this ground, and refusal is the ordinary outcome.
 
 ## C0b. The payout language and the publication layer
 

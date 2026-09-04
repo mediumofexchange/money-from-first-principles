@@ -127,3 +127,8 @@ at completed milestones. For coordinated specification and implementation
 work, keep the companion branch and next action current in
 `../reference-ts/WORK.md` when that checkout is available. Never push or merge
 without maintainer authorization.
+
+When work exposes a clearer project structure or workflow, make the low-risk
+improvement if it belongs to the active goal; otherwise leave a concise
+suggestion in the companion handoff with the benefit and cost, rather than
+letting the side issue interrupt the protocol change.

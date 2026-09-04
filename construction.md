@@ -201,6 +201,28 @@ Expressions evaluate in exact rational arithmetic, which arithmetic makes cheap.
 
 **Published means retrievable by a stranger**: terms, logs, totals, commitments, demands, successor offers, and the construction's trail, which is insertions and nullifications under accumulator and the transaction set under pooled. Otherwise invariant 12's check cannot run. Content-addressed storage gives integrity, not availability. No institution is needed. Terms nobody can retrieve price at zero (invariant 3), backers pay for replication, and holders replicate what pays them.
 
+### Transparent commitment directory
+
+For the transparent reference format, a shared commitment binds a sorted
+directory of `(backing name, snapshot digest)` pairs. Each name and digest is
+32 bytes. Names are strictly increasing in unsigned byte order; duplicates
+are invalid. The root is SHA-256 of the four ASCII bytes `MOED`, a one-byte
+version `1`, a big-endian u32 entry count, and the pairs in that order. A
+snapshot digest is SHA-256 of the backing name, a big-endian u32 operation
+count, and each operation's canonical identity prefixed by its big-endian u32
+byte length. Log positions equal array positions. The operation identity
+includes the signer set where that set determines the operation's effect.
+Commitments over this format use the signature context `moe/commitment/v2`.
+
+This replaces the anonymous list of snapshot digests. A reader can authenticate
+the complete directory plus only the relevant backing's log. Absence from the
+authenticated directory proves omission; presence without the corresponding
+log is unavailable evidence, never an empty balance or an omission. Supplied
+logs must match their directory digests. This does not prove availability or
+history continuity, and the existing succession and fault rules still apply.
+The directory costs 64 bytes per backing plus nine framing bytes; the root
+remains 32 bytes. This is an incompatible experimental format change.
+
 ## C1. Claims and wallets
 
 Against a backing circulate **claims**: bearer units, each carrying a quantity. A **wallet** is a set of claims. There is no account and no balance record.
@@ -369,7 +391,7 @@ Dishonour is then not a separate mechanism. It is the branch where the acceptanc
 | Attack | Defence | Honest residual |
 |---|---|---|
 | Double-spend | co-signature against the attester declared in **E** | the window since the last witnessing; for the offline class it runs to deposit, against a key that may carry no history worth losing |
-| Sequencer equivocation | witnessed commitments; every asserted state proves against the latest one (invariant 22) | none, once witnessed, beyond the venue's own reorg past declared finality and its censorship |
+| Sequencer equivocation | witnessed commitments bind asserted state; conflicting signed histories can prove fault (invariant 22) | evidence of fault does not restore spendability or compel payment; recovery needs the relevant data and the cooperation or authority specified in E, and the venue can censor or reorganise beyond declared finality |
 | Hidden issuance | accumulator: invariant 12, both sides public; pooled shielded: every transaction's conservation proof; Chaumian: a bond, plus per-interval commitment to signatures issued | **Chaumian: unbounded**, since the commitment buys attribution rather than proof. **Accumulator: the check needs the trail served**, and nobody is assigned to serve it. **Pooled shielded: a proof-system break is silent**, and one break reaches every backing in the pool |
 | Backer–sequencer collusion | on-chain settlement makes the chain the sequencer; elsewhere the backer is already trusted to perform | soft reserves, drainable regardless of who sequences |
 | Backer over-issuing | invariant 19's pro-rata form; collapse at the ceiling as the fallback | a stolen backer key, ruinous under every payout form |

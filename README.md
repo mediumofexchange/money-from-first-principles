@@ -35,7 +35,7 @@ Out of the object and the law come some of what merchant law took five centuries
 
 The design substitutes pricing for enforcement. It makes promises readable and continuously repriced. It does nothing to make them kept.
 
-Concentration will still happen, and large backers and banks will grow back. What goes is the legal moat. A village, a supply chain or a trade association can run its own money alongside the established one. None of it has been built yet.
+Concentration will still happen, and large backers and banks will grow back. What goes is the legal moat. A village, a supply chain or a trade association could run its own money alongside the established one. The transparent reference implementation is being built toward that goal.
 
 ## Where you stand
 
@@ -65,20 +65,29 @@ Exchange Protocol** — the normative part, and what an implementation tracks.
 
 ## Build
 
-The protocol has one implementation so far, and it is a reference rather than a
-product — code to read and check the derivation against, not code to run
-anything on.
+The protocol has one experimental reference implementation. It makes the
+transparent rules executable and provides a local payment pilot for testing
+durable operation.
 
 | | |
 |---|---|
-| **[reference-ts](https://github.com/mediumofexchange/reference-ts)** | TypeScript. The transparent setting: encoding, issuance, swaps, sequencing, presentation, dishonour, succession, recovery. 784 tests, one file per invariant. |
+| **[reference-ts](https://github.com/mediumofexchange/reference-ts)** | TypeScript. The transparent setting: encoding, issuance, swaps, sequencing, presentation, dishonour, succession, recovery, and invariant tests. |
 
-```
-npm install @mediumofexchange/reference@next
+The package is not published to npm. With Node.js 20 or newer:
+
+```sh
+git clone https://github.com/mediumofexchange/reference-ts.git
+cd reference-ts
+npm ci
+npm run check
 ```
 
-Early, and the API moves — hence the `next` tag. Nothing here has been
-deployed, audited, or used for anything that matters.
+The [transparent pilot profile](transparent-pilot.md) defines the narrower
+initial payment system and its acceptance criteria. The optional
+[local pilot](https://github.com/mediumofexchange/reference-ts/blob/main/docs/PILOT.md)
+requires Node.js 24 and runs with `npm run pilot:demo`. Its witness is local
+and trusted. The API and wire format remain experimental; the implementation
+has not undergone a completed security audit.
 
 ## Names
 

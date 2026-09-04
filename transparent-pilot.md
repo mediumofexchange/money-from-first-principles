@@ -5,7 +5,7 @@ in Construction. It does not change B=(K,P,R,E) or the authorization law.
 
 ## Scope
 
-One operator serves signed root backings: R is empty and P is a positive
+One operator serves one signed root backing: R is empty and P is a positive
 constant quantity of an external named thing. E names the operator and one
 explicit local witness with immediate finality. No replacement, non-service
 aggregate or silence clause is enabled in this initial profile. Issuance,
@@ -20,6 +20,11 @@ and a receiver validates the lawful committed history. Privacy, independent
 chain witnessing and recovery against a hostile operator remain outside this
 profile. An outage is recovered from durable local history; permanent loss of
 that history remains loss. Software must identify these limits to users.
+
+Registration and advancing the local witness require operator administration
+authority. Wallet transport credentials permit signed submissions and reads;
+they confer no issuance or spending authority. The root must be registered
+before the first witness record. The pilot does not add new roots later.
 
 ## Durable execution
 
@@ -63,6 +68,11 @@ and establish inclusion at a witnessed index from the configured venue view.
 A signed but unwitnessed acceptance is pending. Missing or malformed evidence
 must not be reported as final. Final acceptance is not a proof of the
 recipient's current spendable balance.
+
+A payment checker reports inclusion of a transfer, not freshness for a new
+purchase. A receiving application must pin acceptable terms independently and
+durably associate each accepted transfer with one invoice or delivery before
+fulfilling it. Reusing valid historical evidence must not buy a second delivery.
 
 ## Acceptance milestone
 

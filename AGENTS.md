@@ -1,19 +1,20 @@
 # Money from First Principles
 
-Three documents in this repository, and they change at different rates.
+The main documents change at different rates.
 
 | | | |
 |---|---|---|
 | `money-from-first-principles.md` | **the paper** | The argument. Why the object is what it is. Cited, not versioned. |
 | `construction.md` | **the protocol** | Normative. A change here changes what every implementation must do. |
 | `extensions.md` | **profiles** | Optional, on top of the core. Each names the need that summons it and the price it charges. |
+| `transparent-pilot.md` | **implementation profile** | The bounded durable local payment pilot, its trust model and acceptance criteria. |
 
 The **Medium of Exchange Protocol** is what Construction and Extensions
 define. The paper keeps its own name; an argument is cited, not versioned.
 `mediumofexchange.org` is the front door, with the org and the
 `@mediumofexchange` npm scope behind it. The reference implementation is
 [reference-ts](https://github.com/mediumofexchange/reference-ts), which tracks
-this repository as it stands rather than a snapshot.
+this repository. Its README pins the specification revision it implements.
 
 ## What this is for
 

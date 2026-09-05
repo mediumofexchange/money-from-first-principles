@@ -266,6 +266,8 @@ The pool hides the link between a note and the notes a spend creates from it. It
 
 **The lit boundary.** Issuance and burn name their backing and quantity. A small pool with few events lets an observer match them to spends by size and timing; zero-valued change and dummy outputs are shape, not cover.
 
+**What a wallet asks for.** A wallet that fetches one leaf's path, or one statement by name, tells the server which note it holds. Wallets sync the pool and compute locally, and spend against the latest anchor they hold, since an old anchor dates their sync and bounds their input's position.
+
 ### C1.6 Successors
 
 A backing *is* its terms, so there is no edit. New terms are a **successor** with a standing swap offer, and a swap needs the holder's signature ([§16](money-from-first-principles.md#16-what-emerges) prices the move). There is no successor-policy field, because a promise not to publish a better successor is a covenant. A successor is also how a backing changes construction or version: the new terms name the new pool, and holders move by swapping, one signature each.
@@ -342,7 +344,7 @@ Cease issuing, and claims live forever unless the payout is dated. That is the m
 
 These are the parties' rules, not a door's to enforce: a door that refused service on every pending record was a lever, since the rule-holder could hold it shut one record per lag by superseding each record before it arrived, with nothing to grade. What a rolling record buys against a party is that party's own caution.
 
-**C2.6.1** The predecessor commits what it holds at the first clock at which it can read the record, and from the clock at which the lag reaches the effective index it co-signs nothing on or under the backing: what it co-signs from there can only be witnessed in its successor's term and dies there.
+**C2.6.1** The predecessor commits at the last clock at which a commitment it signs is still witnessed inside its term — the effective index less the lag less one — and keeps itself free to sign at that clock, so that everything it co-signed before it lands in its term. From the clock at which the lag reaches the effective index it co-signs nothing on or under the backing, and before that it refuses to co-sign on the backing whatever it could no longer commit inside its term: a refusal, never a receipt that dies. What it co-signs past those clocks can only be witnessed in its successor's term and dies there.
 
 **C2.6.2** A payee reads the same record, treats a receipt given from that clock as it treats one from an operator gone dark, and reads a pending handover before it treats a payment as final. A party that stops on every pending record can be stopped the same way; one that keeps serving does so at the price of one window of dead co-signatures should the next record be real. The record shows which; nothing grades either.
 
@@ -362,9 +364,9 @@ These are the parties' rules, not a door's to enforce: a door that refused servi
 
 ### C2.8 Restart
 
-**C2.8.1** A process that restarts resumes each backing it serves from its **own latest witnessed commitment**, by [§C2.7](#c27-taking-over)'s rule, because restarting must not read as never having served.
+**C2.8.1** A process that restarts resumes each backing it serves from **the book it held**: its own latest signed commitment and every statement it co-signed after it, both made durable before any receipt for them was exposed. Restarting must not read as never having served, and a receipt is a promise the journal keeps: a process that resumed from its latest *witnessed* commitment instead would drop the tail its receipts name, and the next commitment it signed would contradict them — a fault against an honest key. Where the book it held is behind the record, [§C2.7](#c27-taking-over) takes over.
 
-**C2.8.2** It commits nothing until the venue's lag has passed since it resumed: what it published just before it stopped is neither readable nor yet abandoned, and a commitment signed over that sequence is an equivocation against its own key with no adversary in it.
+**C2.8.2** It commits nothing, and co-signs nothing, until the venue's lag has passed since it resumed: what it published just before it stopped is neither readable nor yet abandoned, and a commitment signed over that sequence, or a receipt given on a book the record is about to move past, is an equivocation against its own key with no adversary in it.
 
 **C2.8.3** It registers every backing it serves before its commit timer fires, since a commitment made between registrations drops the rest ([§C2.4.5](#c24-commitments-and-the-directory)).
 

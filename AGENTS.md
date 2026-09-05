@@ -6,8 +6,12 @@ The main documents change at different rates.
 |---|---|---|
 | `money-from-first-principles.md` | **the paper** | The argument. Why the object is what it is. Cited, not versioned. |
 | `construction.md` | **the protocol** | Normative. A change here changes what every implementation must do. |
-| `extensions.md` | **profiles** | Optional, on top of the core. Each names the need that summons it and the price it charges. |
-| `transparent-pilot.md` | **implementation profile** | The bounded durable local payment pilot, its trust model and acceptance criteria. |
+| `extensions.md` | **profiles** | Optional, on top of the core, or replacing its claim layer. Each names the need that summons it and the price it charges. |
+
+The core's claim layer is the shielded pool (Construction §C1). Transparent,
+accumulator and Chaumian claim layers are Extensions profiles. Implementation
+profiles, pilots and research contracts live beside the code in `reference-ts`,
+not here.
 
 The **Medium of Exchange Protocol** is what Construction and Extensions
 define. The paper keeps its own name; an argument is cited, not versioned.
@@ -70,6 +74,13 @@ So a change to `construction.md` has a bar to clear, and it is the same bar
 - **One throughline.** The object and the law are the core; a change that
   cannot be derived from them, or that needs a special case to sit beside them,
   is probably solving the wrong problem.
+- **Say it plainly, and number it.** A normative rule names the objects and
+  events it reads — commitment, directory, record, effective index — in the
+  words Construction already uses. No new metaphors in normative text: two
+  readers, or two models, must not be able to disagree about one sentence.
+  Rules in §C2 and §C2b carry numbers (`C2.5.3`); cite the number in commits,
+  tests and decisions rather than quoting the paragraph. A retired rule goes
+  to Construction's Appendix with what it cost, so it is not rediscovered.
 
 Additions are welcome where they make the whole thing better. Additions that
 only make one case work are how a protocol becomes unauditable.

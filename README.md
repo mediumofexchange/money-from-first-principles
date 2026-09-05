@@ -61,21 +61,23 @@ Exchange Protocol** — the normative part, and what an implementation tracks.
 |---|---|
 | **[Money from First Principles](money-from-first-principles.md)** | The paper. Why, the derivation, the law, what emerges, and the limits. Stands alone. [§17](money-from-first-principles.md#17-every-money-is-a-setting) and [Appendix B](money-from-first-principles.md#appendix-b-the-field-worked) locate every money you already know inside the object. There is a [glossary](money-from-first-principles.md#glossary) at the end. |
 | **[Construction](construction.md)** | The protocol. Reference card, invariants, claim layer, sequencing, dishonour, threat model, build order, and every alternative refused. For building it. |
-| **[Extensions](extensions.md)** | Optional profiles on top of the core: triggers, pro-rata, references, unitload, the Chaumian profile. Each with the need that summons it and the price it charges. |
+| **[Extensions](extensions.md)** | Optional profiles on top of the core — triggers, pro-rata, references, unitload, cross-operator presentation — and the claim-layer profiles that replace the pool: transparent, accumulator, Chaumian, offline. Each with the need that summons it and the price it charges. |
 
-[Private-payment research](private-payment-research.md) describes a non-normative
-experiment toward one private implementation with public supply verification.
-It does not amend Construction or claim a deployable private profile.
+The core's claim layer is the shielded pool ([Construction §C1](construction.md#c1-claims-and-wallets)):
+ownership, amounts and histories hidden, supply proven at the pool's lit
+boundary. The transparent ledger, the accumulator and Chaumian signatures are
+[Extensions](extensions.md#the-transparent-profile) profiles.
 
 ## Build
 
-The protocol has one experimental reference implementation. It makes the
-transparent rules executable and provides a local payment pilot for testing
-durable operation.
+The protocol has one reference implementation, and it is experimental. Its
+production path is the core's shielded pool, built rule by rule from
+Construction; its earlier transparent path is kept as a differential oracle
+and a library of adversarial cases while the pool is built.
 
 | | |
 |---|---|
-| **[reference-ts](https://github.com/mediumofexchange/reference-ts)** | TypeScript. The transparent setting: encoding, issuance, swaps, sequencing, presentation, dishonour, succession, recovery, and invariant tests. |
+| **[reference-ts](https://github.com/mediumofexchange/reference-ts)** | TypeScript. Canonical encoding, signatures, commitments and their directory, sequencing, presentation, dishonour, succession and recovery, with one test file per invariant; a real-proof experiment for the shielded pool; a frozen transparent path as oracle. |
 
 The package is not published to npm. With Node.js 20 or newer:
 
@@ -86,12 +88,13 @@ npm ci
 npm run check
 ```
 
-The [transparent pilot profile](transparent-pilot.md) defines the narrower
-initial payment system and its acceptance criteria. The optional
-[local pilot](https://github.com/mediumofexchange/reference-ts/blob/main/docs/PILOT.md)
-requires Node.js 24 and runs with `npm run pilot:demo`. Its witness is local
-and trusted. The API and wire format remain experimental; the implementation
-has not undergone a completed security audit.
+The optional [local pilot](https://github.com/mediumofexchange/reference-ts/blob/main/docs/PILOT.md)
+runs the transparent path across two processes with a local, trusted witness
+(`npm run pilot:demo`, Node.js 24); it is an integration harness, not a
+product. The [private-payment experiment](https://github.com/mediumofexchange/reference-ts/tree/main/experiments/private-payment)
+is the executable feasibility check for the shielded pool, with real proofs.
+The API and wire format remain experimental; the implementation has not
+undergone a completed security audit.
 
 ## Names
 

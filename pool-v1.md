@@ -181,7 +181,16 @@ historyHash_i = SHA256("moe/pool/v1/history" ‖ historyHash_{i−1}[32] ‖ sta
 
 `historyHash_i` binds the order of every statement, every nullifier and every accepted root up to `i`; two histories with equal note roots and different spent sets have different history hashes (invariant 23).
 
-**The receipt** for statement `i` is the operator's signature, under the sequencing layer's receipt envelope, over: `i`; `statementHash_i`; `historyHash_i`; `SHA256` of the proof bytes it verified and, for an issuance, of the `obligorSignature` it verified, so that the operator's signature attests the exact evidence it admitted and a stranger served bad bytes can tell an operator's fault from a replica's corruption; and the sequence of the commitment the operator last signed (Construction §C2b.4).
+**The receipt** for statement `i` is the operator's signature over: `i`; `statementHash_i`; `historyHash_i`; `SHA256` of the proof bytes it verified and, for an issuance, of the `obligorSignature` it verified, so that the operator's signature attests the exact evidence it admitted and a stranger served bad bytes can tell an operator's fault from a replica's corruption; and the sequence of the commitment the operator last signed (Construction §C2b.4). Its bytes are
+
+```text
+receiptBytes = frame("moe/pool/v1/receipt" ‖ configHash[32] ‖ u64 i ‖ statementHash_i[32] ‖ historyHash_i[32]
+                     ‖ proofHash[32] ‖ signatureHash[32] ‖ u64 after)
+```
+
+where `proofHash = SHA256(proof)` over the proof bytes exactly as admitted, `signatureHash = SHA256(obligorSignature)` for an issuance and thirty-two zero bytes for a spend or a burn, and `after` is the sequence of the commitment the operator had last signed when it co-signed, `0` where it had signed none. Commitment sequences count from `1` (Construction §C2.4.1), so `0` names no commitment. The receipt is served as these fields, the operator's Ed25519 public key, and the operator's strict signature over `receiptBytes`; a receipt under any other bytes, or for a statement whose `statementHash` the served history does not hold at `i`, attests nothing. A stranger resolves `after` against the record, which answers *holds*, *not reached* or *moved past* (Construction §C2.3.4, §C2b.4); what those answers mean for the receipted statement is the sequencing rules' to say, and they are the same rules as for any receipt.
+
+**The commitment** (Construction §C2.4) is the operator's signature over its sequence and the root of a directory whose entry for a backing served in this pool is `(b, snapshot(b))`, the snapshot digest below at the pool's length when the commitment was signed. Every backing in one pool carries the same `historyHash_n`, so one commitment binds the pool's whole history once per backing it carries. The directory's byte framing and the commitment's signature context are the reference implementation's to fix and to version (Construction §C0b); this construction fixes only the digest.
 
 **The snapshot digest** a commitment's directory carries for a backing `b` served in this pool is
 
@@ -208,7 +217,7 @@ e_{h+1}             = node(e_h, e_h)                                   the empty
 
 The root is the node of height `256`. **Key bits and the path.** At height `h`, counting `0` at the leaf, the node on a key's path is the right child of its parent when bit `255 − h` of the key is `1`, and the left child when it is `0`; so the root's two children are told apart by bit `0`, the most significant, and the leaf's parent reads bit `255`, the least. Inserting `nf` sets its leaf to `leaf(nf)` and recomputes the 256 nodes on its path.
 
-**A proof** for a key is its 256 siblings, the sibling at height `h` being the other child of the path node's parent at height `h + 1`, sent as 32 bytes of **map** followed by the siblings not omitted. The map is a 256-bit big-endian integer whose bit `h` is `1` exactly when the sibling at height `h` equals `e_h`; those siblings are omitted and every other sibling is sent in ascending height. A proof whose map is clear for a sibling equal to `e_h`, or set for one that is not, is malformed. **Non-membership** of `nf` at `spentRoot` is a proof whose path carries `e_0` at key `nf` to `spentRoot`; **membership** is a proof carrying `leaf(nf)` there. Construction §C2b.3's snapshot redemption will read the holder's non-membership proof at the last witnessed commitment's `spentRoot`; the venue-side record it also needs is v2's ([§5.4](#54-redemption-and-what-this-version-does-not-carry)).
+**A proof** for a key is its 256 siblings, the sibling at height `h` being the other child of the path node's parent at height `h + 1`, sent as 32 bytes of **map** followed by the siblings not omitted. The map is a 256-bit value whose bit `h`, numbered as every bit in this document is (bit `0` the most significant), is `1` exactly when the sibling at height `h` equals `e_h`; those siblings are omitted and every other sibling is sent in ascending height. A proof whose map is clear for a sibling equal to `e_h`, or set for one that is not, is malformed. **Non-membership** of `nf` at `spentRoot` is a proof whose path carries `e_0` at key `nf` to `spentRoot`; **membership** is a proof carrying `leaf(nf)` there. Construction §C2b.3's snapshot redemption will read the holder's non-membership proof at the last witnessed commitment's `spentRoot`; the venue-side record it also needs is v2's ([§5.4](#54-redemption-and-what-this-version-does-not-carry)).
 
 ## 9. The proof system
 
@@ -281,7 +290,6 @@ Still required before any backing names `moe/pool/v1`:
 
 | Item | Where it lands |
 |---|---|
-| The sequencing layer's receipt and commitment envelopes over these fields | the sequencing layouts, with §C2 built over notes |
 | Measured proving and verification on the target devices | the release record |
 
-Until those remaining entries are recorded this construction cannot be instantiated. The circuit identities above are fixed; the surrounding protocol is not yet complete.
+The receipt's bytes and what the commitment's directory carries are fixed in [§7](#7-the-ordered-history); the sequencing rules over them are Construction §C2's, built over notes in the reference implementation, and that implementation's commitment framing is documented there. Until the remaining entry is recorded this construction cannot be instantiated. The circuit identities above are fixed; the surrounding protocol is not yet complete.

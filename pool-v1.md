@@ -66,7 +66,7 @@ nf    = H(T_NULLIFIER, poolHi, poolLo, cm, secret)
 
 `owner`, `cm` and `nf` must be nonzero. The nullifier is a function of the immutable note and its owner's secret alone: neither the anchor nor the path a note is later proved under enters it, so one note has one nullifier however it is proved (Construction §C1.2).
 
-**The receiver generates the secret** (invariant 25) and hands the payer only `owner`; the payer builds the output note and delivers the opening `(backing, value, rho)` to the receiver privately, with the statement's `statementHash`. The receiver recomputes `cm`, requires `value > 0` — a zero-value note can never be an input — and checks `cm` among the outputs of a statement in a history the receiver has itself verified up to a witnessed commitment, or a statement whose receipt the receiver accepts as the operator's liability ([§7](#7-the-ordered-history)); an operator's word alone is neither. A receiver derives a **fresh secret per expected payment**; an `owner` reused across payments lets the payers that received it link those payments.
+**The receiver generates the secret** (invariant 25) and hands the payer only `owner`; the payer builds the output note and delivers the opening `(backing, value, rho)` to the receiver privately, with the statement's `statementHash`. The receiver recomputes `cm`, requires `value > 0` — a zero-value output is not a payment — and checks `cm` among the outputs of a statement in a history the receiver has itself verified up to a witnessed commitment, or a statement whose receipt the receiver accepts as the operator's liability ([§7](#7-the-ordered-history)); an operator's word alone is neither. A receiver derives a **fresh secret per expected payment**; an `owner` reused across payments lets the payers that received it link those payments.
 
 **Randomness is derived, not drawn** (invariant 26): a wallet derives every `rho` it creates, and the `(rho, secret)` of every padding input ([§5.2](#52-spend)), deterministically from its own root secret and the statement's real input nullifiers (for an issuance, from the obligor's root secret and the issuance's `owner`), so that a statement rebuilt after a crash is the same statement and finds its receipt. The protocol cannot check this; a wallet that draws fresh randomness on retry is refused as a double spend and has lost nothing but its own receipt.
 
@@ -216,7 +216,7 @@ Circuits are written in Noir and compiled with `nargo`/`noir_wasm` `1.0.0-beta.2
 
 **The circuits are the pinned sources, and the prose above is the relation they satisfy.** Two implementations that each wrote a circuit from the prose would derive two verification keys and refuse each other's configuration; so `moe/pool/v1` is instantiated only by the circuit sources the reference implementation publishes for it, at a named revision, whose SHA-256s and derived `bytecode(k)` and `vk(k)` values are recorded in [§12](#12-status). An implementation compiles those sources itself and refuses a configuration whose identities do not match what it derived. The backend's structured reference string is a trust assumption of this version: an implementation records the hashes of the parameter files it verified with, and a deployment states where they came from.
 
-The research profile's one-input, depth-8 circuits proved in 1.1–1.7 s at 14,656 bytes on the recorded desktop. v1's two-input, depth-32 circuits are unmeasured until they are compiled; a phone or browser budget is a deployment's to measure before it relies on this construction there.
+The research profile's one-input, depth-8 circuits proved in 1.1–1.7 s at 14,656 bytes on the recorded desktop. v1's two-input, depth-32 circuits have now been compiled and proven, also at 14,656 bytes; [§12](#12-status) links the desktop measurements. A phone or browser budget is a deployment's to measure before it relies on this construction there.
 
 ## 10. Bounds, and what is refused
 
@@ -255,13 +255,33 @@ The research circuits are therefore superseded and are rewritten to these layout
 
 ## 12. Status
 
-Independently reviewed once (2026-09-05), findings applied. Still unpinned, and required before any backing names `moe/pool/v1`:
+The layout was independently reviewed on 2026-09-05, findings applied. Its circuit sources and adversarial test fixtures were independently reviewed on the same date; two test-isolation findings were corrected and the corrections confirmed. No circuit findings remain from that review. This is not a completed production security audit.
+
+**Pinned circuit sources:** [`reference-ts` revision `b90eb4acfb62efae9c15b7de0410f11b67c7d418`](https://github.com/mediumofexchange/reference-ts/tree/b90eb4acfb62efae9c15b7de0410f11b67c7d418/src/pool/circuits). The paths below are relative to `src/pool/circuits/`, and the hashes are SHA-256 of the exact LF source bytes:
+
+| Source | SHA-256 |
+|---|---|
+| `notes.nr` | `371c7f8e165ea2651f223017b8efc7d09367fe85c0a19fdfcffb78715d37cff7` |
+| `issue.nr` | `02aabb2bf8717821729eafe826158477814f39a8fe5fb7a8e427f07774524dab` |
+| `spend.nr` | `34fcd327c6d3d6d397a0ad8bd57bbeba617d87c6b394a8178ac0771ade2f82a0` |
+| `burn.nr` | `a6c698bc22a993dde8eef7f7d624c284cbe647024b224bdc5884d352f98e1238` |
+| `vendor/poseidon2.nr` | `44f3a3d1abe7d5fa2da5c0339e52018195d55f295c320e530d355f9cc62159d8` |
+
+**Derived circuit identities** under §9's toolchain and `noir-recursive` verifier target, using §2's bytecode and verification-key hash definitions:
+
+| Circuit | `bytecode(k)` | `vk(k)` |
+|---|---|---|
+| issue | `d87c8ae466473d65662fc7dc659e610caacc831aedb169a78e9f9ff2b917133d` | `fe0fdfa50ed959ffb763781edb80b6193071adf5dd0166182d058734e5bf6150` |
+| spend | `f10c097539ef00969dc97c357a511e24299dc7c851a5f7314ffcd4a4ebed237a` | `82760b387581485a3251f585b144488bca8fa5f1268aaace5341a0ba321949de` |
+| burn | `57b0bad342c763f472a95c630af12a95dd70513588d9f45b55339da99002c69a` | `a941aa939de2188d81a4bd469cc25e0ab721aece6d2283f77c16725e98ffaad2` |
+
+`npm run check:pool` in that revision recompiles the sources, derives the keys and refuses any mismatch with its machine-readable `manifest.json`. The [Windows/Node 24.6.0 evidence](https://github.com/mediumofexchange/reference-ts/blob/b90eb4acfb62efae9c15b7de0410f11b67c7d418/docs/pool-v1-verification.json) records 97 circuit/proof checks, ten real ZK proofs, public-input order, timings and a snapshot of the parameter-cache files. These cache hashes do not establish ceremony provenance or identify the precise prefixes the backend consumed; deployment setup provenance remains unresolved.
+
+Still required before any backing names `moe/pool/v1`:
 
 | Item | Where it lands |
 |---|---|
-| Circuit sources for issue, spend and burn at these layouts, at a named revision, with their SHA-256s | `reference-ts/src/pool/circuits/`, recorded here |
-| `bytecode(k)` and `vk(k)` for each, as derived by the pinned toolchain | recorded here |
 | The sequencing layer's receipt and commitment envelopes over these fields | the sequencing layouts, with §C2 built over notes |
 | Measured proving and verification on the target devices | the release record |
 
-Until those are recorded this construction cannot be instantiated, and this document is the relation its circuits will satisfy.
+Until those remaining entries are recorded this construction cannot be instantiated. The circuit identities above are fixed; the surrounding protocol is not yet complete.

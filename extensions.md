@@ -2,7 +2,7 @@
 
 ### What need builds on the core, and what each costs
 
-The core keeps the payout to arithmetic over witnessed time, the supply to two checkable settings, and the record of a refusal to a published demand. Nothing here changes that object.
+The core keeps the payout to arithmetic over witnessed time, the supply to one checkable construction, the shielded pool, and the record of a refusal to a published demand. Nothing here changes that object. The three claim-layer profiles at the end replace the pool wholesale, each declared in **E** and each naming what it gives up.
 
 Every extension below is ordinary published terms, priced when somebody accepts them, like any other promise. What makes it an extension is the machinery a wallet or a sequencer has to carry to work it out. So each entry states the need that summons it, the mechanism, and the price. Complexity arrives when somebody pays for it. The build mechanics live in [Construction](construction.md).
 
@@ -143,3 +143,27 @@ Padding the void list with fabricated nullifiers is free, so non-service cannot 
 **The mechanism.** Two-phase presentation, prepare-decide-commit across the named sequencers, with witnessed timeouts. The protocol is [Construction §C3](construction.md#c3-presentation-and-dishonour). The core mostly routes around the need: with operators pooling many backings, the common presentation completes inside one pool, and a wallet can swap into one pool, or sell to a dealer, before presenting.
 
 **The price.** Timeout semantics tied to the witness interval, and a liveness dependency on every operator in the set for as long as the protocol runs.
+
+## The transparent profile
+
+**The need.** A lit ledger: a lender who wants issuance identified, a circle that wants anyone to find clearing cycles, a deployment where supply matters more than unlinkability and the crowd to hide in is too small for the pool to buy anything ([paper §14](money-from-first-principles.md#14-privacy-and-disclosure)).
+
+**The mechanism.** A per-backing public ledger of key-controlled balances. A holder transfers by signature at its next nonce, the operator co-signs each operation into the backing's log, and commitments carry the log, the balances and the standing demands. Double-spend prevention is free, `outstanding = issued − burned` is exact from the public log, and the issuance statement names the recipient. Where the core reads a nullifier this profile reads the holder's own signed spend at its sequence position: the non-service object is a signed transfer request checked against the last committed balance state; a demand's commitment rests on the lock alone, and [Construction §C2b.3](construction.md#c2b-failure-silence-and-recovery)'s challenge window binds a careless double-spender, never a deliberate one; snapshot redemption publishes the holder's signed spend at the venue in place of a nullifier.
+
+**The price.** Unlinkability, and with it resistance to a refusal aimed at one person, which is the one thing the pool genuinely provides. Every holding and every transfer is public, and the issuance log names who received credit. Metric quality over a closure that includes a transparent backing is exact but lit. A backing moves to the pool only by successor and swap ([Construction §C1.6](construction.md#c16-successors)).
+
+## The accumulator profile, and the denomination ladder
+
+**The need.** A cheaper check than a conservation proof per statement, for a deployment willing to pay in denomination fingerprinting.
+
+**The mechanism.** A claim is a leaf in a public append-only accumulator, tagged with its denomination, and spending publishes a nullifier with a zero-knowledge membership proof. Supply is not the leaf count, since leaves are inserted on every swap; what bites is invariant 12 in public per-denomination arithmetic, outstanding as Σ *denom(d)* · (insertions − nullifications), with both sides public given the trail. Quantities come in denominations, each with its own key, awkward amounts use a swap, and the ladder is where claims quantize, which is what turns R's whole counts from a free normalisation into protection.
+
+**The price.** Denomination fingerprinting, one rung-pattern per amount, so the ladder must be standard and swaps routine. One anonymity set per backing rather than per operator. And a cross-backing leak the pool closes: several sequencers see one event in a window, and under a shared operator one observer joins the whole payment. Thin intervals pair nullifications to insertions by denomination regardless of transport.
+
+## Offline payment
+
+**The need.** Payment where neither party can reach a sequencer.
+
+**The mechanism.** Chaum, Fiat and Naor's trick: the claim carries the spender's identity, sealed so that spending it more than once reveals it. It identifies a cheat rather than convicting one, and a revealed double-spender loses its key's accumulated history ([paper §15](money-from-first-principles.md#15-valuation)). Ordinary notes carry no identity at all, and this is the one place invariant 25's rule is replaced rather than followed: the payer's identity in the note, not a receiver-generated secret, is what answers the first-spend.
+
+**The price.** The double-spend residual runs to deposit, against a key that may carry no history worth losing ([Construction §C4](construction.md#c4-threat-model)), and the identity in the note is a disclosure the ordinary note never makes.

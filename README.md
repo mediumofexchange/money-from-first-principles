@@ -63,6 +63,10 @@ Exchange Protocol** — the normative part, and what an implementation tracks.
 | **[Construction](construction.md)** | The protocol. Reference card, invariants, claim layer, sequencing, dishonour, threat model, build order, and every alternative refused. For building it. |
 | **[Extensions](extensions.md)** | Optional profiles on top of the core: triggers, pro-rata, references, unitload, the Chaumian profile. Each with the need that summons it and the price it charges. |
 
+[Private-payment research](private-payment-research.md) describes a non-normative
+experiment toward one private implementation with public supply verification.
+It does not amend Construction or claim a deployable private profile.
+
 ## Build
 
 The protocol has one experimental reference implementation. It makes the

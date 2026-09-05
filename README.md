@@ -62,6 +62,7 @@ Exchange Protocol** — the normative part, and what an implementation tracks.
 | **[Money from First Principles](money-from-first-principles.md)** | The paper. Why, the derivation, the law, what emerges, and the limits. Stands alone. [§17](money-from-first-principles.md#17-every-money-is-a-setting) and [Appendix B](money-from-first-principles.md#appendix-b-the-field-worked) locate every money you already know inside the object. There is a [glossary](money-from-first-principles.md#glossary) at the end. |
 | **[Construction](construction.md)** | The protocol. Reference card, invariants, claim layer, sequencing, dishonour, threat model, build order, and every alternative refused. For building it. |
 | **[Extensions](extensions.md)** | Optional profiles on top of the core — triggers, pro-rata, references, unitload, cross-operator presentation — and the claim-layer profiles that replace the pool: transparent, accumulator, Chaumian, offline. Each with the need that summons it and the price it charges. |
+| **[Pool v1](pool-v1.md)** | The core construction bit for bit, `moe/pool/v1`: fields, hashes, notes, the three statements, the note tree, the spent set, the history, what **E** names. For two implementations to agree. |
 
 The core's claim layer is the shielded pool ([Construction §C1](construction.md#c1-claims-and-wallets)):
 ownership, amounts and histories hidden, supply proven at the pool's lit

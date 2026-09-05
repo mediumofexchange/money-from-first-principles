@@ -7,6 +7,7 @@ The main documents change at different rates.
 | `money-from-first-principles.md` | **the paper** | The argument. Why the object is what it is. Cited, not versioned. |
 | `construction.md` | **the protocol** | Normative. A change here changes what every implementation must do. |
 | `extensions.md` | **profiles** | Optional, on top of the core, or replacing its claim layer. Each names the need that summons it and the price it charges. |
+| `pool-v1.md` | **construction layouts** | Normative, byte level: the core shielded pool as `moe/pool/v1`. A change is a new version and a successor backing. |
 
 The core's claim layer is the shielded pool (Construction §C1). Transparent,
 accumulator and Chaumian claim layers are Extensions profiles. Implementation

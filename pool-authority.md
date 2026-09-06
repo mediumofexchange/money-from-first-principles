@@ -92,6 +92,13 @@ all its scoped backings together. A stale process cannot omit a newer state
 by presenting a valid older one. Same-key reappointment imports the state of
 the intervening term, not the state that key remembers.
 
+The predecessor read is relative to the child checkpoint: consider earlier
+witnessed indices and, at the child's own index, only checkpoints of the same
+operator with lower signed sequences. Exclude the child itself and later
+same-index sequences. All eligible carrying checkpoints are ordered this way
+before selecting and replaying the candidate; discovering a later checkpoint
+does not retroactively change the child's predecessor.
+
 An authenticated checkpoint witnessed after any scoped term ends is **lapsed
 for its whole scope**. C2.7's descent may pass it with its authenticated scope
 and the witnessed replacement evidence proving that lapse, as it passes an
@@ -100,6 +107,10 @@ sequence by the venue, but supplies no finalized state for any scope backing.
 This is not an absence claim, and missing scope data cannot prove the step.
 A wrong proof or inconsistent history under otherwise live terms is invalid
 data, not this public lapse condition or a license to choose an older state.
+A public whole-scope lapse is excluded consistently from the carrying-state
+reads for takeover (C2.7.1), currency (C2.7.5), snapshot selection (C2b.3) and
+the no-commitment clock (C2b.6). It cannot close a silence interval. The venue
+still holds its exact sequence for C2.3.4 and that signed sequence is consumed.
 
 ## 3. Import and replay
 

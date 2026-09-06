@@ -2,6 +2,14 @@
 
 ### The core construction's layouts, bit for bit
 
+**Historical fixed-operator layout.** The bytes and circuit pins below remain
+unchanged. They do not implement independent operator replacement: the former
+claim in §5.4 conflicted with §2's immutable operator binding and hidden shared
+history. [The replacement-capable authority contract](pool-authority.md)
+requires a new construction version; old notes are never reinterpreted under
+it. This layout is retained as implementation evidence, not as a completed
+core deployment contract.
+
 [Construction §C1.2](construction.md#c12-the-shielded-pool) says what the shielded pool is and what a statement proves. This document fixes one construction of it, **`moe/pool/v1`**, at the level two implementations must agree on: field encodings, hash functions and domain tags, the note and its commitment and nullifier, the note tree, the three statements and their public-input order, the spent-set accumulator and its non-membership proof, the ordered history, the per-backing snapshot digest, the receipt's contents, and the proof system. **E** names this construction and a configuration hash ([§C1.3](construction.md#c13-what-e-declares-for-the-construction)); everything here is fixed by that name. A change to anything below is `moe/pool/v2`, and a backing moves to it by successor ([§5.4](#54-redemption-and-what-this-version-does-not-carry) says what that costs under v1).
 
 This supersedes the research profile `moe-private-payment-research/v1` in `reference-ts/experiments/private-payment`, from whose measured runs it is derived; [§11](#11-what-this-replaces-and-what-it-costs) lists what changed and why. It has had one independent adversarial review; [§12](#12-status) records what is still unpinned.
@@ -148,11 +156,11 @@ A burn is destruction of claims: it lowers `outstanding(backing)` by `quantity` 
 
 Redemption is a spend whose output the backer owns, the backer having generated that output's secret; it is not a statement kind, and it leaves `outstanding` unchanged (invariant 10).
 
-**v1 carries issue, spend and burn, witnessing and the directory (Construction §C2.3–C2.4), replacement and takeover (§C2.5–C2.8), and the no-commitment grade (§C2b.6).** The following Construction rules have no v1 object and are inoperative for a backing issued under v1, to be defined by `moe/pool/v2` together:
+**v1 defines issue, spend and burn, receipt bytes, and the directory's snapshot digest.** Its earlier assertion of replacement and takeover support was incorrect: immutable operator binding and shared opaque history do not supply the authority and import rules those operations need. The [replacement-capable contract](pool-authority.md) changes those relations in a new version, with its layouts and artifacts still to be pinned. The following additional Construction objects also remain outside v1 and must be specified together before a later version claims them:
 
 - presentation (§C3): the demand naming claims by `H(nullifier)`, the spent-pending lock, acceptance, release, and invariant 27's settlement;
 - the non-service object (§C2b.5) — so **E**'s non-service grade is inert for a v1 backing, and its two durations bind nothing;
-- snapshot redemption's venue leg and the adoption of venue-witnessed nullifiers on return from silence (§C2b.3–C2b.4) — v1 defines the non-membership proof ([§8](#8-the-spent-set)) but no record that puts a nullifier into the spent set without a statement, so the no-commitment grade opens no redemption path under v1 and replacement under **E**'s rule is the only remedy against a dark operator;
+- snapshot redemption's venue leg and the adoption of venue-witnessed nullifiers on return from silence (§C2b.3–C2b.4) — v1 defines the non-membership proof ([§8](#8-the-spent-set)) but no record that puts a nullifier into the spent set without a statement. It supplies neither that redemption remedy nor an implementable same-backing operator replacement; a dark operator can strand existing v1 claims;
 - the atomic swap (§C1.7), and with it invariant 23's demand record and pending-lock set and §C1.5's aborted-presentation rule.
 
 A backing crosses from v1 to v2 by successor. Under v1 that crossing is not atomic: a holder spends to the backer, the backer burns, and the backer issues under v2, each step a separate statement resting on the backer's honesty, because v1 has no swap that reads the holder's signature against the backer's. [§11](#11-what-this-replaces-and-what-it-costs) prices it.
@@ -292,4 +300,4 @@ Still required before any backing names `moe/pool/v1`:
 |---|---|
 | Measured proving and verification on the target devices | the release record |
 
-The receipt's bytes and what the commitment's directory carries are fixed in [§7](#7-the-ordered-history); the sequencing rules over them are Construction §C2's, built over notes in the reference implementation, and that implementation's commitment framing is documented there. Until the remaining entry is recorded this construction cannot be instantiated. The circuit identities above are fixed; the surrounding protocol is not yet complete.
+The receipt's bytes and what the commitment's directory carries are fixed in [§7](#7-the-ordered-history). Device measurements alone do not complete this construction: its operator-replacement claim was found incompatible with its layouts. The [authority contract](pool-authority.md) is the replacement design, and requires new relations and artifacts. The identities above stay fixed; they are not a deployment of that design.

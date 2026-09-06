@@ -185,6 +185,14 @@ unit; its roots and receipts cannot be imported into the new segment. Those
 payments require reproof/resubmission. Slow inclusion can therefore lose the
 unwitnessed tail for unaffected backings as well: shared opacity has this cost.
 
+Final inclusion is checked before lapse: a finalized statement stays final
+after any scope term ends. A receipt contradicted by an earlier live-scope
+checkpoint remains evidence of that historical contradiction. Lapse excuses
+only the still-unfinal incompatible tail, from the actual effective boundary;
+a pending replacement or earlier signing deadline is not early discard
+authority. Removing a tail from active state retains its signed receipts and
+checkpoints as durable evidence.
+
 An elective scope change while every old term remains live must first witness
 the entire admitted tail and latest signed commitment under the old scope.
 Adding or dropping a backing is not itself permission to abandon receipts.

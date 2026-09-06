@@ -185,6 +185,13 @@ unit; its roots and receipts cannot be imported into the new segment. Those
 payments require reproof/resubmission. Slow inclusion can therefore lose the
 unwitnessed tail for unaffected backings as well: shared opacity has this cost.
 
+An elective scope change while every old term remains live must first witness
+the entire admitted tail and latest signed commitment under the old scope.
+Adding or dropping a backing is not itself permission to abandon receipts.
+Discard requires the public whole-scope lapse above or C2.7's evidence that
+the held state is stale. Otherwise the scope change waits; a new segment may
+not be used to turn a live receipt into an excused one.
+
 A new segment commits its opening state before it co-signs so its receipts
 name a commitment of that segment (C2.7.4). One commitment stands in flight
 per operator on the venue, across its segments (C2.4.3). A process restarting

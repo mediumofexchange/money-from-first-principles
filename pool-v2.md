@@ -321,14 +321,32 @@ Under Construction §C0a this document names what it retires and what it charges
 
 ## 15. Status
 
-This layout has not yet had an independent adversarial review recorded; the reference implementation's review of its circuits, frames, admission and import is the first, and this section is updated when it lands.
+Independent adversarial review of the reference's circuits, frames, admission, receipts and import completed on 2026-09-06. Replay now owns supplied evidence before asynchronous verification, and an opening checkpoint cannot precede its segment's first commitment sequence (§6). Regression tests cover both. The constructor's computed-prefix API is trusted local state; external histories are verified by replay. This review is not a completed deployment audit.
 
-**Pinned circuit sources** and **derived circuit identities** are recorded here once `npm run check:pool` in the reference implementation has compiled the sources, derived the keys and driven admission and replay with real proofs. Until that record exists no backing names `moe/pool/v2`.
+**Pinned circuit sources**, in the reference's `src/pool/circuits/`, as SHA-256:
+
+| Source | SHA-256 |
+|---|---|
+| `notes.nr` | `0c0a6cf6c12c6adc702cb8ef95e237ce3486dae9e65df2fc3dd724e7ca93b484` |
+| `issue.nr` | `fdddefd8a94eb026259794de03faeb8854e53d274e62cb392407d5c88f9dd4cb` |
+| `spend.nr` | `9ea3fe7f32d32502ea13c16df38ded5f4d688cac49c24a70abca31ff65f2dec1` |
+| `burn.nr` | `1194077efafc1990d3fc90e866609ffc5cc1d3b6011252ae15d127d8e111ed51` |
+| `vendor/poseidon2.nr` | `44f3a3d1abe7d5fa2da5c0339e52018195d55f295c320e530d355f9cc62159d8` |
+
+**Derived circuit identities**, under §12's pinned toolchain and `noir-recursive` verifier target:
+
+| Circuit | Bytecode SHA-256 | Verification-key SHA-256 |
+|---|---|---|
+| issue | `25e9d1af26fb6003d567587f7c71879bcabd9749e0279c870bb923264ec69d22` | `f9fb1624b85cf70350e4a9d15bfee1b2814e8cae5f75285ba6c0207a8f195ca2` |
+| spend | `f00b1721a8a93d70c56758bb01662250f9ce8ee0ffcd9c6823aa41703b35ff93` | `8b46a4be1b3a307c22ff541319223c6fb7d9bb721a7a20b0a6822a291b38fcbc` |
+| burn | `45effac560af94f59e89c3453f7c5261bc6ed64f878842be583b1a9424d50e8c` | `cca81c12041d305acea0c28a990253c03ef79083d2236feae24ec06be8df0af5` |
+
+The resulting configuration hash is `651a78bf0db068bb26afcb602a74f48677243669235e2b541b5bebb1da876d6c`. The reference's `npm run check:pool` recompiles these sources, derives these keys, and drives admission, replacement imports and replay with real proofs. Its execution evidence is recorded in `docs/pool-v2-verification.json` in the reference repository. Cached parameter hashes are observations, not authenticated setup provenance.
 
 Still required before any backing names `moe/pool/v2`:
 
 | Item | Where it lands |
 |---|---|
-| The pinned sources and identities | this section |
+| Reviewed setup assumptions, authenticated parameter distribution and build provenance | the release record |
 | The sequencing rules over these frames: scope derivation from the record, the commit schedule, whole-scope finality, lapse, descent, restart (C2.6–C2.8, C2.10.3–4, C2.10.9) | the reference's pool sequencer |
 | Measured proving and verification on the target devices | the release record |

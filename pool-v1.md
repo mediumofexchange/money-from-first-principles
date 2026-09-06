@@ -6,9 +6,9 @@
 unchanged. They do not implement independent operator replacement: the former
 claim in §5.4 conflicted with §2's immutable operator binding and hidden shared
 history. [The replacement-capable authority contract](pool-authority.md)
-requires a new construction version; old notes are never reinterpreted under
-it. This layout is retained as implementation evidence, not as a completed
-core deployment contract.
+requires a new construction version, which [pool-v2.md](pool-v2.md) fixes;
+old notes are never reinterpreted under it. This layout is retained as
+implementation evidence, not as a completed core deployment contract.
 
 [Construction §C1.2](construction.md#c12-the-shielded-pool) says what the shielded pool is and what a statement proves. This document fixes one construction of it, **`moe/pool/v1`**, at the level two implementations must agree on: field encodings, hash functions and domain tags, the note and its commitment and nullifier, the note tree, the three statements and their public-input order, the spent-set accumulator and its non-membership proof, the ordered history, the per-backing snapshot digest, the receipt's contents, and the proof system. **E** names this construction and a configuration hash ([§C1.3](construction.md#c13-what-e-declares-for-the-construction)); everything here is fixed by that name. A change to anything below is `moe/pool/v2`, and a backing moves to it by successor ([§5.4](#54-redemption-and-what-this-version-does-not-carry) says what that costs under v1).
 

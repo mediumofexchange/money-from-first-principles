@@ -6,8 +6,9 @@ and §C2. It repairs the boundary identified in the reference's
 The maintainer approved preserving private spends and independent backing
 replacement on 2026-09-06. This contract requires a new construction version;
 it does not change the bytes, keys or interpretation of existing `moe/pool/v1`
-notes. The replacement-capable construction is not instantiable until its
-complete layouts, circuits, keys and remaining supported objects are pinned.
+notes. [pool-v2.md](pool-v2.md) fixes the replacement-capable construction
+bit for bit and records its pinned circuits and keys; the objects neither
+document carries are listed in its §7.4.
 
 ## 1. Immutable claims and current authority
 
@@ -231,7 +232,8 @@ service; across operators they require the separately specified atomic
 mechanism or separate payments.
 
 This contract does not define presentation, snapshot-redemption adoption,
-atomic exchange across operators, a cross-venue bridge, byte layouts or pinned
-artifacts. Those outstanding objects must be specified before a construction
-claims to support them. `pool-v1.md` remains the historical byte contract;
-its fixed-operator implementation is not a replacement-capable deployment.
+atomic exchange across operators or a cross-venue bridge. Those outstanding
+objects must be specified before a construction claims to support them. The
+byte layouts and pinned artifacts that instantiate this contract are
+`pool-v2.md`; `pool-v1.md` remains the historical byte contract, and its
+fixed-operator implementation is not a replacement-capable deployment.

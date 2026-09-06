@@ -7,7 +7,8 @@ The main documents change at different rates.
 | `money-from-first-principles.md` | **the paper** | The argument. Why the object is what it is. Cited, not versioned. |
 | `construction.md` | **the protocol** | Normative. A change here changes what every implementation must do. |
 | `extensions.md` | **profiles** | Optional, on top of the core, or replacing its claim layer. Each names the need that summons it and the price it charges. |
-| `pool-v1.md` | **construction layouts** | Normative, byte level: the core shielded pool as `moe/pool/v1`. A change is a new version and a successor backing. |
+| `pool-v1.md` | **historical construction layouts** | Fixed-operator `moe/pool/v1` bytes. A change is a new version and a successor backing. |
+| `pool-authority.md` | **authority and history contract** | Normative C1.2/C2.10 rules for private scopes and independent backing replacement; new layouts and circuits remain to be specified. |
 
 The core's claim layer is the shielded pool (Construction §C1). Transparent,
 accumulator and Chaumian claim layers are Extensions profiles. Implementation

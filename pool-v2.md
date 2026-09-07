@@ -194,6 +194,8 @@ Redemption is a spend whose output the backer owns, the backer having generated 
 
 Operator replacement itself needs no object beyond Construction §C2.5's witnessed replacement and this document's segment: a successor opens a segment whose entries name the links that seated it and the openings the record fixes.
 
+Construction C2b.3a–c fixes the later shielded recovery contract: finalized holdings, no redirection through unwitnessed spends and no associated challenge window, and recovery settlements that preserve consent and supply. It adds no v2 record, proof or admission path. This version's configuration, frames and circuits are unchanged; the excluded objects above remain excluded.
+
 ## 8. Admission
 
 The operator admits a statement against **one committed view**: its segment's header, its imported finalized prefixes ([§10](#10-import-and-replay)) and its own accepted local statements. First, if a statement with this `statementHash` has already been accepted in this segment, it returns that statement's receipt and changes nothing (invariant 26): an exact resubmission is the same statement whatever its proof bytes. Otherwise it changes state only if every check passes:

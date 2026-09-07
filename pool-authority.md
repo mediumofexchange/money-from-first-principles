@@ -205,17 +205,22 @@ not be used to turn a live receipt into an excused one.
 **C2.10.9a Failed-publication repair can lapse an unfinalized receipt.**
 For a receipt whose `after` is held, authenticate that checkpoint as belonging
 to the receipt's segment. In the same operator's sequence order after `after`,
-let R be the first held checkpoint belonging to a different segment. R proves
-a repair boundary for this receipt when all of the following hold:
+let R be the first held checkpoint that belongs to a different segment and
+carries a backing of the receipt's scope. A checkpoint carrying none of the
+scope's backings changes no scoped backing's state and is passed over. R
+proves a repair boundary for this receipt when all of the following hold:
 
 - R is a canonical finalized empty opening: its sequence equals its
   authenticated header's opening sequence and its local history is empty.
   Its imports satisfy C2.10.4–5; a claimed header or directory omission alone
   is not an opening proof.
-- R's immediately preceding sequence is greater than `after`, and the exact
-  venue record does not hold that sequence. R proves the record has moved
-  past it. A hole followed by continued checkpoints in the receipt's segment
-  does not itself establish repair.
+- Between R and the last held checkpoint of the receipt's segment before R,
+  `after` at the least, some sequence is absent from the exact venue record:
+  a commitment of this operator signed after that checkpoint expired
+  unwitnessed, and R proves the record has moved past it. A hole followed by
+  continued checkpoints in the receipt's segment does not itself establish
+  repair. A held checkpoint carrying none of the scope occupies its sequence:
+  passing it over neither proves a hole nor is one.
 - Every original scope term is live at R's witnessed index. If a term ended
   at or before R, use C2.10.9's actual scope boundary instead.
 
@@ -242,6 +247,38 @@ payment through canonical repair. The public record cannot distinguish that
 choice from failed publication, and proves neither the hidden commitment's
 contents nor its signing time. Requiring that tail to survive would instead
 need a different continuity mechanism across segments.
+
+**C2.10.9b A carrying scope change without repair abandons the unfinalized
+tail.** Let R be the checkpoint C2.10.9a selects: the first held checkpoint
+after `after`, in the same operator's sequence order, that belongs to a
+different segment and carries a backing of the receipt's scope. Read inclusion
+and contradiction from the receipt's segment before R, as C2.10.9a defines
+them, in ascending sequence order and ending at the first inclusion. Where R
+is canonical, witnessed while every original term is live, and does not prove
+a repair boundary, the operator changed scope without first witnessing the
+receipt (C2.10.9). The receipt is **abandoned**: neither final nor excused. No
+later checkpoint of the receipt's segment extends that backing's carrying
+state (C2.10.4), so nothing finalizes it afterwards. A receipt included before
+R was witnessed first, and R is then an ordinary scope change. An invalid R
+proves neither lapse nor abandonment. A pending term end or a passed signing
+deadline does not excuse abandonment; the key that signed the receipt and R
+answers for it.
+
+Read at one venue index, a receipt is therefore **final** where a canonical
+checkpoint of its segment, witnessed while every scoped term was in force,
+includes its position, statement identity and history hash; otherwise
+**contradicted** where such a checkpoint after `after` omits it before R, or
+where such a checkpoint at or below `after` holds its position otherwise;
+otherwise **abandoned** at R; otherwise **lapsed** where the record moved past `after` (C2b.4), where
+R proves repair, or where a scoped term has ended (C2.10.9); otherwise
+**pending**. Inclusion is read first and survives every later fact; a
+contradiction stays evidence beside later inclusion. A receipt whose `after`
+was moved past is not contradicted by omission: what its tail claimed died
+with that commitment, while a position fixed before its era still is.
+Checkpoints witnessed at or after the earliest term end are
+lapsed for the whole scope and neither finalize nor contradict. Evidence the
+reader cannot validate yields no verdict beyond the facts already proven: an
+inclusion once proven is final, and a proven contradiction remains evidence.
 
 A new segment commits its opening state before it co-signs so its receipts
 name a commitment of that segment (C2.7.4). One commitment stands in flight

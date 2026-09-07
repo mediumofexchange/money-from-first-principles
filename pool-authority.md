@@ -198,8 +198,50 @@ An elective scope change while every old term remains live must first witness
 the entire admitted tail and latest signed commitment under the old scope.
 Adding or dropping a backing is not itself permission to abandon receipts.
 Discard requires the public whole-scope lapse above or C2.7's evidence that
-the held state is stale. Otherwise the scope change waits; a new segment may
+the held state is stale, including C2.4.3 failed-publication repair as defined
+below. Otherwise the scope change waits; a new segment may
 not be used to turn a live receipt into an excused one.
+
+**C2.10.9a Failed-publication repair can lapse an unfinalized receipt.**
+For a receipt whose `after` is held, authenticate that checkpoint as belonging
+to the receipt's segment. In the same operator's sequence order after `after`,
+let R be the first held checkpoint belonging to a different segment. R proves
+a repair boundary for this receipt when all of the following hold:
+
+- R is a canonical finalized empty opening: its sequence equals its
+  authenticated header's opening sequence and its local history is empty.
+  Its imports satisfy C2.10.4–5; a claimed header or directory omission alone
+  is not an opening proof.
+- R's immediately preceding sequence is greater than `after`, and the exact
+  venue record does not hold that sequence. R proves the record has moved
+  past it. A hole followed by continued checkpoints in the receipt's segment
+  does not itself establish repair.
+- Every original scope term is live at R's witnessed index. If a term ended
+  at or before R, use C2.10.9's actual scope boundary instead.
+
+Read the held checkpoints from `after` through R against one complete venue
+view, including lower sequences at the same index. Validate their canonical
+histories before classifying the receipt. Inclusion in the receipt's segment
+binds its position, statement identity and resulting history hash. A held
+checkpoint after `after` but before R in that segment which does not include
+the receipt proves a historical live-scope contradiction. At `after` itself,
+an absent position is not a contradiction, but an occupied receipt position
+with a different statement identity or history hash is. Inclusion and
+contradiction are independent facts; neither can be erased by R. Invalid or
+unavailable checkpoint evidence does not establish lapse.
+
+At R, only a receipt with neither final inclusion nor an earlier proven
+contradiction lapses under this rule. The verdict is at that boundary; it
+does not suppress final inclusion proved by a later checkpoint. No unfinalized
+prefix is imported, and signed receipts remain durable evidence. This
+generalizes C2b.4's failed-publication lapse to receipts preceding the failed
+commitment, even though their own `after` remains held. It adds no signed
+object and does not depend on a silence clause. The cost is that an operator
+can deliberately leave a sequence unwitnessed and abandon an unfinalized
+payment through canonical repair. The public record cannot distinguish that
+choice from failed publication, and proves neither the hidden commitment's
+contents nor its signing time. Requiring that tail to survive would instead
+need a different continuity mechanism across segments.
 
 A new segment commits its opening state before it co-signs so its receipts
 name a commitment of that segment (C2.7.4). One commitment stands in flight

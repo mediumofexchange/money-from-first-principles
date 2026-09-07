@@ -9,6 +9,7 @@ The main documents change at different rates.
 | `extensions.md` | **profiles** | Optional, on top of the core, or replacing its claim layer. Each names the need that summons it and the price it charges. |
 | `pool-v2.md` | **the core construction's layouts** | `moe/pool/v2` bytes, circuits and keys. A change is a new version and a successor backing. |
 | `pool-authority.md` | **authority and history contract** | Normative C1.2/C2.10 rules for private scopes and independent backing replacement, which v2 instantiates. |
+| `pool-recovery.md` | **presentation and recovery contract** | Normative C3/C2b rules over the pool: the demand, lock and settlement, the non-service request and count, snapshot redemption at the venue, and the return from silence. Requires a later construction version. |
 | `pool-v1.md` | **historical construction layouts** | Fixed-operator `moe/pool/v1` bytes, superseded by v2; never reinterpreted. |
 
 The core's claim layer is the shielded pool (Construction §C1). Transparent,

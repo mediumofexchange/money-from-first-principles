@@ -68,6 +68,11 @@ evidence of its segment's last valid prefix as well as its statements.
 Evidence at positions beyond that prefix may change after an excluded
 checkpoint (C2.10.12); exclusion never finalized those positions. An honest
 re-proof resubmission still returns the original receipt and admitted bytes.
+An adopted statement (C2b.4.2) retains the exact proof and signature bytes of
+the publication that had force. Its evidence enters the adopting segment's
+chain at its new position; the new receipt names that segment and position
+with the retained evidence hashes. Adoption does not substitute a re-proof
+for the publication's evidence or judge its force again.
 A reader holding other valid proofs can recompute semantic state and statement
 identity, but cannot establish canonical finality or evidence-bound receipt
 inclusion without the authenticated admitted evidence.

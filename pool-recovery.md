@@ -387,6 +387,9 @@ of the block and that its nullifiers and output are new in the segment's
 state, which the block's order guarantees. It takes a position and a receipt
 naming the opening checkpoint, and has C3.5's or C3.7's effect, so the
 segment's history replays the recovery state exactly. A checkpoint of the
+segment binds each adopted event's exact publication proof and signature bytes
+in its evidence chain (C2.10.10); the new receipt retains their digests.
+A checkpoint of the
 segment witnessed after `r` whose history omits a statement of the block,
 orders them otherwise, or admits any other statement before the block is
 complete, is invalid, and the operator that signed it is at fault (invariant

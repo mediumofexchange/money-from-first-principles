@@ -241,7 +241,8 @@ C2b.4.1); `c(t) = 0` where there is none. The **gap is open** at `t` exactly
 when `t − c(t)` exceeds the declared duration. The commitment that sets
 `c(t)` need not carry `b` — a drop is C2b.5.2's, and a commitment carrying
 nothing for `b` closes `b`'s interval while adopting nothing for it
-(C2b.4.2) — and need not be valid: an invalid commitment is provable fault,
+(C2b.4.2). Closing that interval does not restore a segment retired by
+intervening silence (C2b.4.1). The commitment need not be valid: an invalid commitment is provable fault,
 not silence. Only a commitment closes the interval, and a backing that
 declares no silence clause has no gap. The transparent profile's challenge
 window is not read under the pool (C2b.3c); the duration binds alone.
@@ -330,24 +331,41 @@ says it will.
 
 ## 6. Return
 
-**C2b.4.1 The return is a new segment.** An open gap is closed only by the
-**opening checkpoint** of a new segment — an empty local history at the
+**C2b.4.1 The return is a new segment.** Return to service after silence
+requires the **opening checkpoint** of a new segment — an empty local history at the
 segment's opening sequence (C2.10.9a's form) — whose opening for each scoped
 backing is that backing's snapshot at the commitment's index (C2.7.1,
 C2.10.4), witnessed by whoever is then in force (C2b.6.1). What the
 returning operator co-signed after its last witnessed commitment was never
 witnessed, and finality means witnessed (Construction §C2b.4): that tail is
-discarded as a unit, and its receipts read under C2.10.9b. Any other
-checkpoint witnessed while the gap of a backing in its scope is open is
+discarded as a unit, and its receipts read under C2b.4.3 and C2.10.9b.
+For a segment whose opening checkpoint was witnessed at `r`, its **silence
+boundary** is the first index `g` strictly after `r` at which a backing in
+its scope has an open gap. A later clock reset does not remove that boundary.
+A non-opening checkpoint witnessed at `t` lapses if a scoped backing's gap
+is open at `t`, or if the segment has a silence boundary `g < t`. It is
 **lapsed for its whole scope**: it is held at its exact sequence, supplies no
 finalized state for any scoped backing, closes no interval, and C2.7's
-descent passes it with the declared clause and the record's own emptiness as
-the evidence of that step, as it passes a whole-scope term lapse (C2.10.4).
-This is a public condition every reader computes alike, and one scope has one
-duration (C2b.6.1), so its backings open and close a gap together. The
+descent passes it with the authenticated scope, opening index, declared
+clause and clock record proving the lapse, as it passes a whole-scope term
+lapse (C2.10.4). The reader must establish the relevant record intervals and
+their clock resets; missing evidence is unresolved, not proof that no gap
+occurred. Validation reads the candidate's original record prefix. A later
+gap cannot lapse an earlier finalized prefix.
+
+A gap at `r` does not itself retire the fresh opening: its adopted block
+covers publications through `r` (C2b.4.2). A non-opening checkpoint at `r`
+still lapses if that gap is open, irrespective of same-index sequence order.
+At or after a proven silence boundary the old segment cannot serve again;
+only a new segment can return, even if there were no recovery publications.
+Service checks the earliest witnessing horizon, but a predicted future gap
+does not authorize discard or receipt lapse: those require the boundary at
+or before the reader's witnessed index. The
 same-operator guard against an elective scope change over a live tail
 (C2.10.9) does not apply to a return: the gap is the operator's own doing,
-and the tail is not live.
+and the tail is not live once that boundary is proven. This generalizes the
+former current-index lapse test; it changes neither the operator-wide clock
+nor the fixed opening adoption index.
 
 **C2b.4.2 The segment adopts the gap before it serves.** Let `r` be the index
 at which the segment's opening checkpoint was witnessed and `a` the adoption
@@ -381,6 +399,29 @@ unchanged by a return (invariants 10 and 12); nullifiers published without a
 settlement are not adopted (C2b.3b). A demand standing at `r`, whether
 imported from the snapshot or adopted from the gap, stands in the new segment
 until it is settled, withdrawn or past its deadline there.
+
+**C2b.4.3 Receipts at the silence boundary.** Under this recovery contract,
+C2.10.9b's receipt walk ends at the earlier of the segment's silence boundary
+and its earliest scoped term end. The opening and the complete scope must
+be authenticated; no receipt signing time is inferred from `after`. A held,
+unheld or post-boundary reference does not move the silence boundary.
+
+Read canonical inclusion, contradiction, repair and the first carrying
+transition strictly before that boundary, with C2.10.9a/b's sequence and
+precedence rules. Earlier inclusion remains final, an earlier contradiction
+remains evidence, and an earlier abandonment is not excused by later silence.
+Otherwise the receipt is **lapsed** at the silence boundary, even when no
+new carrying opening follows. Checkpoints at or after the boundary neither
+include nor contradict the receipt. A supplied repair checkpoint at or after
+the boundary is not a C2.10.9a repair of that live tail; use this boundary
+instead. Missing clock or interval evidence supplies no new verdict and
+does not erase an inclusion or contradiction already proven. A backing
+without a silence clause retains C2.10.9b unchanged.
+
+This adds no signed object or privileged transfer. It extends the existing
+whole-scope receipt lapse to the same public silence boundary that ends
+continuation, rather than leaving a permanently unfinalizable tail pending
+or inferring the time at which its receipt was signed.
 
 ## 7. What E declares
 
@@ -437,6 +478,13 @@ C2b.3c, and every rule here reads objects Construction already names.
   commitments; the new segment makes the adopted block a public function of
   the record and the empty opening, at the price of a segment identity, a
   resynchronization and re-proof of anything submitted since the snapshot.
+- C2b.4.1/3: intervening silence retires continuation and lapses its unfinished
+  receipts even after an unrelated clock reset. This replaces the insufficient
+  current-index-only test; it preserves earlier finality and liability. The
+  cost is authenticated interval evidence and whole-scope reopening and
+  re-proof even where nobody published a recovery act. A moving adoption
+  boundary would need new ordering and proof rules; merely checking for a
+  release would omit demands and withdrawals with force.
 - C2b.3.1: the adoption index, so a settlement not yet adopted still counts
   against the next gap's holdings. The alternative, reading only the
   snapshot's own state, lets a note settle once per silence.

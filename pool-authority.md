@@ -286,6 +286,10 @@ per operator on the venue, across its segments (C2.4.3). A process restarting
 within the same still-current segment restores its latest signed commitment
 and co-signed tail durably (C2.8.1), then waits the lag before signing.
 Restart alone is not a scope reset and does not discard live receipts.
+For constructions implementing [the recovery contract](pool-recovery.md#6-return),
+C2b.4.1/3 additionally ends continuation and the receipt walk at the segment's
+proven silence boundary, preserving every earlier finalized prefix and
+earlier liability. This refinement does not add silence to pool-v2.
 If the record or scope has moved past that state, C2.7 and C2.10.5 determine
 the new opening state. Publication failure does not reuse a signed sequence.
 

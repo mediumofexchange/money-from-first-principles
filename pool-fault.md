@@ -7,7 +7,8 @@ are applied to the normative documents. The executable oracle for every rule
 below is the reference's fault model (`model/pool-fault.ts` and the test files
 named in [§10](#10-what-the-maintainer-selects)); the reference's
 [fault recovery document](https://github.com/mediumofexchange/reference-ts/blob/main/docs/POOL_FAULT_RECOVERY.md)
-holds the evidence, the reader contract and the review findings this answers.
+holds the evidence, the reader contract, the review findings this answers and
+the disposition of the independent review of this text.
 
 This proposes how a checkpoint that its own operator signed, and that fails
 the rules on the evidence it committed, is read by the descent (C2.7,
@@ -16,10 +17,10 @@ clock (C2b.6.1), the return (C2b.4.1–2) and the receipt verdicts
 (C2.10.9a–b, C2b.4.3). It refines the [authority contract](pool-authority.md)
 and the [recovery contract](pool-recovery.md) with four rules, C2.10.10–13,
 one receipt rule, C2.10.9c, and one revised clock, C2b.6.1, for a
-construction version that binds exact evidence into its history. Words are
-pool-v2's and the two contracts'. "At a checkpoint's own record prefix" means
-against earlier witnessed indices and, at its own index, only lower signed
-sequences of the same operator (C2.10.4).
+construction version that commits to its exact evidence. Words are pool-v2's
+and the two contracts'. "At a checkpoint's own record prefix" means against
+earlier witnessed indices and, at its own index, only lower signed sequences
+of the same operator (C2.10.4).
 
 ## 1. The failure this repairs
 
@@ -48,37 +49,58 @@ checkpoint on it. The first rule below makes it one.
 
 ## 2. Evidence
 
-**C2.10.10 A checkpoint authenticates the exact evidence it commits.** In a
-construction implementing this contract, the segment's history binds, for
-every local statement, the digests of the exact evidence the operator verified
-when it admitted the statement: `proofHash` and, for an issuance,
-`signatureHash`, as pool-v2 §9's receipt already carries them, beside the
-statement identity, roots and position in the history recurrence. A
-commitment therefore commits, through each snapshot digest, to the exact
-evidence of every event in its history. The **served trail** of a checkpoint
-is the evidence whose digests its history binds. A proof or signature with
-another digest at a position is not that checkpoint's evidence, whether it
-verifies or not, and a trail that does not reproduce the signed snapshot
-digests is not the checkpoint's trail.
+**C2.10.10 A checkpoint commits to the exact evidence it admitted.** In a
+construction implementing this contract, the segment commits, beside its
+history, to an **evidence chain** over the exact evidence the operator
+verified when it admitted each statement:
 
-C2.10.6 is unchanged: an event's identity is its segment identity, position
-and statement identity, so two prefixes agree on common events by statement
-identity, and the evidence of an event is fixed once, by the segment that
-admitted it. Pool-v2 §8's idempotence is unchanged: an exact resubmission,
-and a re-proof of an admitted statement with other valid bytes, return the
-original receipt with the original digests, and the history carries the
-original evidence. A receipt's inclusion already "binds its position,
-statement identity and resulting history hash" (C2.10.9a); with this rule the
-history hash binds the evidence too, so a receipt whose evidence digests
-differ from the checkpoint's at its position is contradicted by the existing
-comparison, and no new comparison is added.
+```text
+evidenceHash_0 = H(T_EVIDENCE ‖ segmentId)
+evidenceHash_i = H(T_EVIDENCE ‖ evidenceHash_{i−1} ‖ statementHash_i ‖ proofHash_i ‖ signatureHash_i)
+```
+
+with `proofHash_i` and `signatureHash_i` as pool-v2 §9's receipt already
+carries them, and the snapshot digest of every scoped backing binds
+`evidenceHash_n` beside `historyHash_n`. The history hash and every root stay
+functions of the statements alone, so pool-v2 [§7](pool-v2.md#7-statements)'s
+identity ("two statements with one `statementHash` are one statement,
+whatever their proof bytes"), C2.10.6's deduplication and pool-v2 §8's
+idempotence are unchanged: an exact resubmission, and a re-proof of an
+admitted statement with other valid bytes, return the original receipt with
+the original digests, and the committed evidence is fixed once, by the
+segment that admitted the statement. A reader holding any valid proofs can
+still recompute the state, check statement identity and check a receipt's
+inclusion, as today.
+
+The **served trail** of a checkpoint carries, for every event, the exact
+bytes the operator verified, and a reader reproduces both chains from it. A
+proof or signature with another digest at a position is not that checkpoint's
+evidence, whether it verifies or not, and a trail that does not reproduce the
+signed snapshot digests is not the checkpoint's trail. A receipt's inclusion
+"binds its position, statement identity and resulting history hash"
+(C2.10.9a); with this rule a receipt whose evidence digests differ from the
+committed ones at its position is contradicted by that existing comparison
+against the evidence chain, and no new comparison is added.
 
 What the rule buys is attribution. A reader holding a checkpoint's served
-trail recomputes the history to the signed snapshot digest; if the trail
-reproduces it and a proof in it fails, the operator signed for evidence that
-fails, which is its provable fault (invariant 22). If the trail does not
+trail recomputes the evidence chain to the signed snapshot digest; if the
+trail reproduces it and a proof in it fails, the operator signed for evidence
+that fails, which is its provable fault (invariant 22). If the trail does not
 reproduce the digest, the reader holds something other than the operator's
 evidence and has learned nothing about the checkpoint.
+
+What it costs is the committed bytes. The classes of C2.10.11 are read from
+the *committed* evidence, so a reader holding only other valid bytes for a
+statement can verify the state and the receipt but cannot classify the
+checkpoint: it is unresolved for that reader until the committed bytes are
+served. Today a valid re-proof replays a trail whose original proof was lost;
+under this rule it does not classify it. The exact admitted bytes therefore
+become a retention obligation on the operator and its replicas, beside the
+trail they already serve. The alternative, reading validity from any valid
+proof a reader happens to hold, was refused: a reader holding valid bytes and
+a reader holding the operator's failing committed bytes would classify one
+checkpoint differently and disagree about the snapshot and about force, which
+is the disagreement C2.10.11 exists to prevent.
 
 ## 3. Classification
 
@@ -91,32 +113,42 @@ obtained its evidence. The classes, in the order they are judged:
 - **Lapsed.** The checkpoint is witnessed at or after a scoped term's end
   (C2.10.4), or is a non-opening checkpoint witnessed while a scoped
   backing's gap is open or at or after its segment's silence boundary
-  (C2b.4.1). Lapse is read from the authenticated header and scope
-  with the witnessed replacement chain and, for silence, the scope's own
-  clock record. No event evidence is read, and lapse does not depend on
-  validity.
+  (C2b.4.1). Term lapse reads only the authenticated header and scope with
+  the witnessed replacement chain. Silence lapse reads the scope's clock
+  record: under the revised C2b.6.1 that is the classification of every
+  commitment carrying a scoped backing back to the last valid one
+  (C2.10.13), so an unresolved carrying commitment leaves silence lapse
+  unresolved; under an operator-wide clock it is the operator's commitments
+  with their carriage, scopes and terms. Lapse is judged before validity, and
+  that order decides what a read does, not attribution: a lapsed checkpoint
+  whose served trail fails deterministically is still its operator's provable
+  fault (invariant 22), though no read passes it on that ground.
 - **Valid.** The reader holds the checkpoint's authenticated directory, scope
   and terms, its served trail (C2.10.10) and the evidence its imports and its
   descent require; every scoped term is in force at its index (C2.10.3); it
   extends its segment's last valid prefix (C2.10.12); its imports satisfy
   C2.10.5–7; where the construction implements recovery, its history begins
   with its adopted block (C2b.4.2); and replay under pool-v2 §8 admits every
-  statement at its position, the proof verifying against the configuration's
-  key for its kind and the obligor signature under **K** where one is
-  required.
+  statement at its position, the committed proof verifying against the
+  configuration's key for its kind and the committed obligor signature under
+  **K** where one is required.
 - **Excluded.** The checkpoint is not lapsed, its served trail reproduces its
   signed snapshot digests, and validity fails deterministically on that
-  evidence: a proof or obligor signature that does not verify; a statement
-  §8's admission would refuse at its position against the replayed state (a
-  wrong domain, segment or scope root, a backing outside the scope, a spent
-  nullifier, a duplicate or missing output, an uncertified anchor, a supply
-  bound); a history that does not extend the segment's last valid prefix; an
-  import conflict (C2.10.6) or an import of a prefix that is not finalized; a
-  header the construction calls malformed (C2.10.1, C2b.6.1); an opening
-  history that omits, reorders or precedes its adopted block (C2b.4.2); or a
-  scope whose terms the signer did not hold at its index. Exclusion is a
-  function of the checkpoint's bytes and the record before it: a fact
-  witnessed later never turns a valid checkpoint into an excluded one.
+  evidence: a committed proof or obligor signature that does not verify; a
+  statement §8's admission would refuse at its position against the replayed
+  state (a wrong domain, segment or scope root, a backing outside the scope,
+  a spent nullifier, a duplicate or missing output, an uncertified anchor, a
+  supply bound); a history that does not extend the segment's last valid
+  prefix; an import conflict (C2.10.6), or an import naming a commitment the
+  complete record (C2.10.13) does not hold, or one that is excluded or
+  lapsed; a header the construction calls malformed (C2.10.1, C2b.6.1); an
+  opening history that omits, reorders or precedes its adopted block
+  (C2b.4.2); or a scope naming a term not yet in force at its index or one
+  the replacement chain does not hold. A checkpoint witnessed after a scoped
+  term ended is lapsed, not excluded, and a checkpoint by a party never in
+  force for a backing is not read for that backing at all (C2.7.1).
+  Exclusion is a function of the checkpoint's bytes and the record before it:
+  a fact witnessed later never turns a valid checkpoint into an excluded one.
 - **Unresolved.** The reader lacks, or cannot authenticate, something either
   verdict needs: the trail or any part of it, the directory, the scope or its
   terms, an imported prefix or its evidence, a checkpoint its descent or
@@ -162,7 +194,13 @@ checkpoint is valid without a new segment. An operator that committed bad
 evidence and then commits the same statements with valid evidence finalizes
 them, and its excluded checkpoint remains provable fault. An operator that
 commits other statements at those positions contradicts the receipts it gave
-(C2.10.9b), and answers for them.
+(C2.10.9b), and answers for them. Each case holds where the segment's next
+valid checkpoint is witnessed before a scoped backing's gap opens (C2b.4.1):
+an excluded checkpoint resets no clock, so the gap is measured from the last
+valid one, and a segment that does not recommit within the duration is
+retired by silence and returns as a new segment under either variant. The
+honest process that commits at its interval is inside that bound; a stale
+checkpoint no longer buys it time, which is the point of exclusion.
 
 *Alternative, R7: a fault ends the segment.* Every later checkpoint of the
 segment is excluded, the operator refuses further service under it, and
@@ -198,20 +236,34 @@ does not arise, and the residue of every operator-wide rule, that a live
 operator can keep a dropped backing's gap shut with fresh valid commitments
 carrying other backings, does not arise either.
 
-It changes one sentence of Construction §C2b.6. A backing an operator drops
-from its scope while committing the rest (C2.4.5) is reached by the
-non-service grade first and, once the declared duration has passed since its
-last valid carrying checkpoint, by this grade too: snapshot redemption opens
-for it while the operator commits other backings. The rest of §C2b.6 is
-unchanged and its reasoning is kept: the clock is the backing's, a handover
-neither starts nor stops it, a successor inherits the remainder, an honest
-heir is graded until its first commitment lands, and a clock that reset on an
-event the rule-holder chooses would be cancellable by the rule-holder. A
-valid checkpoint carrying `b` is the operator's own act of committing `b`'s
-state, which nobody else can perform for it. The cost is the backer's: the
-duration it declares now prices a drop as it prices darkness. The gain is the
-holder's: a dropped backing whose replacement rule is inert or absent has a
-remedy the count alone could not give.
+The clock inherits the snapshot's dependency as well as its evidence. Where a
+commitment carrying `b` is unresolved for a reader, `b`'s gap is unresolved
+for that reader, and with it the silence lapse of `b`'s receipts (C2b.4.3)
+and the silence boundary of `b`'s segment (C2b.4.1), whereas an operator-wide
+clock answers "closed" from a later commitment carrying other backings
+without reading the unresolved one. That answer is determinate only because
+the rule lets a commitment carrying nothing for `b` speak for `b`; under the
+revised clock the reader refuses instead, as it already does for the
+snapshot. The clock therefore adds no evidence a redemption did not already
+need, but it does make the gap verdict wait on the same evidence.
+
+It changes two sentences of Construction §C2b.6, the second and the last of
+its first paragraph. The grade runs from the last valid checkpoint carrying
+the backing rather than from the last commitment by the party in force, and
+only such a checkpoint closes it; and a backing an operator drops from its
+scope while committing the rest (C2.4.5) is reached by the non-service grade
+first and, once the declared duration has passed since its last valid
+carrying checkpoint, by this grade too: snapshot redemption opens for it
+while the operator commits other backings. The rest of §C2b.6 is unchanged
+and its reasoning is kept: the clock is the backing's, a handover neither
+starts nor stops it, a successor inherits the remainder, an honest heir is
+graded until its first commitment lands, and a clock that reset on an event
+the rule-holder chooses would be cancellable by the rule-holder. A valid
+checkpoint carrying `b` is the operator's own act of committing `b`'s state,
+which nobody else can perform for it. The cost is the backer's: the duration
+it declares now prices a drop as it prices darkness. The gain is the holder's:
+a dropped backing whose replacement rule is inert or absent has a remedy the
+count alone could not give.
 
 With this clock, two sentences of the recovery contract are retired: "a
 commitment carrying nothing for `b` closes `b`'s interval while adopting
@@ -221,10 +273,12 @@ guard. C2b.4.2's rule that a publication with force for a backing the
 segment does not carry waits for the next segment that does, whose block
 reaches back to that backing's adoption index, stands and does more work: a
 publication for `b` has force while `b`'s gap is open, whoever else commits.
-The silence boundary (C2b.4.1) is unchanged in form and simpler in evidence:
-for a segment, every scoped backing's `c(t)` after the opening is one of the
-segment's own valid checkpoints, so the boundary is that checkpoint's index
-plus the duration plus one.
+The silence boundary (C2b.4.1) is unchanged in form: every scoped backing's
+`c(t)` is a valid checkpoint carrying it by the party then in force, the
+segment's own while the segment carries it, and the boundary follows from
+those checkpoints and the duration; the reader still establishes the
+complete range of the operator's commitments (C2.10.13), and reads no other
+scope's history for it.
 
 *Alternatives that retain the operator-wide clock.* Each keeps "any
 commitment by the party in force for `b` closes `b`'s interval" and differs
@@ -290,8 +344,8 @@ about `b` at `t`, a reader establishes:
 2. for every commitment in the range, its authenticated directory, to read
    whether it carries `b` (C2.4.2);
 3. for every commitment carrying `b`, the evidence C2.10.11 names: scope and
-   terms, the served trail and the imports, and the classification of every
-   checkpoint its own descent passes;
+   terms, the served trail with its committed evidence, the imports, and the
+   classification of every checkpoint its own descent passes;
 4. under the revised C2b.6.1, nothing else. Under an operator-wide clock,
    also each non-carrying commitment's scope and terms, and under A″ its
    scope's clock record.
@@ -304,24 +358,29 @@ Retention is the holders' and the backer's, as it is for the trail (§C0b),
 and replication remains the remedy for withheld evidence (C2.7.2).
 
 A stranger shown one excluded checkpoint needs its signed commitment, the
-directory proof for one scoped backing, the recurrence inputs from the failing
-event to the committed length, and the event's exact evidence. Under a linear
-history that is 168 bytes per later event, or 160 with the position derived,
-plus the evidence (about 14.7 KB for a v2 proof); a tree over the history
-would make it logarithmic. Which form pool-v3 fixes is its choice and does not
-change these rules.
+directory proof for one scoped backing with the segment identity and the
+totals the snapshot digest binds, the terminal `historyHash_n` and the
+evidence chain's inputs from the failing event to the committed length (96
+bytes per later event: `statementHash`, `proofHash`, `signatureHash`), and
+the failing statement's public inputs with its exact evidence (about 14.7 KB
+for a v2 proof). A tree over the evidence chain would make the suffix
+logarithmic. Which form pool-v3 fixes is its choice and does not change these
+rules.
 
 ## 8. The amendments
 
-Adopting the rules above changes the following sentences and no others; each
-is applied by the maintainer, in the document named, when a rule is selected.
+Adopting the rules above changes the sentences below. The maintainer checks
+the list against the documents when applying it; each row is applied in the
+document named when its rule is selected.
 
 | Document, rule | Present | Proposed |
 |---|---|---|
-| Construction §C2b.6 | "The grade fires on the operator publishing nothing; one that drops a single backing while committing the rest on time is reached by the non-service grade instead." | "The grade fires on the operator not committing this backing; one that drops a single backing while committing the rest on time is reached by the non-service grade first, and by this grade once the duration has passed since the last commitment carrying it." (Only under the revised C2b.6.1.) |
+| Construction §C2b.6 | "It opens snapshot redemption and runs from the last commitment witnessed from a party then in force for this backing until commitments resume, and only a commitment closes it." | "It opens snapshot redemption and runs from the last valid checkpoint carrying this backing, witnessed from a party then in force for it, until such a checkpoint is witnessed again, and only such a checkpoint closes it." (Only under the revised C2b.6.1.) |
+| Construction §C2b.6 | "The grade fires on the operator publishing nothing; one that drops a single backing while committing the rest on time is reached by the non-service grade instead." | "The grade fires on the operator not committing this backing; one that drops a single backing while committing the rest on time is reached by the non-service grade first, and by this grade once the duration has passed since the last valid commitment carrying it." (Only under the revised C2b.6.1.) |
 | Construction §C2.10 | "A late checkpoint lapses for its entire scope; the authenticated scope and replacement evidence prove that step in C2.7's descent, whereas missing scope data proves nothing." | Add: "A checkpoint whose committed evidence fails the rules is excluded and passed on that evidence (C2.10.10–12); a checkpoint the reader cannot classify blocks." |
 | Authority C2.10.3 | "An invalid candidate is not accepted; unavailable evidence is not an empty state." | "An excluded candidate is passed to the last valid one (C2.10.12); an unresolved one blocks; unavailable evidence is not an empty state." |
 | Authority C2.10.4 | "Later checkpoints of the same segment extend its already final prefix" | "...extend its last valid prefix" and, in the lapse paragraph, "as it passes an excluded checkpoint (C2.10.12)"; the sentence "A wrong proof or inconsistent history under otherwise live terms is invalid data, not this public lapse condition or a license to choose an older state" becomes "A wrong proof or inconsistent history under live terms is C2.10.11's excluded class where the evidence is authenticated and unresolved otherwise; neither licenses choosing an older state, since descent reaches the last valid checkpoint." |
+| Authority C2.10.6, pool-v2 §7 and §10 | "different valid proof bytes may attest the same statement"; "Two statements with one `statementHash` are one statement, whatever their proof bytes." | Both stand, for identity, deduplication and admission. Add to pool-v2 §10's successor: "Classification under C2.10.11 reads the committed evidence (C2.10.10); a trail served with other bytes reproduces the state and is unresolved for finality." |
 | Authority C2.10.9a–b | "Invalid or unavailable checkpoint evidence does not establish lapse." / "An invalid R proves neither lapse nor abandonment." | "An unresolved checkpoint establishes nothing; an excluded one is passed and is not the transition (C2.10.9c)." |
 | Recovery C2b.3.1 | "A carrying checkpoint by the party then in force that the reader finds invalid blocks the read, as it blocks C2.7's descent (C2.10.3): it is neither a snapshot nor a licence to read an older one." | "An excluded carrying checkpoint (C2.10.11) is passed with its evidence, as a whole-scope lapse is; an unresolved one blocks the read. The snapshot is the last valid carrying checkpoint, never a state the reader chooses." |
 | Recovery C2b.5.2 | "A carrying checkpoint by the party then in force that the reader finds invalid blocks the count as it blocks the snapshot (C2b.3.1): provable fault is not a clean count." | "The count reads against the snapshot (C2b.3.1), passing excluded checkpoints and refusing on unresolved ones: a provably faulting operator is counted against, not sheltered by its fault." |
@@ -329,18 +388,20 @@ is applied by the maintainer, in the document named, when a rule is selected.
 | Recovery C2b.4.1 | "It is lapsed for its whole scope: it is held at its exact sequence, supplies no finalized state for any scoped backing, closes no interval" | Add: "An excluded checkpoint of the segment (C2.10.12) is likewise held and closes no interval; it neither retires the segment nor moves its silence boundary." |
 | Recovery §8 | The bullet recording the invalid-live-evidence remedy as open. | Replaced by a pointer to this contract. |
 | Construction Appendix | — | Two retired sentences with their cost: an invalid commitment resets the clock (a stream of bad commitments suppresses redemption forever); a commitment carrying nothing for a backing closes its interval (a dropped backing has only the count, and its clock reads other scopes' evidence). |
-| pool-v3 | — | The history recurrence carries `proofHash_i` and `signatureHash_i` (C2.10.10); the form of the history, chain or tree, and the certificate encoding. |
+| pool-v3 | — | The evidence chain and `T_EVIDENCE`, `evidenceHash_n` in the snapshot digest, the served trail's exact evidence (C2.10.10); the form of the chains and the certificate encoding. |
 
 ## 9. What this adds, replaces and costs
 
 Under Construction [§C0a](construction.md#c0a-what-may-be-added):
 
-**It adds** two digests per event to an existing recurrence (C2.10.10) and
-one classification (C2.10.11) that every reader already performs in part,
-since each already decides whether a checkpoint is final or lapsed. It adds
-no frame, no publication kind, no party, no venue role and no primitive. The
+**It adds** one chain over evidence digests the receipt already carries
+(C2.10.10), bound by the existing snapshot digest, and one classification
+(C2.10.11) that every reader already performs in part, since each already
+decides whether a checkpoint is final or lapsed. The chain is one mechanism
+for one property, attribution, and leaves identity to the history hash; the
 excluded class is read exactly where the lapsed class is already read, so the
-passing rule is one generalized mechanism, not a second one.
+passing rule is one generalized mechanism, not a second one. It adds no
+frame, no publication kind, no party, no venue role and no primitive.
 
 **It replaces** the three sentences that let a reader's finding of invalidity
 block a read, with a class that authenticated evidence establishes and a
@@ -357,25 +418,33 @@ holdings and opens the remedies. The revised clock derives from §C2b.3's own
 definition of the snapshot as the last commitment whose directory carries the
 backing: the clock reads the same object.
 
-**It costs** 64 bytes per event in the history; a fault certificate that is
-linear in the segment's later events under a chained history; readers that
-retain evidence rather than verdicts; under the revised clock, a backer whose
-declared duration prices a drop as darkness; under segment continuity, an
-excluded checkpoint's tail that waits for the segment's next valid checkpoint
-or a boundary rather than being decided at once.
+**It costs** 32 bytes in the snapshot digest and 96 bytes per event in the
+evidence chain; a fault certificate that is linear in the segment's later
+events under a chained history; the exact admitted bytes as a retention
+obligation on the operator and its replicas, since a valid re-proof no longer
+classifies a checkpoint whose original evidence was lost; readers that retain
+evidence rather than verdicts; under the revised clock, a backer whose
+declared duration prices a drop as darkness, and a gap verdict that waits on
+the same evidence as the snapshot rather than being answered by a commitment
+carrying other backings; under segment continuity, an excluded checkpoint's
+tail that waits for the segment's next valid checkpoint or a boundary rather
+than being decided at once, and that is saved only where that checkpoint
+lands before the gap opens.
 
 **It leaves** the residue every intrinsic rule leaves: a checkpoint whose
-preimage nobody serves is unresolved for every reader forever, exactly as
-today, and no rule may pass it, since a reader cannot tell a withheld preimage
-from an honest replica's loss and missing data must never authorize rollback.
-Availability is a separate contract: either the venue admits a commitment only
-with its data or under a declared availability requirement, or independent
-replication is arranged and measured. Prospective fault publication (a
-challenger publishes the failing evidence at the venue, and exclusion applies
-to reads after that index) was refused as the primary mechanism because it
-adds a frame and a watcher and repeats a proof-sized publication per bad
-commitment, while readers holding the trail can already agree on the class;
-it remains available as a way for a stranger to share a certificate.
+committed evidence nobody serves is unresolved for every reader, as the
+snapshot is today when a trail is withheld, and under the revised clock the
+gap is unresolved with it; no rule may pass it, since a reader cannot tell a
+withheld preimage from an honest replica's loss and missing data must never
+authorize rollback. Availability is a separate contract: either the venue
+admits a commitment only with its data or under a declared availability
+requirement, or independent replication is arranged and measured. Prospective
+fault publication (a challenger publishes the failing evidence at the venue,
+and exclusion applies to reads after that index) was refused as the primary
+mechanism because it adds a frame and a watcher and repeats a proof-sized
+publication per bad commitment, while readers holding the trail can already
+agree on the class; it remains available as a way for a stranger to share a
+certificate.
 
 **It is core.** Two readers that classify one record differently disagree
 about a holding; every implementation must read these classes alike.
@@ -386,7 +455,7 @@ about a holding; every implementation must read these classes alike.
    on a reader's finding of invalidity. The alternative is the present text
    with the reproduced failure standing.
 2. **The clock:** the revised C2b.6.1, the clock is the snapshot's
-   (recommended, and it changes one sentence of Construction §C2b.6); or
+   (recommended, and it changes two sentences of Construction §C2b.6); or
    term-only non-carrying resets, recommended where the operator-wide clock
    is kept; or A″.
 3. **Segment continuity:** the segment continues from its last valid
@@ -401,6 +470,8 @@ candidate and its variants in `model/pool-fault.test.ts`,
 `model/pool-fault-dependency.test.ts` and `model/pool-fault-liability.test.ts`;
 the revised clock and segment continuity, against the defaults, in
 `model/pool-fault-alternatives.test.ts`; the v2 evidence boundary in
-`model/pool-fault-evidence.test.ts`. Independent adversarial review of the
+`model/pool-fault-evidence.test.ts`. The evidence chain of C2.10.10 is not
+yet modelled: the model's proofs are ideal tokens bound to their checkpoint,
+which is what the chain provides. Independent adversarial review of the
 selected rules is owed before the amendments are applied; the questions that
 review must answer are in the reference's fault recovery document.

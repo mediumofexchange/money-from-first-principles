@@ -8,7 +8,9 @@ replacement on 2026-09-06. This contract requires a new construction version;
 it does not change the bytes, keys or interpretation of existing `moe/pool/v1`
 notes. [pool-v2.md](pool-v2.md) fixes the replacement-capable construction
 bit for bit and records its pinned circuits and keys; the objects neither
-document carries are listed in its §7.4.
+document carries are listed in its §7.4. The [fault contract](pool-fault.md)
+amends classification, continuity and evidence-bound receipts for a later
+version; existing v2 bytes and their pinned interpretation remain unchanged.
 
 ## 1. Immutable claims and current authority
 
@@ -53,7 +55,8 @@ construction domain, venue, operator, the full scope with term links, and the
 exact opening commitment for every backing (or genesis where C2.7.3 permits
 it). Its identity also distinguishes successive segments by the operator's
 monotone signed commitment sequence. A changed scope, changed term, or reset
-after a stale record requires a new segment. A returning key receives no
+to a different opening requires a new segment. An excluded stale checkpoint
+does not itself end a segment (C2.10.12). A returning key receives no
 exception. Backings may choose operators independently and an operator need
 not obtain a departed backing's consent to serve its remaining scope.
 
@@ -79,16 +82,18 @@ remaining backings. A stale scope cannot be made current by dropping names.
 The complete directory is still the public carriage evidence. A name present
 with missing or invalid history is not an absence proof and does not authorize
 falling back to a convenient earlier state. C2.7's exact descent fixes the
-candidate before replay checks it. An invalid candidate is not accepted;
-unavailable evidence is not an empty state. A commitment whose scope has lost
-a term cannot be used to finalize its retained backings' tail either.
+candidate before replay checks it. An excluded candidate is passed to the last
+valid one (C2.10.12); an unresolved one blocks; unavailable evidence is not an
+empty state. A commitment whose scope has lost a term cannot be used to finalize
+its retained backings' tail either.
 
 **C2.10.4 Continuity is per backing, event storage is shared.** For a segment's
 first checkpoint, each backing's opening state is C2.7's state from the record;
 for continued service it is the latest carrying state, including where the
 same operator changes scope without a replacement. Later checkpoints of the
-same segment extend its already final prefix without changing any earlier
-statement or opening state. Every valid checkpoint becomes the new state for
+same segment extend its last valid prefix, including its committed evidence
+(C2.10.10), without changing any earlier statement or opening state. Every
+valid checkpoint becomes the new state for
 all its scoped backings together. A stale process cannot omit a newer state
 by presenting a valid older one. Same-key reappointment imports the state of
 the intervening term, not the state that key remembers.
@@ -103,11 +108,13 @@ does not retroactively change the child's predecessor.
 An authenticated checkpoint witnessed after any scoped term ends is **lapsed
 for its whole scope**. C2.7's descent may pass it with its authenticated scope
 and the witnessed replacement evidence proving that lapse, as it passes an
-omitted backing with directory absence evidence. It remains held at its exact
+omitted backing with directory absence evidence or an excluded checkpoint
+with its authenticated evidence (C2.10.12). It remains held at its exact
 sequence by the venue, but supplies no finalized state for any scope backing.
 This is not an absence claim, and missing scope data cannot prove the step.
-A wrong proof or inconsistent history under otherwise live terms is invalid
-data, not this public lapse condition or a license to choose an older state.
+A wrong proof or inconsistent history under live terms is C2.10.11's excluded
+class where the evidence is authenticated and unresolved otherwise; neither
+licenses choosing an older state, since descent reaches the last valid checkpoint.
 A public whole-scope lapse is excluded consistently from the carrying-state
 reads for takeover (C2.7.1), currency (C2.7.5), snapshot selection (C2b.3) and
 the no-commitment clock (C2b.6). It cannot close a silence interval. The venue
@@ -227,13 +234,15 @@ proves a repair boundary for this receipt when all of the following hold:
 Read the held checkpoints from `after` through R against one complete venue
 view, including lower sequences at the same index. Validate their canonical
 histories before classifying the receipt. Inclusion in the receipt's segment
-binds its position, statement identity and resulting history hash. A held
-checkpoint after `after` but before R in that segment which does not include
+binds its position, statement identity, resulting history hash and committed
+proof and signature hashes (C2.10.10). A held checkpoint after `after` but
+before R in that segment which does not include
 the receipt proves a historical live-scope contradiction. At `after` itself,
 an absent position is not a contradiction, but an occupied receipt position
-with a different statement identity or history hash is. Inclusion and
-contradiction are independent facts; neither can be erased by R. Invalid or
-unavailable checkpoint evidence does not establish lapse.
+with a different statement identity, history hash or evidence hashes is.
+Inclusion and contradiction are independent facts; neither can be erased by R. An unresolved
+checkpoint establishes nothing; an excluded one is passed and is not the
+transition (C2.10.9c).
 
 At R, only a receipt with neither final inclusion nor an earlier proven
 contradiction lapses under this rule. The verdict is at that boundary; it
@@ -259,14 +268,16 @@ a repair boundary, the operator changed scope without first witnessing the
 receipt (C2.10.9). The receipt is **abandoned**: neither final nor excused. No
 later checkpoint of the receipt's segment extends that backing's carrying
 state (C2.10.4), so nothing finalizes it afterwards. A receipt included before
-R was witnessed first, and R is then an ordinary scope change. An invalid R
-proves neither lapse nor abandonment. A pending term end or a passed signing
+R was witnessed first, and R is then an ordinary scope change. An unresolved R
+establishes nothing; an excluded one is passed and is not the transition
+(C2.10.9c). A pending term end or a passed signing
 deadline does not excuse abandonment; the key that signed the receipt and R
 answers for it.
 
 Read at one venue index, a receipt is therefore **final** where a canonical
 checkpoint of its segment, witnessed while every scoped term was in force,
-includes its position, statement identity and history hash; otherwise
+includes its position, statement identity, history hash and committed proof
+and signature hashes (C2.10.10); otherwise
 **contradicted** where such a checkpoint after `after` omits it before R, or
 where such a checkpoint at or below `after` holds its position otherwise;
 otherwise **abandoned** at R; otherwise **lapsed** where the record moved past `after` (C2b.4), where
@@ -292,6 +303,10 @@ proven silence boundary, preserving every earlier finalized prefix and
 earlier liability. This refinement does not add silence to pool-v2.
 If the record or scope has moved past that state, C2.7 and C2.10.5 determine
 the new opening state. Publication failure does not reuse a signed sequence.
+
+For later constructions, [C2.10.9c](pool-fault.md#6-receipts) passes excluded
+checkpoints without creating holes or receipt boundaries; C2.10.10–13
+define committed evidence, classification and the complete record read.
 
 ## 5. What this replaces and costs
 

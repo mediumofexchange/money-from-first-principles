@@ -65,7 +65,7 @@ Exchange Protocol** — the normative part, and what an implementation tracks.
 | **[Pool v2](pool-v2.md)** | The core construction bit for bit, `moe/pool/v2`: fields, hashes, notes, the scope and the segment, the three statements, the note tree and the accepted-root forest, the spent set, the history, the receipt, finalized import, what **E** names. For two implementations to agree. |
 | **[Pool authority](pool-authority.md)** | The rules v2 instantiates: private spends stay authorized when backings replace their operators independently. |
 | **[Pool recovery](pool-recovery.md)** | The rules a later version instantiates: presentation and settlement, the non-service count, snapshot redemption at the venue while the operator is dark, and what the return adopts. |
-| **[Pool fault](pool-fault.md)** | A proposal, not yet adopted: authenticated faults over the pool, how an operator's provably invalid checkpoint is passed rather than blocking recovery, and a clock read from the snapshot. |
+| **[Pool fault](pool-fault.md)** | The rules a later version instantiates: authenticated exclusion of faulty checkpoints, a clock read from the snapshot, continuation from the last valid prefix and receipts bound to admitted evidence. |
 | **[Pool v1](pool-v1.md)** | The historical fixed-operator layout, `moe/pool/v1`, superseded by v2 and retained as implementation evidence. |
 
 The core's claim layer is the shielded pool ([Construction §C1](construction.md#c1-claims-and-wallets)):

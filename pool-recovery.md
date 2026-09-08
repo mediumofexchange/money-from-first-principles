@@ -220,10 +220,10 @@ served, whether by this party or its predecessor. A handover neither resets
 nor moves the count: the successor inherits the standing requests and clears
 them by serving them, and an operator that drops a backing from its scope
 while committing the rest is reached here, read against the last checkpoint
-that carried the backing (Construction §C2b.5, §C2.4.5). A carrying
-checkpoint by the party then in force that the reader finds invalid blocks
-the count as it blocks the snapshot (C2b.3.1): provable fault is not a clean
-count. The cost stands as declared: one holder can split a holding into `m`
+that carried the backing (Construction §C2b.5, §C2.4.5). The count reads against
+the snapshot (C2b.3.1), passing excluded checkpoints and refusing on unresolved
+ones: authenticated fault does not shelter the operator from the count. The
+cost stands as declared: one holder can split a holding into `m`
 notes and file `m` requests, and the pool hides the sizes that would weight
 them.
 
@@ -234,26 +234,27 @@ duration. Every backing of one scope declares the same duration, or none:
 a segment header whose scope mixes durations, or clause with no clause, is
 malformed, so a scope has one interval as it has one clock (C2.10.2) and a
 backing that declared no silence clause is never lapsed by a sibling's. For
-backing `b` at index `t`, let `c(t)` be the greatest index strictly before
-`t` at which the record holds a commitment by the party in force for `b` at
-that index, other than a checkpoint lapsed for its whole scope (C2.10.4,
-C2b.4.1); `c(t) = 0` where there is none. The **gap is open** at `t` exactly
-when `t − c(t)` exceeds the declared duration. The commitment that sets
-`c(t)` need not carry `b` — a drop is C2b.5.2's, and a commitment carrying
-nothing for `b` closes `b`'s interval while adopting nothing for it
-(C2b.4.2). Closing that interval does not restore a segment retired by
-intervening silence (C2b.4.1). The commitment need not be valid: an invalid
-commitment is provable fault, not silence. Only a commitment closes the interval, and a backing that
-declares no silence clause has no gap. The transparent profile's challenge
-window is not read under the pool (C2b.3c); the duration binds alone.
+backing `b` at index `t`, let `c(t)` be the index of its snapshot at `t`
+(C2b.3.1): the last valid checkpoint carrying `b`, by a party then in force
+for `b`, witnessed strictly before `t`, passing whole-scope lapses and
+excluded checkpoints (C2.10.11–13); `c(t) = 0` where there is none. The
+**gap is open** at `t` exactly when `t − c(t)` exceeds the declared duration.
+Only a valid checkpoint carrying `b` closes its interval. A non-carrying,
+excluded or lapsed checkpoint closes nothing for `b`; an unresolved carrying
+checkpoint leaves the read unresolved. The clock uses the snapshot's evidence,
+including its classification dependencies, with no extra classification of
+non-carrying checkpoints. A backing declaring no silence clause has no gap.
+The transparent profile's challenge window is not read under the pool
+(C2b.3c); the duration binds alone.
 
-**C2b.3.1 The snapshot** for `b` at `t` is the last carrying checkpoint by a
+**C2b.3.1 The snapshot** for `b` at `t` is the last valid carrying checkpoint by a
 party then in force for `b`, witnessed strictly before `t`, whichever term of
 the chain it fell in (Construction §C2b.3, C2.10.4), passing checkpoints
-lapsed for their whole scope. A carrying checkpoint by the party then in
-force that the reader finds invalid blocks the read, as it blocks C2.7's
-descent (C2.10.3): it is neither a snapshot nor a licence to read an older
-one. A reader replays the snapshot ([pool-v2 §10](pool-v2.md#10-import-and-replay))
+lapsed for their whole scope and excluded checkpoints. An excluded carrying
+checkpoint (C2.10.11) is passed with its authenticated evidence; an unresolved
+one blocks the read. The snapshot is the last valid carrying checkpoint,
+never a state the reader chooses. A reader replays the snapshot
+([pool-v2 §10](pool-v2.md#10-import-and-replay))
 for its accepted-root forest, spent set, output set, totals and standing
 demands. A reader that cannot replay it draws no verdict: unavailable history
 is not an empty spent set and not an empty forest.
@@ -351,7 +352,9 @@ clause and clock record proving the lapse, as it passes a whole-scope term
 lapse (C2.10.4). The reader must establish the relevant record intervals and
 their clock resets; missing evidence is unresolved, not proof that no gap
 occurred. Validation reads the candidate's original record prefix. A later
-gap cannot lapse an earlier finalized prefix.
+gap cannot lapse an earlier finalized prefix. An excluded checkpoint of the
+segment (C2.10.12) is likewise held and closes no interval; it neither
+retires the segment nor moves its silence boundary.
 
 A gap at `r` does not itself retire the fresh opening: its adopted block
 covers publications through `r` (C2b.4.2). A non-opening checkpoint at `r`
@@ -364,8 +367,8 @@ or before the reader's witnessed index. The same-operator guard against an
 elective scope change over a live tail
 (C2.10.9) does not apply to a return: the gap is the operator's own doing,
 and the tail is not live once that boundary is proven. This generalizes the
-former current-index lapse test; it changes neither the operator-wide clock
-nor the fixed opening adoption index.
+former current-index lapse test and preserves the fixed opening adoption
+index; the clock is now the snapshot's (C2b.6.1).
 
 **C2b.4.2 The segment adopts the gap before it serves.** Let `r` be the index
 at which the segment's opening checkpoint was witnessed and `a` the adoption
@@ -488,12 +491,11 @@ C2b.3c, and every rule here reads objects Construction already names.
 - C2b.3.1: the adoption index, so a settlement not yet adopted still counts
   against the next gap's holdings. The alternative, reading only the
   snapshot's own state, lets a note settle once per silence.
-- C2b.3.1, C2b.5.2: invalid live carrying evidence blocks recovery and the
-  count as it blocks descent (C2.10.3). What remedy a backing has against an
-  operator whose last carrying checkpoint is provably invalid — beyond the
-  fault proof and **E**'s replacement rule, whose successor faces the same
-  blocked descent — neither this contract nor the authority contract
-  defines; it is recorded as open for the maintainer.
+- C2b.3.1, C2b.5.2, C2b.6.1: the [fault contract](pool-fault.md)
+  resolves the former blocked-descent remedy: authenticated excluded
+  checkpoints are passed, unresolved ones block, and the clock reads the
+  snapshot. Exact evidence retention and classification dependencies remain
+  required; a dropped backing's duration prices the drop as darkness.
 
 **It costs** what Construction §C2b already prices — illiquidity during a
 silence, the discarded tail, re-proof under the new segment — and, on top: a

@@ -447,7 +447,10 @@ honest twin's stale checkpoint (R7), or premature abandonment of the live tail
 remain in Git history and the reference's model tests.
 
 The reference's `model/pool-fault.ts` models the selected classification,
-snapshot clock, segment continuity and receipt boundaries using ideal evidence.
-It is not the production claim layer. The separate evidence chain, exact-byte
-receipt comparison and compact certificate encoding need executable coverage
-before a later construction's byte layout is fixed. Runtime stays pinned to v2.
+snapshot clock, segment continuity, separate evidence chain and exact receipt
+comparison. It uses real hashes over explicit bytes with ideal proof and
+authentication oracles; adopted events retain their witnessed evidence. It is
+not the production claim layer or a later construction's byte layout. Compact
+certificates, production retention and authenticated record ranges remain open.
+The reference's [fault coverage](https://github.com/mediumofexchange/reference-ts/blob/main/docs/POOL_FAULT_RECOVERY.md)
+records the executable evidence and limits. Runtime stays pinned to v2.

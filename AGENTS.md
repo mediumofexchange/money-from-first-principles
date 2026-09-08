@@ -99,9 +99,10 @@ only make one case work are how a protocol becomes unauditable.
   every implementation. Propose it, say what it costs, and clear the bar above.
 - **Implementation work is the best source of spec bugs.** When building
   reveals a contradiction, an ambiguity, or something that cannot work as
-  written: stop, quote the exact passage, explain the problem plainly, and
-  propose a fix here. Never build around a spec bug silently, and never pick
-  one of several readings without flagging the choice.
+  written: pause dependent implementation, quote the exact passage, explain
+  the problem, and resolve a fix through the delegated decision/review process
+  below. Continue independent work. Never build around a spec bug silently
+  or pick one of several readings without recording the choice.
 - Spec fixes land **here first**, then the code follows. Divergence between the
   two is a bug in one of them.
 - Resolved questions are recorded in
@@ -131,19 +132,61 @@ keeps them apart on purpose.
 
 ## Working here
 
-Prose changes only; there is nothing to build or test. Explain in plain
-language when asked, and prefer a readable sentence to a clever one, in the
-text as much as in the code — a reader has to be convinced by one pass.
+This repository contains prose; normative changes still need evidence from
+the reference's model, source or a concrete argument. Check affected links and
+cross-document consistency. Prefer a readable sentence to a clever one — a
+reader has to be convinced by one pass.
 
-Proceed autonomously with routine, reversible corrections inside an approved
-goal. Stop when a change would select a new protocol rule or trust model, and
-present the exact ambiguity and tradeoff rather than silently resolving it.
+The maintainer delegated development and protocol decisions to AI on
+2026-09-08, with independent review, and authorized merge and push when ready.
+This is standing authority until superseded. A new rule or ambiguity within
+the project's intent is a decision to resolve, not a request for permission.
+Retain open entry, independent verification, private payments with public
+supply verification, immutable terms, holder authorization and compartmentalized
+failure. Prefer practicality, simpler mechanisms, security and lower measured
+resource/operating costs within those boundaries.
+
+For a consequential choice, identify the exact rule/ambiguity, compare the
+smallest viable alternatives (including reuse or omission), and recommend one.
+Explain invariant, trust/privacy, compatibility and practical costs; name a
+counterexample or measurement that could falsify it. Have a fresh independent
+reviewer inspect the actual proposal and relevant sources. Resolve material
+findings with evidence, record the decision and review disposition in the
+reference's existing decision log, then commit the specification before code.
+No vote count or generated review prompt substitutes for that inspection.
+If the companion checkout is unavailable, retain the decision and evidence in
+the spec commit body and reconcile the shared log when available.
+
+Use one strong reviewer by default for normative changes; add another only
+for a distinct risk or unresolved disagreement. Give agents bounded outcomes,
+sources and acceptance criteria, with disjoint write ownership. Review critical
+fixes and adjacent variants; stop review when no material finding remains and
+the obligations are supported. Routine prose cleanup needs focused self-review.
+If review is unavailable, continue safe work and record the review owed; do
+not merge the unreviewed normative change.
+
+Ask only for an unavoidable departure from core intent, unavailable access or
+physical input, or actions outside existing authority. Merge/push authority
+does not itself authorize public releases, live deployment, spending/moving
+real funds, destructive operations or access-control changes. Prepare a
+concrete recommendation and continue unaffected work when an action is blocked.
 
 Work in coherent argument- or protocol-sized slices and make logical commits
 at completed milestones. For coordinated specification and implementation
 work, keep the companion branch and next action current in
-`../reference-ts/WORK.md` when that checkout is available. Never push or merge
-without maintainer authorization.
+`../reference-ts/WORK.md` when that checkout is available. Choose slices by
+product dependencies and costly uncertainties; validate device, wallet and
+venue assumptions early rather than specifying unused mechanisms indefinitely.
+Under standing authority, inspect upstream changes, satisfy required reviews
+and repository checks/protections, merge and push, then verify remote parity.
+Do not bypass a failed gate or describe unavailable evidence as a pass.
+
+Keep instructions in `AGENTS.md`; `CLAUDE.md` only imports `@AGENTS.md`.
+Keep current handoff concise and reasoning in the decision log. End reports
+with delivered behavior, evidence, integration state and limitations, plus a
+rough percentage done/remaining toward the smallest usable product with a
+range for roadblocks. Use the reference's production requirements and handoff
+when available; do not infer product completion from prose or test counts.
 
 When work exposes a clearer project structure or workflow, make the low-risk
 improvement if it belongs to the active goal; otherwise leave a concise

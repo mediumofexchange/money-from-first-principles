@@ -18,7 +18,7 @@ instantiate this contract are a later document's, `pool-v3.md`.
 The contract covers a backing whose reliance set is empty and whose payout
 settles outside the claim layer: the smallest supported profile. Its rules are
 numbered under the Construction rules they refine: C3.1–C3.8, C2b.5.1–2,
-C2b.6.1, C2b.3.1–3 and C2b.4.1–2. Words are pool-v2's: note, commitment,
+C2b.6.1, C2b.3.1–3 and C2b.4.1–3. Words are pool-v2's: note, commitment,
 nullifier, anchor, accepted-root forest, segment, scope, checkpoint, history,
 finalized prefix, import. "Judged at an index" means judged against the
 record strictly before that index (Construction §C2b.4). The **lag** is the
@@ -242,8 +242,8 @@ when `t − c(t)` exceeds the declared duration. The commitment that sets
 `c(t)` need not carry `b` — a drop is C2b.5.2's, and a commitment carrying
 nothing for `b` closes `b`'s interval while adopting nothing for it
 (C2b.4.2). Closing that interval does not restore a segment retired by
-intervening silence (C2b.4.1). The commitment need not be valid: an invalid commitment is provable fault,
-not silence. Only a commitment closes the interval, and a backing that
+intervening silence (C2b.4.1). The commitment need not be valid: an invalid
+commitment is provable fault, not silence. Only a commitment closes the interval, and a backing that
 declares no silence clause has no gap. The transparent profile's challenge
 window is not read under the pool (C2b.3c); the duration binds alone.
 
@@ -332,8 +332,8 @@ says it will.
 ## 6. Return
 
 **C2b.4.1 The return is a new segment.** Return to service after silence
-requires the **opening checkpoint** of a new segment — an empty local history at the
-segment's opening sequence (C2.10.9a's form) — whose opening for each scoped
+requires the **opening checkpoint** of a new segment — an empty local history
+at the segment's opening sequence (C2.10.9a's form) — whose opening for each scoped
 backing is that backing's snapshot at the commitment's index (C2.7.1,
 C2.10.4), witnessed by whoever is then in force (C2b.6.1). What the
 returning operator co-signed after its last witnessed commitment was never
@@ -360,8 +360,8 @@ At or after a proven silence boundary the old segment cannot serve again;
 only a new segment can return, even if there were no recovery publications.
 Service checks the earliest witnessing horizon, but a predicted future gap
 does not authorize discard or receipt lapse: those require the boundary at
-or before the reader's witnessed index. The
-same-operator guard against an elective scope change over a live tail
+or before the reader's witnessed index. The same-operator guard against an
+elective scope change over a live tail
 (C2.10.9) does not apply to a return: the gap is the operator's own doing,
 and the tail is not live once that boundary is proven. This generalizes the
 former current-index lapse test; it changes neither the operator-wide clock

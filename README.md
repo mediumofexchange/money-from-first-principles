@@ -81,16 +81,11 @@ and a library of adversarial cases while the pool is built.
 
 | | |
 |---|---|
-| **[reference-ts](https://github.com/mediumofexchange/reference-ts)** | TypeScript. Canonical encoding, signatures, commitments and their directory, sequencing, presentation, dishonour, succession and recovery, with one test file per invariant; a real-proof experiment for the shielded pool; a frozen transparent path as oracle. |
+| **[reference-ts](https://github.com/mediumofexchange/reference-ts)** | Experimental shielded-pool implementation: private notes, public supply replay, canonical history, receipt readers and durable sequencing. Recovery is modeled; the wallet and external witness write side remain to be built. |
 
-The package is not published to npm. With Node.js 20 or newer:
-
-```sh
-git clone https://github.com/mediumofexchange/reference-ts.git
-cd reference-ts
-npm ci
-npm run check
-```
+The package is not published to npm. Follow the implementation's
+[setup and verification instructions](https://github.com/mediumofexchange/reference-ts#readme)
+to build from source.
 
 The optional [local pilot](https://github.com/mediumofexchange/reference-ts/blob/main/docs/PILOT.md)
 runs the transparent path across two processes with a local, trusted witness

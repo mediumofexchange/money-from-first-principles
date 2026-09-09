@@ -139,7 +139,7 @@ Everything else is a way of satisfying these. An implementation that violates on
 6. The law (the card states it) governs *authorised* acts. Invariant 8 states what the mechanism enforces.
 7. Issuance changes the outstanding count and needs the backer's signature. Reissuance preserves the count and needs no backer signature. Never one code path for both.
 8. No clawback, no reversal, no privileged party who can move claims. Invariant 6 governs authorised acts; this one forbids the path existing at all.
-9. Fees are ordinary transfers alongside a swap, never a shaved reissue; fee claims are the operator's own holding, never custody. Shaving is an unrecorded burn, and it shrinks anonymity sets.
+9. Fees are ordinary transfers, never a shaved reissue; fee claims are the operator's own holding, never custody. Shaving is an unrecorded burn, and it shrinks anonymity sets.
 
 **Conservation**
 
@@ -235,7 +235,7 @@ The count needs *(backing, quantity, time)*. An issuance is a public statement, 
 
 **The spent set is an accumulator with non-membership**, not a bare list: a reader must be able to establish that a nullifier is absent as of a commitment, which [§C2b.3](#c2b-failure-silence-and-recovery)'s snapshot redemption needs. A reader that replays the committed history recomputes the set and reads absence from it, and [the pool's recovery contract](pool-recovery.md) has every reader of force do exactly that, publishing no proof beside a release (C2b.3.3). The accumulator is what a reader that does **not** replay would need, and a bare Merkle root over spent entries could not give it one; the requirement is held open for that reader and for compact certificates (invariant 23).
 
-**Packing.** A note carries a whole number of units, and how a quantity is packed into notes is the holder's choice. The construction bounds how many inputs and outputs one statement may carry, and a wallet consolidates by spending to itself.
+**Packing.** A note carries a whole number of units, and how a quantity is packed into notes is the holder's choice. The construction bounds how many inputs and outputs one statement may carry, and a wallet consolidates by spending to itself. The successor adopting [the transfer and fee contract](pool-fees.md) pays fees through ordinary receiver-controlled outputs under the same per-backing conservation rule; it adds no operator debit or fee-specific validity rule.
 
 ### C1.3 What E declares for the construction
 
@@ -245,14 +245,19 @@ The count needs *(backing, quantity, time)*. An issuance is a public statement, 
 
 | Party | Sees | Cannot see |
 |---|---|---|
-| Sequencer | statements, nullifiers, commitments, anchors, timing; the backing and quantity of issuances and burns | which note a spend consumed, its backing, its quantity, who holds or pays whom |
-| Payee | the whole presented set: backings, quantities, and the openings it is given | the payer's other holdings or history |
+| Sequencer | statements, nullifiers, commitments, anchors, timing; the backing and quantity of issuances and burns; openings of any outputs it receives as payee | which note a spend consumed, and other output openings; backing/quantity and recipient information apart from what its payee role and correlation disclose |
+| Payee | the backings, quantities and openings presented to it | the payer's other holdings or history |
 | Backer, at issuance | quantity and time; the recipient only under identified issuance | later holders |
 | Backer, at redemption | the presenter, the specific claims, the quantity | how the claims travelled |
 | Public | terms, issuance and burn log, totals, commitments, demands, nullifiers | holdings and transfers |
 | Everyone | — | the link between a note and the notes a spend created from it |
 
-Profiles publish their own table ([Extensions](extensions.md)).
+A party can hold more than one role. A sequencer receiving an ordinary fee is
+also a payee: it learns the fee opening and its statement association. The
+[fee contract](pool-fees.md#3-privacy-and-practical-bounds) states the resulting
+inference, including the payment backing in a same-backing fee flow. Sponsored
+service does not give the sequencer a fee output. Profiles publish their own
+table ([Extensions](extensions.md)).
 
 ### C1.5 What still leaks, and what a wallet does about it
 
@@ -286,7 +291,7 @@ Cease issuing, and claims live forever unless the payout is dated. That is the m
 
 ### C2.1 The sequencer
 
-**C2.1.1** A sequencer serves one backing at a time by declaration: **E** names the operator per backing, any backing can name a different operator without asking the rest, and one operator serves many. It never holds funds. It co-signs the statements it admits and refuses a second spend by declining to sign. It is sold as a service — backer-paid, per-transfer fees, or crowd-funded — so somebody can issue without buying a machine ([§18](money-from-first-principles.md#18-limits)).
+**C2.1.1** A sequencer serves one backing at a time by declaration: **E** names the operator per backing, any backing can name a different operator without asking the rest, and one operator serves many. It never takes custody of holders' funds. It co-signs the statements it admits and refuses a second spend by declining to sign. It is sold as a service — backer-paid, per-transfer fees, or crowd-funded — so somebody can issue without buying a machine ([§18](money-from-first-principles.md#18-limits)).
 
 **C2.1.2** Who runs it is the backer's priced choice, named in **E**. The per-backing declaration assigns responsibility, not topology: it is the backer's signed promise to honour this operator's truth, and operators pool underneath it. Backer-run is the cold-start default: one party to hold responsible, no operator to recruit, and the dominant risk, the backer not paying, is untouched by who sequences. Two things argue for an independent operator as stakes rise. A backer-run sequencer can make claims illiquid without ever refusing payment, and a stall is deniable where a dishonour is recorded ([§18](money-from-first-principles.md#18-limits)). And separating who admits issuance from who attests spending splits accounting trust from performance trust. The silence clause in **E** is the guard either way.
 

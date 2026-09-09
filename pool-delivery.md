@@ -4,8 +4,8 @@ Normative contract for the successor to `moe/pool/v2`, implementing
 Construction C1.2, invariants 25–26 and C4. It does not reinterpret v2 notes,
 bytes, keys or delivery. The successor must declare this contract and fix its
 profile and statement layouts in its configuration before use. This document
-selects the wallet contract; `pool-v3.md` still waits on F4 and the remaining
-layout decisions. The smallest supported profile uses explicit payment
+selects the wallet contract; [pool fees](pool-fees.md) selects the successor
+spend shape. `pool-v3.md` still fixes the remaining layout decisions. The smallest supported profile uses explicit payment
 requests, constant-payout roots and no reliance graph.
 
 ## 1. Receiver-prepared outputs
@@ -201,7 +201,7 @@ receiver-only authority and the note/nullifier formulas; it requires an exact
 request per expected payment, a new wallet encryption profile, additional
 public inputs in three relations, and 89 bytes per output plus 64 bytes for
 the two public field encodings per statement (before record framing): 242
-bytes for two outputs, 331 for three. Every reader checks one SHA256 vector;
+bytes for two outputs, 331 for three and 420 for four. Every reader checks one SHA256 vector;
 a restoring wallet performs one HKDF/AES-GCM trial per capsule-bearing output
 and computes note hashes only for its own successful decryptions. For each
 public settlement inspected it derives a candidate secret and owner, then

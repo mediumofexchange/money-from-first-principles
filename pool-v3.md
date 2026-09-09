@@ -3,7 +3,8 @@
 ## 1. Status and scope
 
 This document fixes the successor's six proof relations, public-input orders
-and statement, authorization and publication records. It implements the selected [recovery](pool-recovery.md),
+and statement, authorization, publication, snapshot and receipt records,
+including the history and exact-evidence chains. It implements the selected [recovery](pool-recovery.md),
 [delivery](pool-delivery.md) and [transfer/fee](pool-fees.md) contracts without
 reinterpreting any [v2](pool-v2.md) bytes, notes or keys.
 
@@ -16,7 +17,7 @@ prove the relations below; passing it does not establish runtime conformance.
 
 Before adoption this document must also fix the full configuration (including
 delivery profile identity), source/helper/toolchain/bytecode/key identities,
-evidence chains and snapshot commitments, replay/import rules and resource
+segment headers, served-trail/certificate encoding, replay/import rules and resource
 bounds beyond the records below. The [fault](pool-fault.md) and [spent-set](pool-spent.md) contracts
 remain binding requirements for that work. None is replaced by a proof check.
 
@@ -241,7 +242,7 @@ statement identity. In the fault contract's evidence triple, `proofHash` is
 SHA256 of the proof and `signatureHash` is SHA256 of the complete authorization,
 each replaced by 32 zero bytes exactly when its field is empty. An empty
 field is not represented by SHA256 of the empty string. This fixes the triple's
-components; the evidence-chain and snapshot frames remain to be specified.
+components; §7 fixes their evidence-chain and snapshot frames.
 
 Decoding establishes canonical structure and delivery association, not proof
 validity, signature validity, authority, demand standing, locks, spentness,
@@ -318,3 +319,134 @@ costs four count bytes plus 89 bytes per output, without duplicating cm. The
 publication body length costs four bytes and bounds parsing before copying.
 No signature, proof, replay authority or history chain is added. These records
 replace the deferred successor records, leaving every v2 byte unchanged.
+
+## 7. History, evidence, snapshots and receipts
+
+The history retains pool-v2 §9's meaning under new contexts. For a segment
+identity `S`, before any local statement, and after the statement at position
+`i`, respectively:
+
+```text
+historyHash_0 = SHA256("moe/pool/v3/genesis" || S[32])
+historyHash_i = SHA256("moe/pool/v3/history" || historyHash_(i-1)[32] ||
+                      statementHash_i[32] || noteRoot_i[F] || spentRoot_i[32] || u64 i)
+evidenceHash_0 = SHA256("moe/pool/v3/evidence-seed" || S[32])
+evidenceHash_i = SHA256("moe/pool/v3/evidence-link" || evidenceHash_(i-1)[32] ||
+                       statementHash_i[32] || proofHash_i[32] || signatureHash_i[32] || u64 i)
+snapshotBytes(b) = "moe/pool/v3/snapshot" || b[32] || S[32] || historyHash_n[32] ||
+                   evidenceHash_n[32] || u64 issued(b) || u64 burned(b)
+snapshot(b) = SHA256(snapshotBytes(b))
+```
+
+Every digest and identifier is exactly 32 bytes. Positions start at 1 and
+are `u64`; position zero is represented only by the two seed formulas.
+Advancing past `2^64 - 1` refuses before any state changes; it never wraps.
+`noteRoot_i` is the segment's local note-tree root after position i.
+`spentRoot_i` is the canonical compressed root of pool-spent C1.2.8–9 over
+the validated imported closure and the local prefix; this adopts that root
+definition for the v3 history frame, not v2's sparse root. A statement with
+no output or nullifier retains the respective preceding root. It still has
+its own position and advances both chains. Request, kind 7, is never a history
+event. These hash functions are not admission or replay validators.
+
+`issued(b)` and `burned(b)` are the per-backing totals over the deduplicated
+imported closure plus this segment's local history, as in pool-v2 §10. Valid
+state has `burned(b) <= issued(b) < 2^64`. Both totals are unsigned 64-bit
+fields in the snapshot preimage. Framing and hashing accept every pair of
+u64 totals, including a pair that violates that inequality: otherwise a
+reader could not authenticate a signed assertion of invalid supply before
+rejecting it. Hash equality establishes what was committed, not its truth.
+
+### 7.1 Authentication precedes validity
+
+The evidence recurrence consumes §5's three exact digests. Unlike admission,
+it must not depend on successful proof, authorization or state verification.
+For example, a well-framed issue with a bad backer signature has the same
+statement identity as one with a good signature, but a different evidence
+hash and snapshot. A replica's substitution of either signature cannot
+reproduce the original signed snapshot. An operator that commits the bad
+signature has instead authenticated that failing evidence (C2.10.10–11).
+Malformed or missing record data is never silently represented by a zero
+digest: the zero sentinel is used only for an actually empty proof or
+authorization field under §5, not for failed verification or parsing.
+Digest calculation can read exact proof and authorization byte fields even
+when their lengths violate §5. An actually empty field uses the zero sentinel,
+but that does not make its absence valid for that kind. A strict record
+decoder's refusal does not substitute a digest for the supplied bytes.
+
+A reader authenticates a supplied snapshot preimage against the digest in
+the signed commitment's authenticated directory, with the expected backing,
+segment and commitment identity. The preimage does not authenticate itself.
+It reproduces the evidence chain over the exact supplied evidence before
+using a deterministic verification failure as grounds for exclusion. A
+mismatching chain means unresolved evidence, not operator fault. Complete
+classification still requires C2.10.11–13's record prefix, scope, terms,
+imports, last-valid continuity and replay; unsupported verifiers, resource
+failures and programming failures remain unresolved, never exclusion.
+
+To authenticate the evidence triple at a known position i against a held
+terminal `evidenceHash_n`, the reader can use the chain value before i, the
+triple at i and the triples at every later position through n. Apply the
+recurrence at i and then at consecutive positions, and compare the result
+with the terminal hash. At i = 1 the preceding value must be the seed for S.
+The last position must be n, with `1 <= i <= n < 2^64`; neither gaps nor
+overflow are accepted. For i > 1, the preceding hash need not be replayed to
+authenticate this suffix against an already authenticated terminal hash;
+this says nothing about the prefix's validity. Suffix digest data alone does
+not establish the target statement's contents: its claimed three digests
+must separately match the supplied target bytes under §5. Nor does such an
+opening validate the later events or a claimed history root. This fixes the
+hash-opening relation described in pool-fault §7, not a standalone certificate
+wire format, a signed directory format or a complete exclusion verdict.
+
+### 7.2 Receipts bind the exact event evidence
+
+The receipt's signed bytes retain pool-v2 §9's fields under the v3 context:
+
+```text
+receiptBytes = "moe/pool/v3/receipt" || configHash[32] || S[32] || scopeRoot[F] ||
+               u64 i || statementHash_i[32] || historyHash_i[32] ||
+               proofHash_i[32] || signatureHash_i[32] || u64 after
+receiptRecord = receiptBytes || operator[32] || signature[64]
+```
+
+The operator signs exactly `receiptBytes` with strict Ed25519. All widths
+are fixed: the signed message is 259 bytes and the record is 355 bytes,
+without lengths or trailing bytes. The position i is a positive u64; `after`
+is a u64 commitment sequence, zero representing no previous signed commitment
+as in pool-v2 §9. An operational segment still commits its opening before
+issuing receipts (C2.10.9), so a zero `after` does not establish compliant
+service. The public key must be the expected segment operator and the
+domain, segment and scope root must match that expected segment. The record
+format accepts any 32-byte operator and 64-byte signature; strict signature
+verification, including key validity, is a separate mandatory check.
+
+No evidence-chain hash is added to the receipt: it already signs the
+position, statement, resulting history and both exact evidence digests that
+C2.10.10 requires. A receipt compared with a valid checkpoint must match all
+five values at its position. A receipt signature alone establishes neither
+that inclusion nor current authority, witnessed finality, an unspent note
+or a claim on an unrelated operator. Receipt precedence remains C2.10.9a–c.
+
+Exact resubmission of an admitted statement returns its original receipt
+and evidence, including when a different valid proof is supplied. An adopted
+statement retains the exact §5 record from the publication that had force,
+with its original source-segment binding and statement identity (C2b.4.2).
+Its evidence is chained at the new position under the adopting segment's seed.
+Its new receipt names that adopting segment and scope, its new position and
+resulting history, and the original proof/authorization digests; `after` is
+the adopting segment's opening checkpoint sequence. It does not re-sign or
+re-prove the statement or rejudge its original force. Matching a receipt to
+an adopted statement cannot require the receipt's segment to equal the
+statement's source segment. The record-derived adopted block establishes why
+that mismatch is authorized; a byte parser cannot grant the exception.
+
+**C0a cost and replacement.** This instantiates C2.10.10's chosen SHA256
+chain with the existing receipt digests, adding 32 bytes to each backing's
+snapshot preimage. It preserves the semantic history recurrence and receipt
+field count, and adds no signature or privileged state transition. Interior
+evidence openings retain the selected linear suffix cost: 96 digest bytes
+per later position, plus the preceding hash and target evidence. No evidence
+tree, second history or new certificate transport is introduced. The final
+configuration, segment/trail encoding and replay integration remain required
+before v3 adoption.

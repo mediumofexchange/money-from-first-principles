@@ -57,9 +57,10 @@ evidenceHash_i = Hash(linkContext ‖ evidenceHash_{i−1} ‖ statementHash_i �
 ```
 
 with `proofHash_i` and `signatureHash_i` as pool-v2 §9's receipt already
-carries them — each over the field its kind carries, exactly as admitted,
-and the zero digest where its kind carries none, so that a proofless kind
-and an unauthorized one are digested alike by every implementation — and the
+carries them, generalized: each is over the field its kind carries, exactly
+as admitted, and is pool-v2 §9's thirty-two zero bytes where its kind carries
+none, so that a proofless kind and an unauthorized one are digested alike by
+every implementation rather than one hashing the empty string — and the
 snapshot
 digest of every scoped backing binds `evidenceHash_n` beside
 `historyHash_n`. The construction fixes `Hash` and the two contexts, which
@@ -151,12 +152,13 @@ obtained its evidence. The classes, in the order they are judged:
   adopted-statement rule, admits every statement at its position, the
   committed proof verifying against the configuration's key for its kind
   where its kind carries one, and the committed authorization verifying
-  under the key that kind names — the obligor **K** for an issue, the
-  presenter for a withdrawal or a release — where its kind carries one.
+  under every key that kind names — the obligor **K** for an issue, the
+  presenter for a withdrawal, and both **K** over the acceptance and the
+  presenter over the release for a settlement — where its kind carries one.
 - **Excluded.** The checkpoint is not lapsed, its served trail reproduces its
   signed snapshot digests, and validity fails deterministically on that
-  evidence: a committed proof or authorization that does not verify under
-  the key its kind names; a
+  evidence: a committed proof that does not verify, or an authorization that
+  does not verify under every key its kind names; a
   statement the applicable admission rules, including C2b.4.2's adopted-statement
   exception, would refuse at its position against the replayed
   state (a wrong domain, segment or scope root, a backing outside the scope,
@@ -380,7 +382,7 @@ alternatives are retained at the [proposal revision](https://github.com/mediumof
 | Recovery C2b.4.1 | "It is lapsed for its whole scope: it is held at its exact sequence, supplies no finalized state for any scoped backing, closes no interval" | Add: "An excluded checkpoint of the segment (C2.10.12) is likewise held and closes no interval; it neither retires the segment nor moves its silence boundary." |
 | Recovery §8 | The bullet recording the invalid-live-evidence remedy as open. | Replaced by a pointer to this contract. |
 | Construction Appendix | — | Two retired sentences with their cost: an invalid commitment resets the clock (a stream of bad commitments suppresses redemption forever); a commitment carrying nothing for a backing closes its interval (a dropped backing has only the count, and its clock reads other scopes' evidence). |
-| pool-v3 | — | The evidence chain, `evidenceHash_n` in the snapshot digest, the served trail's exact evidence (C2.10.10). Its form is decided (2026-09-09): `SHA256` over frames under two prefix-free contexts, binding the position. The certificate encoding remains open. |
+| pool-v3 | — | The evidence chain, `evidenceHash_n` in the snapshot digest, the served trail's exact evidence (C2.10.10). Its form is decided (2026-09-09): `SHA256` over frames under two prefix-free contexts, binding the position. New with it: one authorization field per kind, `signatureHash` over that field, and `proofHash` as thirty-two zero bytes for a kind carrying no proof. The certificate encoding remains open. |
 
 ## 9. What this adds, replaces and costs
 

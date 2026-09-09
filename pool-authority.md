@@ -182,8 +182,11 @@ old scope does not acquire a new term because the key is appointed again.
 It proves acceptance, not a holding or finality. Re-proving a statement in
 the same segment returns the original receipt. Rebuilding under a changed
 segment requires a new statement identity and fresh evidence for it — a new
-proof, and for a kind whose authorization names the segment, a fresh
-signature; note nullifiers and deterministically chosen outputs remain
+proof where its kind carries one, and a fresh signature for each part of its
+authorization that names the segment or the statement, and only those: a
+settlement's release is signed again because it signs the settlement, while
+the obligor's acceptance stands, since it names the demand's identity and the
+demand keeps it; note nullifiers and deterministically chosen outputs remain
 unchanged.
 
 **C2.10.9 Change scope at a committed boundary.** The C2.6.1 schedule applies

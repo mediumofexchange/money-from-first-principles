@@ -255,7 +255,8 @@ in the history's order. Admission reads one committed view
   and quantity are the demand's, its tags match (C3.5), the acceptance
   verifies under the backing's **K** with the settlement's `owner` and a
   deadline not behind (C3.8), the release verifies under the presenter key,
-  and its nullifiers and output are new. Its effect is C3.5's, and the
+  its nullifiers and output are new, and none of its nullifiers' tags is
+  under a standing lock of another demand. Its effect is C3.5's, and the
   demand's locks are released with it.
 - A **withdrawal** is admitted where its demand is in the standing-demand
   record, past its deadline or not, and the demand's presenter key signed

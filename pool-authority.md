@@ -181,8 +181,10 @@ witnessed term chain establish the signer's authority. A receipt under an
 old scope does not acquire a new term because the key is appointed again.
 It proves acceptance, not a holding or finality. Re-proving a statement in
 the same segment returns the original receipt. Rebuilding under a changed
-segment requires a new proof and statement identity; note nullifiers and
-deterministically chosen outputs remain unchanged.
+segment requires a new statement identity and fresh evidence for it — a new
+proof, and for a kind whose authorization names the segment, a fresh
+signature; note nullifiers and deterministically chosen outputs remain
+unchanged.
 
 **C2.10.9 Change scope at a committed boundary.** The C2.6.1 schedule applies
 to the earliest boundary of any scope backing, and the operator keeps itself

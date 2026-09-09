@@ -57,8 +57,10 @@ evidenceHash_i = Hash(linkContext ‖ evidenceHash_{i−1} ‖ statementHash_i �
 ```
 
 with `proofHash_i` and `signatureHash_i` as pool-v2 §9's receipt already
-carries them — `signatureHash_i` over whatever authorization the statement's
-kind carries, and the zero digest where it carries none — and the snapshot
+carries them — each over the field its kind carries, exactly as admitted,
+and the zero digest where its kind carries none, so that a proofless kind
+and an unauthorized one are digested alike by every implementation — and the
+snapshot
 digest of every scoped backing binds `evidenceHash_n` beside
 `historyHash_n`. The construction fixes `Hash` and the two contexts, which
 are prefix-free as every context of the construction is. No circuit reads
@@ -147,12 +149,14 @@ obtained its evidence. The classes, in the order they are judged:
   adopted block (the opening checkpoint itself remains empty under C2b.4.1);
   and replay under the construction's admission rules, including C2b.4.2's
   adopted-statement rule, admits every statement at its position, the
-  committed proof verifying against the
-  configuration's key for its kind and the committed obligor signature under
-  **K** where one is required.
+  committed proof verifying against the configuration's key for its kind
+  where its kind carries one, and the committed authorization verifying
+  under the key that kind names — the obligor **K** for an issue, the
+  presenter for a withdrawal or a release — where its kind carries one.
 - **Excluded.** The checkpoint is not lapsed, its served trail reproduces its
   signed snapshot digests, and validity fails deterministically on that
-  evidence: a committed proof or obligor signature that does not verify; a
+  evidence: a committed proof or authorization that does not verify under
+  the key its kind names; a
   statement the applicable admission rules, including C2b.4.2's adopted-statement
   exception, would refuse at its position against the replayed
   state (a wrong domain, segment or scope root, a backing outside the scope,

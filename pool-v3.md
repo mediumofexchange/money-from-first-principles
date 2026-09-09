@@ -4,7 +4,7 @@
 
 This document fixes the successor's six proof relations, public-input orders
 and statement, authorization, publication, snapshot, receipt, segment-header
-and fault-evidence records,
+and fault-evidence records, plus served-trail transport,
 including the history and exact-evidence chains. It implements the selected [recovery](pool-recovery.md),
 [delivery](pool-delivery.md) and [transfer/fee](pool-fees.md) contracts without
 reinterpreting any [v2](pool-v2.md) bytes, notes or keys.
@@ -18,7 +18,7 @@ prove the relations below; passing it does not establish runtime conformance.
 
 Before adoption this document must also fix the full configuration (including
 delivery profile identity), source/helper/toolchain/bytecode/key identities,
-served-trail and complete-certificate encoding, replay/import rules and resource
+complete-certificate encoding, replay/import rules and resource
 bounds beyond the records below. The [fault](pool-fault.md) and [spent-set](pool-spent.md) contracts
 remain binding requirements for that work. None is replaced by a proof check.
 
@@ -449,7 +449,7 @@ field count, and adds no signature or privileged state transition. Interior
 evidence openings retain the selected linear suffix cost: 96 digest bytes
 per later position, plus the preceding hash and target evidence. No evidence
 tree, second history or new certificate transport is introduced. The final
-configuration, trail encoding and replay integration remain required
+configuration, complete certificate encoding and replay integration remain required
 before v3 adoption.
 
 ## 8. Segment headers
@@ -503,7 +503,7 @@ resolves every nonempty opening through the record and its complete evidence
 opening remains unresolved; it is never replaced with an empty opening or
 an older checkpoint. A strict header codec is not a classifier of malformed
 committed evidence and its rejection alone supplies no exclusion verdict.
-Trail/certificate formats and replay/import/adoption rules remain required.
+Complete certificate formats and replay/import/adoption rules remain required.
 
 **C0a cost and replacement.** This replaces the deferred successor header
 layout by reusing v2's fields and bounds with one new context. No scope root,
@@ -601,3 +601,107 @@ bytes a verifier rejects. A tree would shorten the suffix but replace the
 selected chain; a new certificate signature would add an authority without
 establishing record completeness. Neither is added. No v2 bytes, v3 proof
 relation, valid record bound or checkpoint classification rule changes.
+
+## 10. Served-trail transport
+
+A served trail carries the header, the terms and obligor signature for every
+scoped backing, and the exact local records in position order (C2.10.10–11).
+Its transport frame is:
+
+```text
+trailBytes = "moe/pool/v3/trail" || u32 headerLength || segmentBytes[headerLength] ||
+             signedTerms_1 ... signedTerms_m || u64 n || event_1 ... event_n
+signedTerms_j = u32 termsLength || terms[termsLength] || obligorSignature[64]
+event_i = u32 recordLength || recordBytes[recordLength]
+```
+
+`segmentBytes` is exactly §8's canonical header, including its context. Its
+entry count m determines the number of signed terms fields, in the same
+backing order; there is no second scope count or backing-name field. Each
+`terms` field carries the backing's exact canonical terms encoding, with K
+inside it, and the signature is over its name under that encoding's declared
+signature frame (Construction invariants 1–2). This transport does not change
+the terms encoding, name function or signing message, or authorize declaring
+v3 before §1's configuration and adoption work is complete. An outer codec
+treats the terms and signature as supplied bytes; a reader must independently
+decode them, derive the expected backing name, verify K's strict signature,
+and check the terms for every scoped entry against the record. Supplying an
+opaque byte field does not satisfy those checks.
+
+The count n is a u64, including zero. Events occupy consecutive positions
+1 through n, without repeated position fields. A trail is cut at the checkpoint
+being read: it carries exactly those n records, with no uncommitted tail.
+Each record carries §5's exact bytes, including capsules. An adopted event
+retains the source publication's record without changing its segment binding;
+the trail carries no asserted adoption flag or force index. The reader derives
+the adopted block and each force index from the venue record (C2b.4.2).
+
+The outer transport accepts terms lengths from zero through `2^32-1` and
+record lengths from zero through 131978. The latter is §5's largest valid
+record: a spend with a 131072-byte proof and four capsules. These are transport
+bounds, not permission to admit empty terms, malformed records, or kind 7.
+The outer codec preserves record bytes without strict §5 decoding, repair or
+re-encoding. Inner validity is a separate check. A fault whose malformed
+record exceeds this bound needs other evidence, including §9 where applicable;
+failure to represent it does not classify the checkpoint.
+
+The exact size is `29 + headerLength + sum_j(68 + termsLength_j) +
+sum_i(4 + recordLength_i)` bytes. The context is literal ASCII and all lengths
+and counts are unsigned big-endian. There are no optional or trailing fields.
+Before allocating payloads, decoding terms/records or hashing them, readers
+check a local total-byte budget, §8's header bound/count/size, a local event
+budget, every outer field boundary and the exact end. They bound header/term
+scanning by the already checked byte budget and header scope bound. Count and
+length arithmetic must not wrap or round through unchecked machine numbers;
+the event count must fit the remaining bytes even for empty records. Encoders
+apply the same shape and budget checks before allocating the output. Budgets
+are local processing limits, not additional consensus bounds. Exceeding one,
+an unsupported inner encoding or missing input remains unresolved, never
+excluded. Streaming/chunking may preserve these bytes without adding identities.
+
+### 10.1 Local evidence authentication and its limits
+
+For a supplied §7 snapshot preimage, first require the expected backing,
+segment and snapshot digest obtained from the expected signed commitment's
+authenticated directory and header context. The trail's header identity must
+equal that segment. Recompute the supplied snapshot digest and require equality
+with the expected digest. The trail's scope must contain that backing. For every record
+that can be decoded under §5, retain its exact proof/authorization and compute
+its evidence triple. Apply §7's evidence recurrence from the segment seed at
+positions 1 through n; the terminal hash must equal the snapshot's evidence
+hash. At n = 0 compare the seed directly. This authenticates the ordered local
+statement/proof/authorization bytes and their length. §5's delivery association
+also checks the supplied capsules against the authenticated statement digest.
+A substituted proof, signature or capsule cannot stand in for committed bytes.
+For inner bytes §5 cannot decode, this procedure is inconclusive; §9 can
+authenticate raw target fields without strict decoding within its own bounds.
+
+This check authenticates neither the supplied terms/signatures nor their force.
+It does not recompute the history hash, roots, totals or imported state. Even
+an authenticated zero-event trail can name nonempty imports. A committed
+kind-7 record, wrong source domain or unauthorized source-segment binding can
+authenticate as bytes and still fail replay. Local evidence authentication
+grants no adoption exception and establishes no valid, complete, current or
+final opening or exclusion verdict.
+
+Complete opening/classification still requires the configuration and artifacts,
+the signed commitment and its full authenticated directory, snapshot preimages
+for every scoped backing, all scoped signed terms, the complete record prefix
+and same-index order, recursively supplied opening evidence, passed checkpoints
+needed for descent/clock classification, last-valid-prefix continuity and the
+record-derived adopted block. The reader deduplicates and checks the imported
+closure, replays every event and reproduces every scoped snapshot, with lapse
+priority and C2.10.11–13's dependency rules. Missing dependencies remain
+unresolved; they are not empty openings or permission to fall back to an older
+checkpoint. The complete certificate/dependency format and replay integration
+remain prerequisites in §1.
+
+**C0a cost and replacement.** This replaces the deferred outer served-trail
+frame by composing the existing header, signed terms and record bytes. It adds
+29 fixed framing bytes, 68 per scoped terms field (including the existing
+64-byte signature), and four per event. It adds no roots, signatures, proof
+relations or authority. Repeating backing names, positions, force indices or
+adoption flags would introduce redundant assertions and consistency rules;
+omitting scoped terms would leave silence/force checks underdetermined. Inner
+terms and record checks remain where their definitions place them. Every v2
+byte, finality rule and private note opening remains unchanged.

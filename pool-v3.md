@@ -3,7 +3,8 @@
 ## 1. Status and scope
 
 This document fixes the successor's six proof relations, public-input orders
-and statement, authorization, publication, snapshot, receipt and segment-header records,
+and statement, authorization, publication, snapshot, receipt, segment-header
+and fault-evidence records,
 including the history and exact-evidence chains. It implements the selected [recovery](pool-recovery.md),
 [delivery](pool-delivery.md) and [transfer/fee](pool-fees.md) contracts without
 reinterpreting any [v2](pool-v2.md) bytes, notes or keys.
@@ -17,7 +18,7 @@ prove the relations below; passing it does not establish runtime conformance.
 
 Before adoption this document must also fix the full configuration (including
 delivery profile identity), source/helper/toolchain/bytecode/key identities,
-served-trail/certificate encoding, replay/import rules and resource
+served-trail and complete-certificate encoding, replay/import rules and resource
 bounds beyond the records below. The [fault](pool-fault.md) and [spent-set](pool-spent.md) contracts
 remain binding requirements for that work. None is replaced by a proof check.
 
@@ -512,3 +513,91 @@ the header is about 8.50 MiB; that is a format bound, not a phone or transport
 budget. The alternative of adding such derived fields would require extra
 consistency rules without authenticating missing history. Every v2 header
 and identity remains unchanged; v3 configuration and adoption remain unset.
+
+## 9. Fault-evidence records
+
+This fixes the portable evidence opening described by §7.1 and pool-fault §7.
+It carries the actual target bytes rather than a caller's claim about their
+digests. It is one component of a fault certificate, not an exclusion verdict
+or a complete served trail. The record is:
+
+```text
+faultEvidenceBytes = "moe/pool/v3/fault-evidence" || snapshotBytes[164] ||
+                     u64 i || u64 n || previousEvidenceHash[32] ||
+                     u32 statementLength || statement[statementLength] ||
+                     u32 proofLength || proof[proofLength] ||
+                     u32 authorizationLength || authorization[authorizationLength] ||
+                     triple_(i+1) ... triple_n
+triple_j           = statementHash_j[32] || proofHash_j[32] || signatureHash_j[32]
+```
+
+`snapshotBytes` is the complete §7 frame including its context. The target
+position and terminal length satisfy `1 <= i <= n < 2^64`; the suffix has
+exactly `n-i` consecutive triples in that order, with no repeated count or
+position field. Each target byte field is length-prefixed and has length
+0 through 131072 inclusive. This per-field transport bound reuses §5's
+maximum proof width; it does not widen any valid statement, proof or
+authorization layout. It permits carrying, for example, an overlength
+authorization or an ill-framed statement as evidence. A claimed target field
+above this bound is not representable by this record; failure to carry or
+process it supplies no exclusion verdict. Other evidence may resolve that
+checkpoint under C2.10.11–13.
+
+The reader hashes the target's supplied `statement` bytes with SHA256 to
+obtain `statementHash_i`. It hashes the exact `proof` and `authorization`
+fields under §5's digest rule: an actually empty field has the zero digest,
+otherwise its digest is SHA256 of those bytes. An empty statement instead
+has SHA256 of the empty string; it is not a zero statement identity. This
+calculation neither requires nor establishes successful §5 decoding. An
+invalid context, field encoding, input count or inner domain is retained as
+the claimed statement bytes; it is never repaired or re-encoded before
+hashing. A decoder's error is not evidence about bytes it did not receive.
+
+The reader obtains the expected backing, segment and snapshot digest from
+the expected signed commitment's authenticated directory and header context
+(§§7.1, 8). It requires exact backing and segment equality, reproduces that
+snapshot digest, then applies §7.1's seed/position/suffix checks with the
+target digests computed above. An altered target field, suffix, preceding
+hash or snapshot fails authentication, even if the replacement proof is
+valid. At i = 1 the preceding hash is the segment's seed. For an interior
+target the suffix authenticates its supplied preceding hash without proving
+that earlier prefix valid. The record does not authenticate its own expected
+digest and carries no new signature or publication identity.
+
+The exact byte length is `250 + statementLength + proofLength +
+authorizationLength + 96*(n-i)`. Readers check the outer and snapshot
+contexts, field bounds, indices and exact remaining suffix length before
+allocating target fields or suffix entries. Length arithmetic must not wrap
+or round through an unchecked machine number. There are no optional fields
+or trailing bytes. Encoders apply the same structural checks; raw target
+fields deliberately remain separate from §5's strict record encoder.
+
+The suffix has the existing linear cost, with no new protocol cap below
+the u64 position bound. Readers must bound their local processing before
+allocation or hashing, for example by a caller-supplied maximum number of
+suffix entries. That local budget is not a consensus rule: an exceeded
+budget, unavailable input or unsupported verifier leaves the read unresolved,
+never excluded. Partial processing or an omitted suffix is not successful
+authentication. Implementations may stream the same bytes; chunk boundaries
+have no protocol meaning and introduce no additional signed values.
+
+Authentication proves only that this snapshot commits to these target bytes
+at this position. It does not prove that the target violates a rule, that its
+prefix or later events are valid, or that the checkpoint is live, complete,
+current or final. The target's configuration and verification key, relevant
+terms and authorization identities, record prefix, lapse priority, imports
+and continuity are still resolved under C2.10.11–13 before an exclusion
+verdict. The snapshot's history hash and totals are authenticated assertions,
+not replayed state. Capsules are not fields of this evidence triple: this
+record neither attests that a capsule was served nor proves its absence or
+corruption. Their association is separately checked against the statement's
+C4.4 digest. Faults needing omitted dependencies require their own evidence.
+
+**C0a cost and replacement.** This replaces the deferred wire form of §7.1's
+evidence opening by reusing the snapshot and three-digest recurrence. It costs
+250 framing/snapshot bytes, the three exact target fields, and 96 bytes per
+later event. Supplying only the target digests would not authenticate the
+bytes a verifier rejects. A tree would shorten the suffix but replace the
+selected chain; a new certificate signature would add an authority without
+establishing record completeness. Neither is added. No v2 bytes, v3 proof
+relation, valid record bound or checkpoint classification rule changes.

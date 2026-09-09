@@ -8,6 +8,7 @@ The main documents change at different rates.
 | `construction.md` | **the protocol** | Normative. A change here changes what every implementation must do. |
 | `extensions.md` | **profiles** | Optional, on top of the core, or replacing its claim layer. Each names the need that summons it and the price it charges. |
 | `pool-v2.md` | **the core construction's layouts** | `moe/pool/v2` bytes, circuits and keys. A change is a new version and a successor backing. |
+| `pool-v3.md` | **successor proof layouts, incomplete construction** | Six relations and public-input orders. Configuration, artifact pins and adoption remain unset; no backing may yet declare v3. |
 | `pool-authority.md` | **authority and history contract** | Normative C1.2/C2.10 rules for private scopes and independent backing replacement, which v2 instantiates. |
 | `pool-recovery.md` | **presentation and recovery contract** | Normative C3/C2b rules over the pool: the demand, lock and settlement, the non-service request and count, snapshot redemption at the venue, and the return from silence. Requires a later construction version. |
 | `pool-fault.md` | **fault and evidence contract** | Normative for a later construction: how a checkpoint whose committed evidence fails the rules is classified and passed by descent, snapshot, count, clock and receipts; the revised clock; the amendments its adoption applies. Authenticated exclusion, the snapshot clock and continuation from the last valid prefix. |

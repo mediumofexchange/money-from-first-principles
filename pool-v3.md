@@ -3,7 +3,7 @@
 ## 1. Status and scope
 
 This document fixes the successor's six proof relations, public-input orders
-and statement, authorization, publication, snapshot and receipt records,
+and statement, authorization, publication, snapshot, receipt and segment-header records,
 including the history and exact-evidence chains. It implements the selected [recovery](pool-recovery.md),
 [delivery](pool-delivery.md) and [transfer/fee](pool-fees.md) contracts without
 reinterpreting any [v2](pool-v2.md) bytes, notes or keys.
@@ -17,7 +17,7 @@ prove the relations below; passing it does not establish runtime conformance.
 
 Before adoption this document must also fix the full configuration (including
 delivery profile identity), source/helper/toolchain/bytecode/key identities,
-segment headers, served-trail/certificate encoding, replay/import rules and resource
+served-trail/certificate encoding, replay/import rules and resource
 bounds beyond the records below. The [fault](pool-fault.md) and [spent-set](pool-spent.md) contracts
 remain binding requirements for that work. None is replaced by a proof check.
 
@@ -448,5 +448,67 @@ field count, and adds no signature or privileged state transition. Interior
 evidence openings retain the selected linear suffix cost: 96 digest bytes
 per later position, plus the preceding hash and target evidence. No evidence
 tree, second history or new certificate transport is introduced. The final
-configuration, segment/trail encoding and replay integration remain required
+configuration, trail encoding and replay integration remain required
 before v3 adoption.
+
+## 8. Segment headers
+
+The scope and segment retain pool-v2 §§5–6's meaning under the v3 context.
+The scope tree, entry ordering and depth are unchanged. The canonical header is:
+
+```text
+segmentBytes = "moe/pool/v3/segment" || configHash[32] || venue[32] || operator[32] ||
+               u64 sequence || u32 n || entry_1 ... entry_n
+entry_i      = backing[32] || link[32] || u64 openingSequence ||
+               openingOperator[32] || openingRoot[32]
+segmentId    = SHA256(segmentBytes)
+```
+
+The context is literal ASCII; integers are unsigned big-endian. `sequence`
+is positive and below `2^64`, naming this operator's first signed commitment
+of this segment on this venue. Its required relation to the operator's
+earlier signing history remains pool-v2 §6's. The number n is 1 through
+65536 inclusive. Entries are strictly ascending by the unsigned bytes of
+their backing names; duplicate backings and reordered entries are malformed,
+even if their links or openings differ. An encoder rejects unordered input
+rather than sorting it. The scope root is computed from these backing/link
+pairs by pool-v2 §5, and is not a second field in the header.
+
+`openingSequence = 0` requires both opening byte fields to be exactly zero.
+This is the sole empty-opening encoding, asserting that the record pins
+nothing for that backing (C2.7.3). Otherwise `openingSequence` is a positive
+u64, and the three opening fields name the exact commitment's sequence,
+operator and directory root. Where `openingOperator` equals this header's
+operator, `openingSequence` must be below `sequence` (C2.10.5). A different
+operator's sequence is independent and need not be below it. Positive
+opening sequences do not create an alternate empty sentinel when either
+byte field is zero: whether that reference names an authentic commitment
+must be checked against the record.
+
+The fixed prefix is 127 bytes and every entry is 136 bytes. A canonical
+header therefore has exactly `127 + 136*n` bytes, from 263 to 8913023 bytes.
+A decoder checks the input byte bound, context, count and exact total length
+before allocating or iterating entries; no trailing bytes, optional fields
+or alternate contexts are accepted. Both encoders and decoders enforce all
+the structural rules above. An implementation's lower processing budget
+may leave a larger header unresolved; it does not establish operator fault.
+
+Header decoding and identity hashing establish neither authority nor an
+empty or finalized opening state. The reader still authenticates the header
+identity through the expected checkpoint's signed directory and §7 snapshot
+preimages, checks domain, venue, scoped signed terms and current links, and
+resolves every nonempty opening through the record and its complete evidence
+(C2.10.1–5, C2.10.11–13). The header has no standalone signature. An unknown
+opening remains unresolved; it is never replaced with an empty opening or
+an older checkpoint. A strict header codec is not a classifier of malformed
+committed evidence and its rejection alone supplies no exclusion verdict.
+Trail/certificate formats and replay/import/adoption rules remain required.
+
+**C0a cost and replacement.** This replaces the deferred successor header
+layout by reusing v2's fields and bounds with one new context. No scope root,
+adoption index, silence duration, signature or primitive is added: those
+values are already derived from the scope or the record. At maximum scope
+the header is about 8.50 MiB; that is a format bound, not a phone or transport
+budget. The alternative of adding such derived fields would require extra
+consistency rules without authenticating missing history. Every v2 header
+and identity remains unchanged; v3 configuration and adoption remain unset.

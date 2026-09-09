@@ -43,13 +43,18 @@ position `i`: `secret_i ≠ 0`, `owner_i = H(T_OWNER, secret_i)`,
 `nf_i = H(T_NULLIFIER, domain, cm_i, secret_i)`; where `value_i > 0`, that a
 path carries `cm_i` to the public `anchor_i` and `tag_i = H(T_TAG, nf_i)`;
 where `value_i = 0`, that the position is padding and `tag_i = 0`. Every note
-names the public `backing`, at least one value is positive, and every value is
-below `2^64`. The proof consumes nothing and creates nothing.
+names the public `backing`, at least one value is positive, every value is
+below `2^64`, and the positions' nullifiers are distinct, so one note fills
+one position: two positions over one note would double the quantity the
+demand claims and leave it unsettleable, a dishonour the holder manufactured
+against itself. The proof consumes nothing and creates nothing.
 
 - The **segment-bound form** is a demand's. Its public inputs are the domain,
   the segment identity, the scope root, the backing, the `quantity` (the sum
-  of the values, in 128-bit arithmetic), the anchors, the tags and the hash of
-  the notice it belongs to (C3.3). Scope membership is proven as in a spend.
+  of the values, in 128-bit arithmetic), the anchors, the tags, and the
+  notice's own remaining fields (C3.3): the presenter key, the instant and
+  the deadline, bound as public inputs and otherwise unread by the relation.
+  Scope membership is proven as in a spend.
 - The **segment-free form** is a request's (C2b.5.1). Its public inputs are
   the domain, the backing, one anchor and one tag: no segment, no scope root
   and no quantity. It proves one real note without revealing its size.
@@ -76,8 +81,11 @@ the venue. The **deadline** is a witnessed index strictly ahead of `w`
 becomes public (C3.8), and the holder who bears the lock chooses it. A demand
 names at most `inputs` claims: a holder presenting more, or part of a note,
 first spends to itself ([§C1.2](construction.md#c12-the-shielded-pool),
-packing). Its identity is the hash of the notice with the proof's public
-inputs.
+packing). The notice is the proof's public inputs, so the demand's identity
+is the statement's own identity, its `statementHash`
+(pool-v2 [§7](pool-v2.md#7-statements)), and the notice is neither hashed
+nor signed apart from it: one object, one identity, and no second hash in
+the circuit.
 
 **C3.4 The acceptance** is the obligor **K**'s strict signature over the demand
 identity, an `owner` value and the acceptance deadline. **K** generates the
@@ -92,10 +100,11 @@ since no release could otherwise be witnessed inside it (C3.8).
 
 **C3.5 The settlement statement** is a statement of kind `settle`. Its public
 inputs are the domain, the segment identity, the scope root, the backing, the
-quantity, the `owner`, one anchor and one nullifier per input position, one
-output commitment `cm_out`, and the demand identity. The proof establishes,
-for each input, what a spend establishes ([pool-v2 §7.2](pool-v2.md#72-spend)):
-ownership, the immutable nullifier, membership at the anchor where the value
+quantity, the `owner`, the output's `rho_out`, one anchor and one nullifier
+per input position, one output commitment `cm_out`, and the demand identity.
+The proof establishes, for each input, what a spend establishes
+([pool-v2 §7.2](pool-v2.md#72-spend)): ownership, the immutable nullifier,
+membership at the anchor where the value
 is positive, padding where it is zero, and scope membership; that every input
 and the output name the public backing; that the sum of input values equals
 the quantity and the output's value, in 128-bit arithmetic; and that
@@ -112,14 +121,27 @@ appended, and the demand is discharged. `outstanding` is unchanged
 it where its terms say so in a separate lit act. Redemption is lit at the
 backer ([§C1.4](construction.md#c14-who-sees-what)): the public learns that
 `quantity` units of `backing` settled to `owner`, and nothing about where they
-came from beyond the anchors.
+came from beyond the anchors. `rho_out` is public so that the backer rebuilds
+the note's opening from the record alone: every other field of that opening is
+public already, so publishing it discloses nothing the lit settlement did not,
+and it removes the delivery a private `rho_out` would need from the party the
+settlement is a remedy against.
 
 **C3.6 The release and the withdrawal.** The release is the presenter key's
 strict signature over the demand identity, the acceptance identity and the
 settlement's `statementHash`; it is served with the acceptance and the
-settlement statement, and with the non-membership proofs C2b.3.2 requires
-when it is published at the venue. The withdrawal is the presenter key's
-strict signature over the demand identity. Each is effective when witnessed:
+settlement statement, and with nothing else: every reader that decides its
+force replays the snapshot already (C2b.3.3), so it holds the spent set and
+checks absence itself, and no non-membership proof is carried.
+
+The withdrawal is a statement of kind `withdraw` carrying no proof, whose
+public inputs are the domain, the segment identity, the scope root and the
+demand identity, authorized by the demand's presenter key signing that
+statement's `statementHash`. So a withdrawal is signed for one segment as a
+demand is proven for one: a withdrawal an operator kept back cannot be
+applied under a segment the holder never named, and withdrawing the same
+demand under a later segment is another statement needing a fresh signature,
+which costs no proof. Each is effective when witnessed:
 under service, by admission into the segment's history; in a gap, by the
 venue (C2b.3.2). An exact resubmission or republication is the same act and
 returns the same answer (invariant 26).
@@ -144,7 +166,8 @@ in the history's order. Admission reads one committed view
 - A **demand** is admitted where its proof verifies under this segment and
   scope root, every anchor is in the accepted-root forest, the backing is in
   the scope and its terms are held, its instant and deadline pass C3.3 and
-  C3.8, and no nonzero tag is **locked** or **spent**. A tag is spent where it
+  C3.8, its nonzero tags are distinct, and no nonzero tag is **locked** or
+  **spent**. A tag is spent where it
   is the tag of a nullifier in the spent set; the operator keeps that set of
   tags beside the spent set, and a replayer recomputes it. Its effect: each
   nonzero tag enters the pending-lock set keyed to the demand identity, and
@@ -153,12 +176,21 @@ in the history's order. Admission reads one committed view
   that index, and reserves nothing after it: the deadline is the holder's own
   bound on its lock (Construction §C3: a demand outlives its locks, and the
   protection against stalling is one the backer cannot wait out). A demand
-  past its deadline is discharged from the standing-demand record; it stands
-  in the history as evidence (C3.8) and can no longer be settled, since its
-  acceptance's deadline was at or before it (C3.4). The index a lock is read
-  at is the one the reader judges at: the door's horizon (C3.8), a
-  checkpoint's witnessed index in replay, a publication's own index at the
-  venue.
+  leaves the standing-demand record only by its settlement or its withdrawal
+  (Construction §C3: the claims are committed against payment until
+  withdrawal or settlement), so the record is a function of the history
+  alone. A demand past its deadline stays in it, reserving nothing, and
+  stands in the history as evidence (C3.8); it can no longer be settled,
+  because no settlement of it passes the door after its deadline — the
+  acceptance's deadline is at or before the demand's (C3.4) and the door
+  refuses an acceptance deadline behind its horizon (C3.8) — and not because
+  a reader removed it. A settlement admitted before the deadline may be
+  witnessed by a checkpoint long after it, and a replayer that pruned the
+  record at the index it read would refuse that settlement and exclude an
+  honest checkpoint (C2.10.11); so no replayer removes a demand for its
+  deadline. The index a lock is read at is the one the reader judges at: the
+  door's horizon (C3.8), a checkpoint's witnessed index in replay, a
+  publication's own index at the venue.
 - A **spend** or **burn** whose nullifier's tag is under a standing lock is
   refused: a lock reserves without consuming, and only the settlement of its
   own demand consumes what it reserves.
@@ -170,8 +202,9 @@ in the history's order. Admission reads one committed view
   and its nullifiers and output are new. Its effect is C3.5's, and the
   demand's locks are released with it.
 - A **withdrawal** is admitted where its demand is in the standing-demand
-  record, past its deadline or not, and the signature is the presenter's.
-  Its effect: the demand is discharged and its locks are released.
+  record, past its deadline or not, and the demand's presenter key signed
+  that withdraw statement (C3.6). Its effect: the demand is discharged and
+  its locks are released.
 - A demand whose tags are under another standing lock, a settlement of a
   demand not standing, and a settlement of a demand under another segment
   are refused. **Imports** apply the closure's demand, withdrawal and
@@ -198,7 +231,13 @@ them and the lock's own bound (C3.7) is read at the checkpoint's index.
 Dishonour is Construction §C3's branch read from the history and the venue
 record: a demand past its deadline with no settlement is the backer's visible
 failure, unless an acceptance of it, witnessed before its own deadline by
-more than the lag (C3.4), stood unreleased, which is the holder's lapse.
+more than the lag (C3.4), stood unreleased, which is the holder's lapse. A
+demand one of whose tags is the tag of a nullifier spent in any history or
+settlement with force the reader holds is **voided by its holder**, whatever
+index that spend was admitted at: only the note's holder can sign a spend of
+it, and Construction §C3 makes spending a demanded note the holder's own
+void. Such a demand is neither the backer's failure nor settleable, and no
+reader re-judges the index at which a door read its lock.
 
 ## 3. Non-service
 
@@ -213,7 +252,13 @@ the publication names — witnessed at indices in `[t − W, t − d]` that are
 the state's forest, and **unserved** at it: the tag is neither the tag of a
 nullifier in its spent set nor under a lock standing at `t` (C3.7). A count
 of at least `m` fires the grade against the party in force for `b` at `t`. A
-tag requested twice counts once. A request whose proof fails or whose anchor
+request is unsigned, so anyone can copy it; a request's index is therefore
+the first at which a request of its statement identity was witnessed naming
+`b`, and a republication by anybody, with these or other proof bytes, is
+that same request (pool-v2 §7) and extends no window. A holder whose request
+has aged out of the window refreshes it by proving under a later root of the
+canonical forest, which is another statement and the holder's own act. A tag
+requested twice counts once. A request whose proof fails or whose anchor
 the state does not certify counts for nothing; a request the canonical state
 has spent, or locked under a demand not yet past its deadline, has been
 served, whether by this party or its predecessor. A handover neither resets
@@ -278,9 +323,12 @@ note cannot settle twice across two silences either.
 backing's declared venue, each naming a backing: demand, acceptance, release,
 withdrawal and request. The name the venue carries is routing; a publication
 is read **for the backing its statement names as a public input** — the
-demand's or settlement's `backing`, a withdrawal's demand's, a request's —
-and a publication whose venue name differs from it has no force and is no
-evidence. A publication is judged at the index the venue witnessed it, against
+demand's or settlement's `backing`, a withdrawal's demand's, a request's, an
+acceptance's demand's — and a publication whose venue name differs from it
+has no force and is no evidence. An acceptance names its demand and no
+backing of its own (C3.4), so its routing name is checkable only beside that
+demand, and it is evidence for C3.8 only to a reader that holds the demand it
+names. A publication is judged at the index the venue witnessed it, against
 the record strictly before that index, and publications at one index are read
 in the venue's own order. An exact republication is the same publication: it
 has force at the first index at which it has any, and never a second time.
@@ -294,9 +342,10 @@ evidence:
   lock or spent in the recovery state at `t`. Its effect is C3.7's: it stands
   and its tags are locked in the recovery state. A demand already standing in
   the snapshot needs no publication.
-- A **withdrawal** has force at `t` where the gap is open at `t`, its demand
-  is in the recovery state's standing-demand record at `t`, and the presenter
-  key signed it. Its effect is C3.7's.
+- A **withdrawal** has force at `t` where the gap is open at `t`, its
+  statement is bound to the snapshot's segment and scope root, its demand is
+  in the recovery state's standing-demand record at `t`, and that demand's
+  presenter key signed the statement (C3.6). Its effect is C3.7's.
 - A **release** has force at `t` where the gap is open at `t`; its demand
   stands in the recovery state at `t` and is not past its deadline; its
   acceptance verifies under the backing's **K** with a deadline at or after
@@ -305,9 +354,10 @@ evidence:
   root, names the backing, the demand's quantity, the acceptance's `owner` and
   the demand; each anchor is a root of the snapshot's forest; the proof
   verifies; the tags match (C3.5); each nullifier is absent from the
-  snapshot's spent set, shown by the non-membership proof at its `spentRoot`
-  ([pool-v2 §11](pool-v2.md#11-the-spent-set)), and absent from every earlier
-  settlement with force since the adoption index; and `cm_out` is absent from
+  snapshot's spent set, which the reader holds from replaying the snapshot
+  (C2b.3.3) and checks directly, no proof object being published with the
+  release, and absent from every earlier settlement with force since the
+  adoption index; and `cm_out` is absent from
   the snapshot's outputs and those earlier settlements'. Its effect is C3.5's.
 - An **acceptance** and a **request** have no force; they are evidence for
   C3.8 and C2b.5.2.
@@ -323,12 +373,17 @@ commitment, and a duplicate does not confer it twice.
 
 **C2b.3.3 What a holder needs, and what a stranger checks.** To redeem in a
 gap a holder needs the snapshot's trail and ancestry, from replicas, to place
-its anchors and prove non-membership; the backer's acceptance; and the venue.
-A stranger judging the release needs the same trail and the venue record from
-the adoption index on. The venue holds bytes it does not interpret; it is a
-reader that decides force, and every reader decides it alike from the same
-record. A note whose history nobody replicated waits, as Construction §C2b.3
-says it will.
+its anchors and to establish its nullifiers' absence; the backer's acceptance;
+and the venue. A stranger judging the release needs the same trail and the
+venue record from the adoption index on. Every reader of force replays the
+snapshot for its forest, spent set and standing demands, so all three
+conditions are read from one replayed state and a non-membership proof
+published beside the release would restate what its reader already holds.
+The accumulator still supports such a proof, as Construction §C1.2 and
+invariant 23 require; this contract publishes none. The venue holds bytes it
+does not interpret; it is a reader that decides force, and every reader
+decides it alike from the same record. A note whose history nobody replicated
+waits, as Construction §C2b.3 says it will.
 
 ## 6. Return
 
@@ -403,7 +458,8 @@ inserts the backer's note with every consumed set, so `outstanding` is
 unchanged by a return (invariants 10 and 12); nullifiers published without a
 settlement are not adopted (C2b.3b). A demand standing at `r`, whether
 imported from the snapshot or adopted from the gap, stands in the new segment
-until it is settled, withdrawn or past its deadline there.
+until it is settled or withdrawn there, reserving nothing past its deadline
+(C3.7).
 
 **C2b.4.3 Receipts at the silence boundary.** Under this recovery contract,
 C2.10.9b's receipt walk ends at the earlier of the segment's silence boundary
@@ -499,6 +555,51 @@ C2b.3c, and every rule here reads objects Construction already names.
   snapshot. Exact evidence retention and classification dependencies remain
   required; a dropped backing's duration prices the drop as darkness.
 
+Decided on 2026-09-09, before the layouts that instantiate them, each from
+the same rule that the layout work read back:
+
+- C3.2, C3.3: the notice is the proof's public inputs and the demand's
+  identity is its `statementHash`. The alternative, a notice hash as one
+  public input, adds a hash inside the circuit and gives one object two
+  identities that a reader must check agree.
+- C3.2: the positions' nullifiers are distinct in the relation. The
+  alternative, leaving it to the door, admits a proof over one note in two
+  positions at any reader that checks tags only for locks, and the demand it
+  makes can never settle.
+- C3.5: `rho_out` is public. The alternative, a private `rho_out`, adds a
+  delivery from the holder to the backer, for the one field of a note whose
+  every other field the settlement publishes, at the moment the two parties
+  are least able to rely on each other.
+- C3.6: the withdrawal is a `withdraw` statement its presenter signs by
+  identity. The alternative, a signature over the demand identity alone, is
+  bytes an operator can hold back and apply under a segment the holder never
+  named; dropping the segment from the statement instead would make one
+  admitted kind unbound to the segment that admits it.
+- C3.6, C2b.3.2, C2b.3.3: the release publishes no non-membership proof.
+  Every reader that decides force replays the snapshot for its forest and
+  standing demands, so it holds the spent set; a proof at `spentRoot` would
+  serve only a reader that judges force without replaying, and no such
+  reader exists. Binding `spentRoot` in the snapshot digest to make one
+  possible was refused for the same reason. This removes about 1.2 KB and
+  one venue chunk from every release, and the accumulator's non-membership
+  capability stands unchanged for any later compact certificate.
+- C3.7: only the settlement and the withdrawal discharge a demand. The
+  alternative, discharge at the deadline, makes the standing record depend
+  on the index each reader judges at, and excludes an honest checkpoint that
+  witnesses a settlement admitted before the deadline after it. The price is
+  that an unsettled demand nobody withdraws is retained for the segment's
+  life.
+- C3.8: a spent tag voids its demand wherever the spend is witnessed. The
+  alternative, re-judging at replay the index a door read a lock at, cannot
+  be decided from the history and protects nobody, since only the holder can
+  sign the spend.
+- C2b.3.2: an acceptance is read beside the demand it names. The
+  alternative, a backing field inside the signed acceptance, spends 32
+  signed bytes on a routing name no reader can use without the demand.
+- C2b.5.2: a request is read at the first index it was witnessed at. The
+  alternative lets any stranger's copy carry a holder's request into a fresh
+  window and fire a grade the holder did not press.
+
 **It costs** what Construction §C2b already prices — illiquidity during a
 silence, the discarded tail, re-proof under the new segment — and, on top: a
 public tag per demanded note at filing, linkable to the note's later spend;
@@ -509,9 +610,12 @@ as the refusal lasts; the holding proof and the settlement in the
 configuration, so a change to either is a new version; a replayer that reads
 the venue record from a checkpoint's adoption index to the next opening,
 since the adopted block is a function of it; a wallet that keeps the
-snapshot's leaves to re-prove after a return; and, for every reader, the
-requests to count and the publications to judge, whose sizes the byte
-layouts will state.
+snapshot's leaves to re-prove after a return; a standing-demand record that
+holds every demand until it is settled or withdrawn, so a holder that walks
+away from an unanswered demand leaves one record entry in every replayer's
+state for the segment's life (C3.7); and, for every reader, the requests to
+count and the publications to judge, whose sizes the byte layouts will
+state.
 
 **It excludes**, and a later document must specify before a construction
 claims them: reliance sets (invariant 13's accompanying claims), payouts

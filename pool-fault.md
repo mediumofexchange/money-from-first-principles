@@ -51,13 +51,22 @@ history, to an **evidence chain** over the exact evidence the operator
 verified when it admitted each statement:
 
 ```text
-evidenceHash_0 = H(T_EVIDENCE ‖ segmentId)
-evidenceHash_i = H(T_EVIDENCE ‖ evidenceHash_{i−1} ‖ statementHash_i ‖ proofHash_i ‖ signatureHash_i)
+evidenceHash_0 = Hash(seedContext ‖ segmentId)
+evidenceHash_i = Hash(linkContext ‖ evidenceHash_{i−1} ‖ statementHash_i ‖ proofHash_i
+                      ‖ signatureHash_i ‖ i)
 ```
 
 with `proofHash_i` and `signatureHash_i` as pool-v2 §9's receipt already
-carries them, and the snapshot digest of every scoped backing binds
-`evidenceHash_n` beside `historyHash_n`. The history hash and every root stay
+carries them — `signatureHash_i` over whatever authorization the statement's
+kind carries, and the zero digest where it carries none — and the snapshot
+digest of every scoped backing binds `evidenceHash_n` beside
+`historyHash_n`. The construction fixes `Hash` and the two contexts, which
+are prefix-free as every context of the construction is. No circuit reads
+this chain and every input to it is already a hash of bytes, so a
+construction has no reason to pay for the in-circuit hash here: pool-v3
+fixes `SHA256` over frames, one context for the seed and one for the link
+(decided 2026-09-09), and binds the position `i` as pool-v2 §9's history
+chain binds it. The history hash and every root stay
 functions of the statements alone, so pool-v2 [§7](pool-v2.md#7-statements)'s
 identity ("two statements with one `statementHash` are one statement,
 whatever their proof bytes"), C2.10.6's deduplication and pool-v2 §8's
@@ -367,7 +376,7 @@ alternatives are retained at the [proposal revision](https://github.com/mediumof
 | Recovery C2b.4.1 | "It is lapsed for its whole scope: it is held at its exact sequence, supplies no finalized state for any scoped backing, closes no interval" | Add: "An excluded checkpoint of the segment (C2.10.12) is likewise held and closes no interval; it neither retires the segment nor moves its silence boundary." |
 | Recovery §8 | The bullet recording the invalid-live-evidence remedy as open. | Replaced by a pointer to this contract. |
 | Construction Appendix | — | Two retired sentences with their cost: an invalid commitment resets the clock (a stream of bad commitments suppresses redemption forever); a commitment carrying nothing for a backing closes its interval (a dropped backing has only the count, and its clock reads other scopes' evidence). |
-| pool-v3 | — | The evidence chain and `T_EVIDENCE`, `evidenceHash_n` in the snapshot digest, the served trail's exact evidence (C2.10.10); the form of the chains and the certificate encoding. |
+| pool-v3 | — | The evidence chain, `evidenceHash_n` in the snapshot digest, the served trail's exact evidence (C2.10.10). Its form is decided (2026-09-09): `SHA256` over frames under two prefix-free contexts, binding the position. The certificate encoding remains open. |
 
 ## 9. What this adds, replaces and costs
 

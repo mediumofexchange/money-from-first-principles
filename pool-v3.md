@@ -2,8 +2,8 @@
 
 ## 1. Status and scope
 
-This document fixes the successor's six proof relations and their public-input
-orders. It implements the selected [recovery](pool-recovery.md),
+This document fixes the successor's six proof relations, public-input orders
+and statement, authorization and publication records. It implements the selected [recovery](pool-recovery.md),
 [delivery](pool-delivery.md) and [transfer/fee](pool-fees.md) contracts without
 reinterpreting any [v2](pool-v2.md) bytes, notes or keys.
 
@@ -16,9 +16,8 @@ prove the relations below; passing it does not establish runtime conformance.
 
 Before adoption this document must also fix the full configuration (including
 delivery profile identity), source/helper/toolchain/bytecode/key identities,
-statement and authorization records, publication and signed-object bytes,
 evidence chains and snapshot commitments, replay/import rules and resource
-bounds. The [fault](pool-fault.md) and [spent-set](pool-spent.md) contracts
+bounds beyond the records below. The [fault](pool-fault.md) and [spent-set](pool-spent.md) contracts
 remain binding requirements for that work. None is replaced by a proof check.
 
 Under Construction C0a this instantiates the existing contracts, replacing
@@ -160,8 +159,8 @@ scope or public quantity. It creates no output, carries no signature, D or
 capsule, and is never admitted to a history. Copying an existing proof cannot
 authorize a new refresh value; independently proving the note can.
 
-Withdrawal, kind 5, has no proof relation or verification key. Its eventual
-statement layout and authorization must implement pool-recovery C3.6.
+Withdrawal, kind 5, has no proof relation or verification key. Its statement
+layout and authorization are fixed in §5 under pool-recovery C3.6.
 
 ## 4. Proof and conformance obligations
 
@@ -187,3 +186,135 @@ and replay. Proof-only conformance cannot establish those state transitions,
 issuance permission, signatures, witnessed time, unspentness, locks, finality,
 restoration completeness or permanent evidence availability. Retained tests
 must label any synthetic domains, capsules and prevalidated state as such.
+
+## 5. Canonical statement records
+
+This section fixes bytes for conformance before configuration adoption; it
+does not assign a v3 domain or authorize a v3 backing. All contexts below are
+literal ASCII. Integers, fields and identifier limbs use §2 and pool-v2 §1.
+No optional field, alternate spelling or trailing byte is accepted.
+
+```text
+statementBytes = "moe/pool/v3/statement" || configHash[32] || u8 kind ||
+                 u32 n || publicInputs[0] ... publicInputs[n-1]   (each F)
+statementHash  = SHA256(statementBytes)
+recordBytes    = statementBytes || u32 proofLength || proof[proofLength] ||
+                 u32 authorizationLength || authorization[authorizationLength] ||
+                 u32 capsuleCount || capsule_1[89] ... capsule_capsuleCount[89]
+```
+
+`kind` is exactly 1 through 7. Counts for kinds 1–7 are respectively
+11, 15, 15, 16, 7, 17, 7. Kinds other than 5 use §3's public-input order.
+Kind 5 uses `[domainHi, domainLo, segmentHi, segmentLo, scopeRoot,
+demandHi, demandLo]`. Its last pair names the standing demand to withdraw.
+The first two inputs must reconstruct exactly the outer `configHash`, even
+for a proofless withdrawal. All fields are canonical; every identifier limb
+is below `2^128` and every quantity, instant, deadline and refresh is below
+`2^64`. Public quantities are positive. These are checked before proof or
+signature verification, including by an encoder given external objects.
+
+| Statement kind | Proof | Authorization | Capsule count |
+|---|---|---|---|
+| 1 issue | §4 | backer K's signature over `statementBytes`, 64 bytes | 1 |
+| 2 spend | §4 | empty | 4 |
+| 3 burn | §4 | empty | 1 |
+| 4 demand | §4 | empty | 0 |
+| 5 withdraw | empty | presenter's signature over `withdrawalBytes`, 64 bytes | 0 |
+| 6 settle | §4 | `u64 acceptanceDeadline || acceptanceSignature[64] || releaseSignature[64]`, 136 bytes | 0 |
+| 7 request | §4 | empty | 0 |
+
+An empty proof has length zero and is permitted only for kind 5. Every other
+proof is nonempty, at most 131072 bytes and a multiple of 32 bytes, as in
+pool-v2 §12. The authorization length and capsule count must equal the table,
+not merely fit a maximum. A capsule is exactly profile 1's 89 bytes, beginning
+with `u8(1)` (pool-delivery C4.3). No capsule length or commitment is repeated
+inside the vector: counts and widths are fixed by kind and commitments are
+already public inputs. The reader recomputes C4.4's `deliveryHash` using the
+outer domain, those output commitments in order, and these capsules, and
+requires equality with the final two public inputs of kinds 1–3. The same
+checks apply at admission and replay. Zero outputs still require capsules.
+
+The statement identity excludes proof and authorization. Capsules enter that
+identity through the proof-bound delivery digest. Exact evidence retains the
+entire record, including the vector; a proof variant does not change the
+statement identity. In the fault contract's evidence triple, `proofHash` is
+SHA256 of the proof and `signatureHash` is SHA256 of the complete authorization,
+each replaced by 32 zero bytes exactly when its field is empty. An empty
+field is not represented by SHA256 of the empty string. This fixes the triple's
+components; the evidence-chain and snapshot frames remain to be specified.
+
+Decoding establishes canonical structure and delivery association, not proof
+validity, signature validity, authority, demand standing, locks, spentness,
+time or finality. Those checks remain mandatory under the contracts. A parser
+cannot classify a syntactically valid record as an accepted statement.
+
+## 6. Signed objects and publication records
+
+```text
+acceptanceBytes = "moe/pool/v3/acceptance" || configHash[32] || demandId[32] ||
+                  owner[F] || u64 deadline
+acceptanceId    = SHA256(acceptanceBytes)
+releaseBytes    = "moe/pool/v3/release" || configHash[32] || demandId[32] ||
+                  acceptanceId[32] || settlementHash[32]
+withdrawalBytes = "moe/pool/v3/withdrawal" || configHash[32] || withdrawStatementHash[32]
+publicationBytes = "moe/pool/v3/publication" || configHash[32] || backing[32] ||
+                   u8 publicationKind || u32 bodyLength || body[bodyLength]
+publicationId  = SHA256(publicationBytes)
+```
+
+All signatures use pool-v2's strict Ed25519 verification. K signs the exact
+`acceptanceBytes`; the demand's presenter signs the exact `releaseBytes` or
+`withdrawalBytes`. The acceptance owner is a nonzero canonical field element
+and its deadline a `u64`. For settlement, reconstruct `acceptanceBytes` from
+its domain, demand identity and public owner, and the authorization's deadline;
+verify the first signature under the backing's K. Reconstruct `releaseBytes`
+from that acceptance identity and this settlement's `statementHash`; verify
+the second signature under the named demand's presenter. No separate release
+payload, acceptance owner or demand identity is stored in the authorization.
+The reader checks the demand's backing, quantity, tags, presenter and deadlines
+under C3.4–8. A withdrawal signs its statement identity, binding its segment
+and scope as well as its demand (C3.6); a new segment needs a new signature.
+
+Publication kinds form their own enumeration:
+
+| Publication kind | Body |
+|---|---|
+| 1 demand | kind-4 `recordBytes` |
+| 2 acceptance | `acceptanceBytes || signature[64]` |
+| 3 release | kind-6 `recordBytes` |
+| 4 withdrawal | kind-5 `recordBytes` |
+| 5 request | kind-7 `recordBytes` |
+
+The inner and outer domains must match exactly. Each body must be exhausted
+after reading the exact kind above. The parser bounds `bodyLength` before
+copying: a statement body is at most its fixed statement length plus three
+u32 lengths/counts, its kind's maximum proof length, exact authorization
+length and exact capsule bytes; an acceptance body is exactly 190 bytes.
+The fixed statement length is 58 + 32n bytes. Thus no unbounded payload is
+introduced. Venue chunking or transport envelopes are outside this frame.
+
+Demand, release and request name their backing directly in their public
+inputs; the publication's routing backing must equal it. Acceptance and
+withdrawal name a demand and inherit that demand's backing. Their routing
+backing cannot be verified without the demand, which must be resolved and
+checked before using either as evidence or giving it force (C2b.3.2). A codec
+returning either object leaves that contextual check outstanding. No published
+object carries a spent-set non-membership proof (C3.6, C2b.3.3).
+
+An exact republication has force at the first index at which it has any
+(C2b.3.2), which need not be its first witnessed index: an earlier copy may
+have lacked force. A changed proof, authorization or routing frame can change
+`publicationId` without creating a new statement. Readers must also enforce
+the contracts' semantic identity rules. For request counting specifically,
+the request identity is its `statementHash`, read at the first index a request
+of that identity was witnessed naming the backing (C2b.5.2); proof variants
+or republication cannot extend that count window. Demand repetition cannot
+create a second lock or extend its deadline. Parsing and publication hashing
+alone do not enforce these replay rules.
+
+**C0a cost and replacement.** The authorization field generalizes v2's
+obligor-signature field and the capsule vector instantiates C4.4. The vector
+costs four count bytes plus 89 bytes per output, without duplicating cm. The
+publication body length costs four bytes and bounds parsing before copying.
+No signature, proof, replay authority or history chain is added. These records
+replace the deferred successor records, leaving every v2 byte unchanged.

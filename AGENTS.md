@@ -141,9 +141,9 @@ the reference's model, source or a concrete argument. Check affected links and
 cross-document consistency. Prefer a readable sentence to a clever one — a
 reader has to be convinced by one pass.
 
-The maintainer delegated development and protocol decisions to AI on
-2026-09-08, with independent review, and authorized merge and push when ready.
-This is standing authority until superseded. A new rule or ambiguity within
+Standing authorization effective 2026-09-08 covers development and protocol
+decisions, with independent review, and merge and push after verification.
+This authority remains in effect until superseded. A new rule or ambiguity within
 the project's intent is a decision to resolve, not a request for permission.
 Retain open entry, independent verification, private payments with public
 supply verification, immutable terms, holder authorization and compartmentalized
@@ -186,7 +186,10 @@ and repository checks/protections, merge and push, then verify remote parity.
 Do not bypass a failed gate or describe unavailable evidence as a pass.
 
 Keep instructions in `AGENTS.md`; `CLAUDE.md` only imports `@AGENTS.md`.
-Keep current handoff concise and reasoning in the decision log. End reports
+Keep current handoff concise and reasoning in the decision log. Record choices,
+rationale, alternatives, evidence and status neutrally; do not quote conversations
+or attribute decision authority to a person or model. Retain review findings
+and evidence limits; Git preserves authorship. End reports
 with delivered behavior, evidence, integration state and limitations, plus a
 rough percentage done/remaining toward the smallest usable product with a
 range for roadblocks. Use the reference's production requirements and handoff

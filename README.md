@@ -1,116 +1,68 @@
 # Money from First Principles
 
-Almost all money is somebody's promise. A banknote, a bank deposit, a gift card, an IOU between neighbours: in each case someone has said they will pay.
+A paper and protocol specification for money represented as transferable claims
+against promises. The paper derives a common structure for bank deposits,
+stablecoins, bills of exchange and informal credit; the **Medium of Exchange
+Protocol** defines how those claims can be issued, exchanged and verified.
 
-This is a derivation of the smallest object that can carry a promise, and a demonstration that the rest of money is built by combining copies of it.
+The aim is open entry: anyone can offer a promise on public terms, and a holder
+can independently check the evidence for accepting it. The design makes promises
+verifiable; it does not guarantee that they will be kept.
 
-Today, making money is a licensed activity, and [§1](money-from-first-principles.md#1-what-is-actually-wrong) lays four charges against that: who gets the new money, who is left outside, what happens to credit when a currency dies, and who pays for the failures. The usual answers are to fix the institution, which keeps the licence, or to escape it with money fully backed by something scarce. Full backing builds something real, and it stays small, because it creates almost no money.
+## Start reading
 
-This takes a third route: a **grammar** instead of a money. One object, general enough to write fiat, a bank deposit, a bill of exchange, a stablecoin and a neighbour's word.
-
-```
-  one object   a backing    B = (K, P, R, E)
-                 K  who owes
-                 P  what one unit pays
-                 R  what must be handed over alongside it
-                 E  who says a claim has not already been spent
-
-  one carrier  a claim      a quantity held against a backing.
-                            Bearer: whoever holds it, owns it.
-  one holding  a wallet     a set of claims, plus any bare assets
-
-  the law      nothing you owe (your written maximum) grows
-               without your signature.
-               nothing you hold leaves without your signature.
-
-  asymmetry    what must accompany a claim is fixed when the backing
-               is signed. what it pays may move with time.
-```
-
-The four fields are derived in three steps, and each step answers a failure in the one before. Where the text picks between options rather than following a forced step, it says so.
-
-The object spans the two questions that sort money: reputation or collateral behind the promise, and one hand or many running it. A wallet holds positions at several points at once and moves between them as trust grows in one place and dies in another. Every move is a trade. Move toward collateral and you buy trustlessness, paying in elasticity and liquidity. Move toward reputation and you buy money creation, paying in cyclicality. Move toward a single operator and you buy convenience, paying in that operator's failure modes. The holder decides what they value and where the risk sits.
-
-Out of the object and the law come some of what merchant law took five centuries to find, plus banks, market makers, credit ratings, derivatives and a private lender of last resort. Each appears as a role anyone can take, rather than a licence somebody has to grant. What does not appear is anything needing a judgement made after the fact, and [§18](money-from-first-principles.md#18-limits) lists what that leaves out.
-
-The design substitutes pricing for enforcement. It makes promises readable and continuously repriced. It does nothing to make them kept.
-
-Concentration will still happen, and large backers and banks will grow back. What goes is the legal moat. A village, a supply chain or a trade association could run its own money alongside the established one. The transparent reference implementation is being built toward that goal.
-
-## Where you stand
-
-Most readers arrive holding a position, and nearly all of them sit somewhere inside this object.
-
-| If you come from | You get | Where |
-|---|---|---|
-| **Credit theory** (Innes, Graeber, chartalism) | money is credit, made to work | [§4](money-from-first-principles.md#4-letting-it-pass), [§17](money-from-first-principles.md#17-every-money-is-a-setting) |
-| **Hard money** | your asset as the thing hardness is measured against, and where value runs in a panic without leaving the system | [§10](money-from-first-principles.md#10-roots-grounding-and-hardness) |
-| **Free banking** (Hayek, Selgin, White) | the same programme, without appraising each issuer's structure by hand | [§15](money-from-first-principles.md#15-valuation) |
-| **Riegel and enterprise money** | a business's own promise as money | [Appendix B](money-from-first-principles.md#enterprise-money) |
-| **Mutual credit and community currencies** (WIR, Sardex) | the boundary object | [Appendix B](money-from-first-principles.md#mutual-credit) |
-| **DeFi** | the collateral-heavy corner, useful and small | [Appendix B](money-from-first-principles.md#on-chain-backing-and-custody), [§18](money-from-first-principles.md#18-limits) |
-| **Cypherpunks** | Chaum's design made composable, with the issuer generalised. His portfolio money is one setting | [§14](money-from-first-principles.md#14-privacy-and-disclosure), [Appendix B](money-from-first-principles.md#portfolio-money) |
-| **Gesellians** | demurrage, money that decays to push spending, as one payout setting | [§5](money-from-first-principles.md#5-what-it-pays) |
-
-## Read
-
-The paper is the argument. Construction and Extensions are the **Medium of
-Exchange Protocol** — the normative part, and what an implementation tracks.
-
-| | |
+| Document | Purpose |
 |---|---|
-| **[Money from First Principles](money-from-first-principles.md)** | The paper. Why, the derivation, the law, what emerges, and the limits. Stands alone. [§17](money-from-first-principles.md#17-every-money-is-a-setting) and [Appendix B](money-from-first-principles.md#appendix-b-the-field-worked) locate every money you already know inside the object. There is a [glossary](money-from-first-principles.md#glossary) at the end. |
-| **[Construction](construction.md)** | The protocol. Reference card, invariants, claim layer, sequencing, dishonour, threat model, build order, and every alternative refused. For building it. |
-| **[Extensions](extensions.md)** | Optional profiles on top of the core — triggers, pro-rata, references, unitload, cross-operator presentation — and the claim-layer profiles that replace the pool: transparent, accumulator, Chaumian, offline. Each with the need that summons it and the price it charges. |
-| **[Pool v2](pool-v2.md)** | The core construction bit for bit, `moe/pool/v2`: fields, hashes, notes, the scope and the segment, the three statements, the note tree and the accepted-root forest, the spent set, the history, the receipt, finalized import, what **E** names. For two implementations to agree. |
-| **[Pool v3 proof layouts](pool-v3.md)** | Six successor relations and public-input orders. Incomplete construction: no configuration, artifact pins or adoption yet. |
-| **[Pool authority](pool-authority.md)** | The rules v2 instantiates: private spends stay authorized when backings replace their operators independently. |
-| **[Pool recovery](pool-recovery.md)** | The rules a later version instantiates: presentation and settlement, the non-service count, snapshot redemption at the venue while the operator is dark, and what the return adopts. |
-| **[Pool fault](pool-fault.md)** | The rules a later version instantiates: authenticated exclusion of faulty checkpoints, a clock read from the snapshot, continuation from the last valid prefix and receipts bound to admitted evidence. |
-| **[Pool v1](pool-v1.md)** | The historical fixed-operator layout, `moe/pool/v1`, superseded by v2 and retained as implementation evidence. |
+| [Money from First Principles](money-from-first-principles.md) | The argument, derivation, examples and limits. Start here for the ideas. |
+| [Construction](construction.md) | Normative protocol rules, invariants and threat model. Start here to implement it. |
+| [Extensions](extensions.md) | Optional features and alternative claim-layer profiles. |
 
-The core's claim layer is the shielded pool ([Construction §C1](construction.md#c1-claims-and-wallets)):
-ownership, amounts and histories hidden, supply proven at the pool's lit
-boundary. The transparent ledger, the accumulator and Chaumian signatures are
-[Extensions](extensions.md#the-transparent-profile) profiles.
+The central object is a backing, `B = (K, P, R, E)`:
 
-## Build
-
-The protocol has one reference implementation, and it is experimental. Its
-production path is the core's shielded pool, built rule by rule from
-Construction; its earlier transparent path is kept as a differential oracle
-and a library of adversarial cases while the pool is built.
-
-| | |
+| Field | Meaning |
 |---|---|
-| **[reference-ts](https://github.com/mediumofexchange/reference-ts)** | Experimental shielded-pool implementation: private notes, public supply replay, canonical history, receipt readers and durable sequencing. Recovery is modeled; the wallet and external witness write side remain to be built. |
+| K | Who owes. |
+| P | What one unit pays. |
+| R | What must accompany redemption. |
+| E | How a claim is verified as unspent. |
 
-The package is not published to npm. Follow the implementation's
-[setup and verification instructions](https://github.com/mediumofexchange/reference-ts#readme)
-to build from source.
+The core constraint is authorization: an obligation cannot increase without
+its issuer's signature, and a holding cannot move without its holder's
+authorization. The core claim layer is a shielded pool, intended to hide
+ownership, amounts and histories while making supply publicly verifiable.
 
-The optional [local pilot](https://github.com/mediumofexchange/reference-ts/blob/main/docs/PILOT.md)
-runs the transparent path across two processes with a local, trusted witness
-(`npm run pilot:demo`, Node.js 24); it is an integration harness, not a
-product. The [private-payment experiment](https://github.com/mediumofexchange/reference-ts/tree/main/experiments/private-payment)
-is the executable feasibility check for the shielded pool, with real proofs.
-The API and wire format remain experimental; the implementation has not
-undergone a completed security audit.
+## Specification status
 
-## Names
+The protocol is under development. Versioned layouts distinguish the implemented
+construction from successor work; a normative rule is not itself evidence that
+the implementation supports it.
 
-Three, because they do three different jobs and change at different rates.
+| Documents | Scope |
+|---|---|
+| [Pool v2](pool-v2.md), [authority](pool-authority.md) | Current reference-runtime layouts, circuits, keys and authority rules. |
+| [Pool v3](pool-v3.md) | Successor proof and record layouts. Incomplete: configuration, artifact pins and adoption remain undefined. |
+| [Recovery](pool-recovery.md), [fault evidence](pool-fault.md) | Presentation, settlement, operator silence and faulty checkpoints for a later construction. |
+| [Delivery](pool-delivery.md), [fees](pool-fees.md), [spent set](pool-spent.md) | Successor note delivery, transfer shape, fee and replay contracts. |
 
-- **Money from First Principles** is the paper, and keeps its name. An
-  argument is cited, not versioned.
-- **The Medium of Exchange Protocol** is what Construction and Extensions
-  define: the object, the law, and the machinery around them. This is the
-  thing that gets built.
-- **[mediumofexchange.org](https://mediumofexchange.org)** is the front door,
-  with the [org](https://github.com/mediumofexchange) and the
-  `@mediumofexchange` npm scope behind it.
+[Pool v1](pool-v1.md) is retained as a historical layout reference, superseded
+by v2. Earlier versions and rejected alternatives explain compatibility and
+design constraints; they are not additional active implementations.
+
+## Implementation and decisions
+
+[reference-ts](https://github.com/mediumofexchange/reference-ts) is the experimental
+TypeScript reference. It implements private notes, public supply replay,
+canonical history, receipt readers and durable sequencing. Runtime recovery,
+a pool wallet and external witness publication remain to be built. It has no
+published npm release or completed security audit.
+
+The implementation README provides source setup and pins the specification
+revision it follows. The shared [decision index](https://github.com/mediumofexchange/reference-ts/blob/main/DECISIONS.md)
+records choices, rationale, alternatives, evidence and specification changes.
+[AGENTS.md](AGENTS.md) describes the editing and review process.
+
+Project overview: [mediumofexchange.org](https://mediumofexchange.org).
 
 ## Licence
 
-CC0 1.0 Universal — public domain dedication. No permission needed, for
-anything, ever. If you build a money on this, you owe nobody here a thing.
+[CC0 1.0 Universal](LICENSE) — public domain dedication.

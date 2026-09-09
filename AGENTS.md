@@ -13,6 +13,7 @@ The main documents change at different rates.
 | `pool-fault.md` | **fault and evidence contract** | Normative for a later construction: how a checkpoint whose committed evidence fails the rules is classified and passed by descent, snapshot, count, clock and receipts; the revised clock; the amendments its adoption applies. Authenticated exclusion, the snapshot clock and continuation from the last valid prefix. |
 | `pool-delivery.md` | **delivery and restoration contract** | Receiver-prepared exact outputs, seed-encrypted capsules bound by statements, public-evidence restoration and its availability limits. Requires a later construction; v2 delivery remains unchanged. |
 | `pool-fees.md` | **transfer shape and fee contract** | Fixed successor spend shape, ordinary receiver-controlled fees, replay/finality and privacy/service-grade limits. Requires a later construction. |
+| `pool-spent.md` | **spent-set root contract** | Canonical compressed binary root, set-determined imports and per-statement replay. Requires a later construction. |
 | `pool-v1.md` | **historical construction layouts** | Fixed-operator `moe/pool/v1` bytes, superseded by v2; never reinterpreted. |
 
 The core's claim layer is the shielded pool (Construction §C1). Transparent,

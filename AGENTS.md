@@ -11,6 +11,7 @@ The main documents change at different rates.
 | `pool-authority.md` | **authority and history contract** | Normative C1.2/C2.10 rules for private scopes and independent backing replacement, which v2 instantiates. |
 | `pool-recovery.md` | **presentation and recovery contract** | Normative C3/C2b rules over the pool: the demand, lock and settlement, the non-service request and count, snapshot redemption at the venue, and the return from silence. Requires a later construction version. |
 | `pool-fault.md` | **fault and evidence contract** | Normative for a later construction: how a checkpoint whose committed evidence fails the rules is classified and passed by descent, snapshot, count, clock and receipts; the revised clock; the amendments its adoption applies. Authenticated exclusion, the snapshot clock and continuation from the last valid prefix. |
+| `pool-delivery.md` | **delivery and restoration contract** | Receiver-prepared exact outputs, seed-encrypted capsules bound by statements, public-evidence restoration and its availability limits. Requires a later construction; v2 delivery remains unchanged. |
 | `pool-v1.md` | **historical construction layouts** | Fixed-operator `moe/pool/v1` bytes, superseded by v2; never reinterpreted. |
 
 The core's claim layer is the shielded pool (Construction §C1). Transparent,

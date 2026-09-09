@@ -22,7 +22,7 @@ C2b.6.1, C2b.3.1–3 and C2b.4.1–3. Words are pool-v2's: note, commitment,
 nullifier, anchor, accepted-root forest, segment, scope, checkpoint, history,
 finalized prefix, import. "Judged at an index" means judged against the
 record strictly before that index (Construction §C2b.4). The **lag** is the
-venue's ([§C2.3.5](construction.md#c23-witnessing)): an act signed now is
+venue's ([§C2.3.5](construction.md#c23-witnessing)): an act authorized now is
 witnessed no earlier than the latest witnessed index plus the lag.
 
 ## 1. Objects
@@ -60,10 +60,12 @@ against itself. The proof consumes nothing and creates nothing.
   range-checked as every identifier's are
   ([pool-v2 §1](pool-v2.md#1-fields-hashes-and-encodings)), and the instant
   and the deadline are below `2^64`. **A relation of this contract constrains
-  every public input it declares that no signature binds**, so a proof binds
-  it under any proof system rather than only under one that carries unread
-  inputs into its verification equation: a demand whose presenter key a relay
-  could rebind is a demand that relay could release. A demand and a request
+  every public input it declares that no signature binds**. The construction
+  must also establish that its selected proof system binds the complete public
+  statement against changing such fields while reusing a proof of the notes;
+  range constraints alone do not establish this for every proof system.
+  A demand whose presenter key a relay could rebind could authorize that
+  relay's release. A demand and a request
   carry no signature, so every public input of theirs enters a constraint; a
   withdrawal and a settlement are signed over their own statement's identity,
   which binds every field of it, so a settlement's padding position keeps a
@@ -87,7 +89,7 @@ the deadline. The presenter key is the holder's choice, fresh per demand as a
 receiver's secret is fresh per payment (pool-v2 [§3](pool-v2.md#3-notes)),
 and signs the release and the withdrawal; the proof binds the notice, so
 nothing else signs the demand. The **instant** is a witnessed index no later
-than the latest index witnessed when the notice was signed (invariant 24),
+than the latest index witnessed when the holder authorized the notice (invariant 24),
 checked by every reader as a window on the index `w` at which the demand is
 witnessed, or would first be: `w − 2·lag ≤ instant ≤ w − lag`. A demand whose
 instant falls outside that window is refused at the door and has no force at
@@ -101,6 +103,33 @@ is the statement's own identity, its `statementHash`
 (pool-v2 [§7](pool-v2.md#7-statements)), and the notice is neither hashed
 nor signed apart from it: one object, one identity, and no second hash in
 the circuit.
+
+**C3.3a Authorization is not identity attribution.** The holding proof
+establishes control of the notes' spend secrets and binds the complete
+notice, including the presenter key, instant and deadline. It does not prove
+knowledge of the presenter key's signing secret or that the party controlling
+that key made or agreed to the demand. The wallet chooses a fresh presenter
+key it controls and retains its signing secret for release and withdrawal;
+merely naming another party's public key supplies no evidence against that
+party. Choosing a key it does not control can leave the holder unable to
+release or withdraw; it grants no privileged repair or debit path.
+
+Anyone may relay the unchanged demand. A copy has the same statement
+identity and authorization; its publisher need not be the holder or the
+presenter. A relay cannot change a bound field using that proof. Readers
+still check the demand's state, time window and other validity conditions:
+first admission or effective publication can create the originally authorized
+lock, but repetition creates no additional lock, extends no deadline and is
+not proof of a current holding by itself. A new notice needs a proof for its own public
+inputs, including any changed segment, presenter, instant or deadline.
+
+Neither this demand nor a signature from a fresh key establishes a civil
+identity, persistent reputation or the truth of a claim about external
+payment. Separate attribution evidence is outside this contract. It cannot
+be made a condition of public validity, counted requests or failure remedies.
+C3.8 describes the protocol record's outcome; for an in-kind payout it does
+not prove that the backer failed to perform outside that record. No identity
+registry, demand signature, new public input or authorization field is added.
 
 **C3.4 The acceptance** is the obligor **K**'s strict signature over the demand
 identity, an `owner` value and the acceptance deadline. **K** generates the
@@ -302,7 +331,7 @@ witnessed at — for a spend admitted into a history, the index at which the
 earliest canonical checkpoint whose history holds it was witnessed; for one
 with force at the venue, the publication's own index; and a reader that
 cannot place it draws no verdict over the interval (C2.10.13) — since only
-the note's holder can sign a spend of it, and
+the note's holder can authorize a spend of it, and
 Construction §C3 makes spending a demanded note the holder's own void. From
 that index it is neither the backer's failure nor settleable. It stood
 unanswered at the earlier indices and is read there as it stood, which is

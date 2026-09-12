@@ -189,11 +189,15 @@ Keep instructions in `AGENTS.md`; `CLAUDE.md` only imports `@AGENTS.md`.
 Keep current handoff concise and reasoning in the decision log. Record choices,
 rationale, alternatives, evidence and status neutrally; do not quote conversations
 or attribute decision authority to a person or model. Retain review findings
-and evidence limits; Git preserves authorship. End reports
-with delivered behavior, evidence, integration state and limitations, plus a
-rough percentage done/remaining toward the smallest usable product with a
-range for roadblocks. Use the reference's production requirements and handoff
-when available; do not infer product completion from prose or test counts.
+and evidence limits; Git preserves authorship. End reports with delivered
+behavior, evidence, integration state and limitations. Use the reference's
+production requirements and handoff for a coarse product-effort estimate.
+Reassess briefly from evidence already gathered after meaningful product
+progress or a consequential blocker; do not research or delegate just to
+estimate it. Credit reusable progress before release gates close. Report a
+rounded estimate/range and main blockers when materially changed or requested;
+omit unchanged percentages from routine fixes and prose/tooling reports. Never
+infer progress from commit/test counts or increase it to show movement.
 
 When work exposes a clearer project structure or workflow, make the low-risk
 improvement if it belongs to the active goal; otherwise leave a concise

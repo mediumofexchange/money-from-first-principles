@@ -40,7 +40,7 @@ the implementation supports it.
 | Documents | Scope |
 |---|---|
 | [Pool v2](pool-v2.md), [authority](pool-authority.md) | Current reference-runtime layouts, circuits, keys and authority rules. |
-| [Pool v3](pool-v3.md) | Successor proof and record layouts. Incomplete: configuration, artifact pins and adoption remain undefined. |
+| [Pool v3](pool-v3.md) | Successor proof, record, configuration and signed-root-terms layouts. Incomplete: approved artifacts and adoption remain undefined. |
 | [Recovery](pool-recovery.md), [fault evidence](pool-fault.md) | Presentation, settlement, operator silence and faulty checkpoints for a later construction. |
 | [Delivery](pool-delivery.md), [fees](pool-fees.md), [spent set](pool-spent.md) | Successor note delivery, transfer shape, fee and replay contracts. |
 

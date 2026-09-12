@@ -10,14 +10,15 @@ including the history and exact-evidence chains. It implements the selected [rec
 reinterpreting any [v2](pool-v2.md) bytes, notes or keys.
 
 **This is an incomplete construction, not an adoptable profile.** There is no
-v3 configuration preimage, configuration hash or approved circuit/key identity
-yet. No backing may declare `moe/pool/v3` on the basis of this document, and no
+adopted v3 configuration hash or approved circuit/key identity yet. Section 11
+fixes configuration and signed-terms bytes for conformance only.
+No backing may declare `moe/pool/v3` on the basis of this document, and no
 runtime may accept its statements as v2. A synthetic domain used to test these
 relations is not a construction domain. Conformance tooling may compile and
 prove the relations below; passing it does not establish runtime conformance.
 
-Before adoption this document must also fix the full configuration (including
-delivery profile identity), source/helper/toolchain/bytecode/key identities,
+Before adoption this document must also approve the configuration's
+source/helper/toolchain/bytecode/key identities,
 complete-certificate encoding, replay/import rules and resource
 bounds beyond the records below. The [fault](pool-fault.md) and [spent-set](pool-spent.md) contracts
 remain binding requirements for that work. None is replaced by a proof check.
@@ -170,7 +171,8 @@ Use pool-v2 §12's selected UltraHonk proof system and toolchain for this
 conformance milestone. A verifier selects the committed key by statement
 kind, never by public-input count or a key supplied with a proof. In
 particular, spend and burn both have 15 public inputs; neither proof can
-verify as the other relation. No v3 key or configuration is committed here.
+verify as the other relation. No approved v3 key or configuration hash is
+committed here; §11 fixes the configuration frame for conformance.
 
 One combined build must compile all six relations against the same helper
 sources, derive six keys, verify genuine proofs and check every exact public
@@ -512,7 +514,8 @@ values are already derived from the scope or the record. At maximum scope
 the header is about 8.50 MiB; that is a format bound, not a phone or transport
 budget. The alternative of adding such derived fields would require extra
 consistency rules without authenticating missing history. Every v2 header
-and identity remains unchanged; v3 configuration and adoption remain unset.
+and identity remains unchanged; approved v3 configuration identity and
+adoption remain unset.
 
 ## 9. Fault-evidence records
 
@@ -705,3 +708,140 @@ adoption flags would introduce redundant assertions and consistency rules;
 omitting scoped terms would leave silence/force checks underdetermined. Inner
 terms and record checks remain where their definitions place them. Every v2
 byte, finality rule and private note opening remains unchanged.
+
+## 11. Configuration and backing evidence before adoption
+
+### 11.1 Configuration frame
+
+The configuration uses the domain-only rule of pool-v2 §2. Its exact bytes are:
+
+```text
+configurationBytes = "moe/pool/v3/config"
+  || bytecode(issue)[32]   || vk(issue)[32]
+  || bytecode(spend)[32]   || vk(spend)[32]
+  || bytecode(burn)[32]    || vk(burn)[32]
+  || bytecode(demand)[32]  || vk(demand)[32]
+  || bytecode(settle)[32]  || vk(settle)[32]
+  || bytecode(request)[32] || vk(request)[32]
+  || helper[32] || u8(32) || u8(16) || u8(2) || u8(4) || u8(1)
+configHash = SHA256(configurationBytes)
+```
+
+The last five bytes are note-tree depth, scope-tree depth, maximum input
+count, maximum output count and pool-delivery C4.2–4's delivery profile.
+They are fixed constants, not selectable parameters. The frame is 439 bytes;
+there is no count, kind list, optional field or trailing byte. The six pairs
+are in kinds 1, 2, 3, 4, 6, 7 order; withdrawal has no key. The bytecode and
+key hashes have pool-v2 §2's meanings, including decoded compiler bytecode
+and the exact backend key bytes. The helper is pool-v2 §1's SHA-256 of the
+Poseidon2 helper source. Proof system, verifier target, toolchain, common
+relations, public-input orders, record bounds and spent-root rules are fixed
+by this construction and its referenced contracts; the frame is not a way
+to override them. No operator, venue, backing, segment or mutable authority
+enters the configuration.
+
+An implementation holds an independently selected manifest of source,
+shared-helper, compiler/backend/version, verifier-target, bytecode and key
+identities for all six relations. It checks source/toolchain identities,
+compiles the relations together, derives keys under §4, and compares the
+result with that manifest and the configuration. It refuses missing,
+reordered or mismatched identities, including for relations absent from a
+particular trail. A served package may supply the configuration preimage,
+but cannot select that manifest or a key. Routing uses the kind's own checked
+key, never the public-input count. Hash equality alone proves neither that a
+relation is correct nor that its setup is trustworthy.
+
+Conformance tooling may use a manifest of reviewed candidate identities and
+the corresponding configHash to remove synthetic-domain fixtures. Such a
+hash remains a **candidate domain**, not an adopted construction. Successful
+byte, source, key or proof checks cannot enable backing declaration. Section
+1's adoption prerequisites remain binding; no adoption flag in a manifest,
+configuration, terms or served package can close them. Final adoption must
+identify the approved configuration and artifacts in this document after
+complete-certificate, replay/import and resource requirements are fixed.
+Changing those semantics before adoption requires renewed review and
+conformance; candidate notes carry no migration or spendability promise.
+
+### 11.2 Constant-payout root terms
+
+For the smallest supported pool-delivery profile, the following is the exact
+canonical terms encoding. It reuses the reference's `MOEB` version-1 framing,
+name hash and backing-signature message; only the construction string's
+value changes. This section supplies no encoding for a payout in claims or
+a nonempty reliance graph. An unsupported encoding remains unresolved, not
+an empty root or evidence that the checkpoint is faulty.
+
+```text
+terms = "MOEB" || u8(1) || u8(1) || K[32]
+  || u8(1) || u32 thingLength || thing[thingLength] || i8 quantumExponent
+  || u32 perUnitLength || perUnit[perUnitLength]
+  || u32(0)
+  || u8(5) || originalOperator[32] || u32 clauseCount || clauses
+backingName = SHA256(terms)
+backingSignatureMessage = "moe/backing-signature/v1" || backingName[32]
+```
+
+K and originalOperator are canonical non-small-order Ed25519 public keys.
+`thing` is nonempty strict UTF-8, at most 1024 bytes, with no normalization
+or byte-order-mark removal. `quantumExponent` is one signed two's-complement
+byte. `perUnit` is a positive integer below `2^256`, in 1–32 big-endian bytes,
+with no leading zero. The zero u32 is the reliance count. These are payout
+terms, not the pool's u64 note values or running supply. All u32/u64 values
+are unsigned big-endian. Clauses are strictly ascending by their one-byte
+tag, with no duplicates, unknown tags or extra bytes:
+
+| Tag | Payload, after the tag |
+|---|---|
+| 1, silence | u64 noCommitmentDuration, u64 challengeWindow |
+| 2, witnessing | venue[32], u64 witnessInterval |
+| 3, replacement | replacementRuleKey[32] |
+| 4, non-service | u64 duration, u32 count, u64 window |
+| 5, construction | u32(11), ASCII `moe/pool/v3`, configHash[32] |
+
+Tags 2 and 5 are required; tags 1, 3 and 4 are optional. Thus clauseCount is
+2–5. Durations, intervals, count and window have their full encoded unsigned
+range; this encoding does not impose an additional service-grade calibration.
+The replacement key, when present, must be a canonical non-small-order
+Ed25519 public key. No clause payload has an extra length prefix. No optional
+clause is inferred from a missing one. Terms are at most 1305 bytes in this
+profile; readers check that bound before decoding. The signature is exactly
+64 bytes, R[32] followed by little-endian S[32]. It uses the existing strict
+Ed25519 rule: canonical A = K and R encodings, A non-small-order,
+`0 <= S < l`, and `[8]([S]B - R - [k]A) = 0`, where B is the Ed25519 base
+point, l its order and k is SHA-512(R || A || backingSignatureMessage)
+interpreted little-endian modulo l. There is no additional small-order R
+restriction and no ZIP215 decoding.
+
+### 11.3 Evidence checks and their limit
+
+For each §10 scoped terms field, decode exact bytes under §11.2, derive the
+name, require equality with that header entry's backing, and verify K's
+signature over the name message. Require the construction to be exactly
+`moe/pool/v3`, configuration to equal the checked §11.1 hash, and venue to
+equal the header venue. Derive the issuance-verification key from those
+signed terms, never a separately supplied issuer key. A changed payout,
+clause, key or configuration changes the backing name and invalidates reuse
+of the original signature. A v2 backing or its signature cannot be relabeled.
+
+These checks establish terms identity and signature, not registration,
+current operator, replacement-link force, revocation absence, a valid empty
+opening, record-range completeness or finality. The original operator is
+not necessarily the current operator: the reader still proves the current
+link and operator from the witnessed chain under C2.5 and C2.10. A local
+initial-segment conformance experiment may explicitly restrict itself to
+the original operator and genesis link; even then it has no evidence that
+no replacement or revocation has occurred. Missing authority evidence stays
+unresolved. Terms/configuration checks must not produce spendable notes or
+upgrade §10.1 to a complete opening or exclusion verdict.
+
+**C0a cost and replacement.** The 439-byte fixed configuration generalizes
+v2's three-pair frame to six pairs and adds one delivery-profile byte, 193
+additional bytes. It replaces deferred configuration framing, not an adopted
+configuration. Constant-root terms reuse one name and one existing signature;
+there is no certificate signature, configuration authority, registry of
+approved issuers or extra proof relation. A variable list, duplicate source
+hashes inside the domain or a mutable key service would add parsing or
+operating costs without replacing manifest verification. Omitting a recovery
+key would let a local-only check silently certify an incomplete configuration.
+The manifest/source checks are local verification work, not a publication
+service or a proof of currentness. V2 bytes, keys and runtime support stay fixed.

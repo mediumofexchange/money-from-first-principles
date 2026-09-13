@@ -11,7 +11,8 @@ reinterpreting any [v2](pool-v2.md) bytes, notes or keys.
 
 **This is an incomplete construction, not an adoptable profile.** There is no
 adopted v3 configuration hash or approved circuit/key identity yet. Section 11
-fixes configuration and signed-terms bytes for conformance only.
+fixes configuration and signed-terms bytes for conformance only. Section 12
+fixes source-neutral evidence transport, not a complete-certificate verdict.
 No backing may declare `moe/pool/v3` on the basis of this document, and no
 runtime may accept its statements as v2. A synthetic domain used to test these
 relations is not a construction domain. Conformance tooling may compile and
@@ -845,3 +846,114 @@ operating costs without replacing manifest verification. Omitting a recovery
 key would let a local-only check silently certify an incomplete configuration.
 The manifest/source checks are local verification work, not a publication
 service or a proof of currentness. V2 bytes, keys and runtime support stay fixed.
+
+## 12. Evidence packages and dependency retention
+
+A package transports retained evidence for C2.10.13. It contains exact byte
+objects, not a reader's cached classifications, asserted dependency edges or
+an assertion that a range is complete. The request being answered, including
+the selected venue, construction, backing, checkpoint and judging prefix, is
+an independent reader input; the package does not select or change it.
+
+```text
+packageBytes = "moe/pool/v3/package" || u32 count || item_1 ... item_count
+item = u8 kind || u32 length || payload[length]
+```
+
+The literal context is ASCII; integers are unsigned big-endian. Count may be
+zero, each length may be zero through `2^32-1`, and there are no trailing or
+optional fields. The following kind numbers select payload interpretations:
+
+| Kind | Payload |
+|---|---|
+| 1 | Section 11.1 configuration bytes |
+| 2 | Existing signed commitment record: `u64 sequence || root[32] || operator[32] || signature[64]` |
+| 3 | Complete directory preimage, as defined below |
+| 4 | Section 7 snapshot bytes |
+| 5 | Section 8 segment-header bytes |
+| 6 | Section 10 served-trail bytes |
+| 7 | Section 9 fault-evidence bytes |
+| 8 | Section 10's single `signedTerms` field, including its length and signature |
+| 9 | Section 6 publication bytes |
+| 10 | Section 7.2 `receiptRecord` bytes (355 bytes, including operator and signature) |
+| 11 | Venue-specific retained evidence bytes; interpretation requires the independently selected venue evidence verifier |
+
+The complete directory preimage is the existing directory-root frame:
+`0x4d4f4544 || u8(1) || u32 m || (name[32] || digest[32])_1 ... _m`.
+Names are strictly increasing in unsigned byte order, including when m is
+zero. Its SHA256 is the commitment's directory root. This exposes the existing
+hash preimage for transport; it does not change any directory root or signature.
+
+Items are strictly increasing by `(kind, SHA256(payload))`, comparing the
+32-byte hashes in unsigned byte order. A repeated pair is refused, even if its
+payload bytes are identical. The same payload under different kinds is
+structurally permitted but gains no validity under either interpretation.
+The hash is computed, not carried in another field. It is a local inventory
+key, not a new signed identity: the checkpoint identity remains its operator,
+sequence and root; statement identity and all existing commitments remain as
+defined. Packaging the same objects in a different order is noncanonical.
+
+The outer codec preserves all payloads without decoding, repairing or
+reserializing their inner fields. Empty or malformed inner evidence can be
+transported; it does not become valid. Unknown kinds are unsupported evidence
+and leave a read unresolved. Separate header and signed-terms objects permit
+a reader to retain lapse evidence without pretending to possess a complete
+trail. Overlap between those objects and a supplied trail must agree wherever
+the reader uses it; merely sharing a header identity does not make two trails
+evidence for the same checkpoint.
+
+The exact package size is `23 + sum(5 + length)` bytes. Before allocating
+payloads or hashing them, a reader checks explicit local total-byte and item
+budgets, every field boundary and the exact end. Count must fit the remaining
+bytes even for empty payloads. Arithmetic must not wrap or round through
+unchecked machine numbers. Only after that scan does it hash and check order.
+Encoders apply the same shape, bounds and ordering checks before allocating
+output. Readers own input bytes before asynchronous work and refuse shared
+mutable storage. These budgets are local processing limits, not consensus
+bounds. Exceeding them is a resource refusal, never operator fault.
+
+### 12.1 A package is not a complete certificate
+
+The reader derives dependencies from the requested read and the existing
+rules, including C2.10.3–5 and C2.10.10–13. It resolves each dependency against
+its existing signed or hashed identity and context, authenticates the exact
+bytes, and then performs its semantic checks. A lookup miss or unresolved
+dependency is not an empty opening, directory absence or permission to select
+an older checkpoint. Distinct inventory keys do not resolve conflicting
+evidence for one required identity. Identical shared dependencies may be used
+by several reads without duplicating their payloads. A flat inventory adds no
+global graph traversal or global cycle-detection requirement.
+
+In particular a venue-evidence verifier is selected independently of the
+package. Its request fixes the venue and finality context, subject and record
+kind, the required endpoints and their inclusion rules, and any checkpoint's
+own-prefix restriction (earlier indices and lower same-operator sequences at
+its index). Successful authentication must establish exactly that request's
+complete records, their witnessed indices and same-index order from retained
+evidence, including an authenticated empty result where applicable. A proof
+of inclusion alone, a latest-value response, a caller-supplied completeness
+flag, or a response for another range cannot meet that contract. Unsupported
+venue evidence, a failed source, missing history or a local budget refusal
+leaves the read unresolved. The package must not choose the verifier, a trust
+anchor or an executable decoder. No venue wire profile, finality rule or new
+authority is created here; authenticated range-source evidence and its exact
+profile remain adoption prerequisites.
+
+Only after deriving and verifying the complete closure may the reader give
+the verdict its requested read permits. Package decoding or local replay
+alone gives no currentness, complete-zero-balance, spendability or exclusion
+claim. Retain the evidence needed to reproduce a verdict, not the verdict in
+place of it. A local experiment limited to one configuration and checkpoint
+may refuse other package shapes; that is unsupported coverage, not a judgment
+against otherwise valid protocol evidence.
+
+**C0a cost and replacement.** This replaces ad hoc evidence-object transport
+with one source-neutral inventory over existing byte formats. It costs 23
+fixed bytes, five bytes per item, and one SHA256 per payload for canonical
+ordering; inner verification remains necessary. It adds no package signature,
+publication requirement, proof relation or trusted certificate issuer.
+Nested dependency copies would repeat evidence and impose recursive parsing;
+serialized dependency assertions would duplicate the rules that derive them.
+Fixing a venue-specific dependency graph before range-source feasibility is
+established would assume evidence not yet demonstrated. This frame therefore
+fixes neither that graph nor full replay, and leaves all v2 behavior unchanged.

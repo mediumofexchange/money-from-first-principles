@@ -4,8 +4,8 @@
 
 This document fixes the successor's six proof relations, public-input orders
 and statement, authorization, publication, snapshot, receipt, segment-header
-and fault-evidence records, plus served-trail transport,
-including the history and exact-evidence chains. It implements the selected [recovery](pool-recovery.md),
+and fault-evidence records, plus served-trail, evidence-package and
+record-range transport, including the history and exact-evidence chains. It implements the selected [recovery](pool-recovery.md),
 [delivery](pool-delivery.md) and [transfer/fee](pool-fees.md) contracts without
 reinterpreting any [v2](pool-v2.md) bytes, notes or keys.
 
@@ -13,6 +13,8 @@ reinterpreting any [v2](pool-v2.md) bytes, notes or keys.
 adopted v3 configuration hash or approved circuit/key identity yet. Section 11
 fixes configuration and signed-terms bytes for conformance only. Section 12
 fixes source-neutral evidence transport, not a complete-certificate verdict.
+Section 13 fixes the record-range answer a venue-evidence verifier returns;
+no venue profile is selected.
 No backing may declare `moe/pool/v3` on the basis of this document, and no
 runtime may accept its statements as v2. A synthetic domain used to test these
 relations is not a construction domain. Conformance tooling may compile and
@@ -925,19 +927,21 @@ by several reads without duplicating their payloads. A flat inventory adds no
 global graph traversal or global cycle-detection requirement.
 
 In particular a venue-evidence verifier is selected independently of the
-package. Its request fixes the venue and finality context, subject and record
-kind, the required endpoints and their inclusion rules, and any checkpoint's
-own-prefix restriction (earlier indices and lower same-operator sequences at
-its index). Successful authentication must establish exactly that request's
-complete records, their witnessed indices and same-index order from retained
-evidence, including an authenticated empty result where applicable. A proof
+package. Its request fixes the venue, whose identity carries the finality rule,
+the record kind and subject, and an inclusive index range (§13.1); the reader
+derives a checkpoint's own-prefix restriction (earlier indices and lower
+same-operator sequences at its index) from the answer (§13.3). Successful
+authentication must establish exactly that request's complete records, their
+witnessed indices and, for publications, the venue's order within an index
+from retained evidence, including an authenticated empty result where
+applicable. A proof
 of inclusion alone, a latest-value response, a caller-supplied completeness
 flag, or a response for another range cannot meet that contract. Unsupported
 venue evidence, a failed source, missing history or a local budget refusal
 leaves the read unresolved. The package must not choose the verifier, a trust
 anchor or an executable decoder. No venue wire profile, finality rule or new
-authority is created here; authenticated range-source evidence and its exact
-profile remain adoption prerequisites.
+authority is created here. Section 13 fixes the answer such a verifier returns;
+venue-specific evidence and its verifier remain adoption prerequisites.
 
 Only after deriving and verifying the complete closure may the reader give
 the verdict its requested read permits. Package decoding or local replay
@@ -957,3 +961,218 @@ serialized dependency assertions would duplicate the rules that derive them.
 Fixing a venue-specific dependency graph before range-source feasibility is
 established would assume evidence not yet demonstrated. This frame therefore
 fixes neither that graph nor full replay, and leaves all v2 behavior unchanged.
+
+## 13. Record-range evidence
+
+C2.10.13 reads the record over a range: the complete set of records the venue
+holds for one subject between two witnessed indices, with each record's
+witnessed index and the venue's order within an index. Section 12.1 requires
+the venue-evidence verifier to establish exactly that for the reader's request.
+This section fixes the request, the answer the verifier returns and the rules
+by which the reader consumes it. It is source-neutral: which venue evidence
+establishes an answer, and how, is the venue profile's, and no venue profile
+is selected here.
+
+### 13.1 Requests and answers
+
+```text
+rangeBytes = "moe/pool/v3/range" || venue[32] || u8 recordKind || subject[32] ||
+             u64 fromIndex || u64 toIndex || u32 count || entry_1 ... entry_count
+entry_i    = u64 index || u64 ordinal || u32 length || record[length]
+```
+
+The context is literal ASCII and integers are unsigned big-endian. The request
+is the 81 bytes after the context: the venue identity every scoped backing
+declares (C2.10.2), one record kind, its subject and an inclusive index range
+with `fromIndex <= toIndex`. `toIndex` must be witnessed under the venue's
+finality rule (C2.3.2) when the answer is computed. Count may be zero: an
+answer with no entries is the authenticated statement that the venue witnessed
+no object of that kind for that subject in the range.
+
+Each entry carries the object's witnessed index and an ordinal field. For
+kind 4 the **ordinal** is the object's position in the venue's order within
+that index, one total order over every object the venue witnessed at the
+index, so that the ordinals of publications of different backings at one
+index compare as the venue's order (C2b.3.2, C2b.4.2). For a chain that order is transaction
+order, then output order within a transaction. The venue profile fixes how
+the ordinal is derived and, for an object it reassembles from several pieces,
+fixes the object's index and ordinal as a function of the pieces' positions;
+distinct objects have distinct ordinals, reassembled or not. Kind-4 entries
+are strictly increasing by `(index, ordinal)`. No rule reads the venue's
+order within an index for kinds 1–3, so their ordinal is zero and their
+entries at one index are in ascending unsigned order of their record bytes,
+identical records adjacent, which keeps the answer canonical: a source that
+establishes only the index can answer for them, while one that cannot
+establish the order within an index cannot answer for kind 4. Entries lie
+within the range and are non-decreasing by index.
+
+| Kind | Subject | Record |
+|---|---|---|
+| 1 commitment | operator key | `u64 sequence \|\| root[32] \|\| operator[32] \|\| signature[64]`, exactly 136 bytes |
+| 2 replacement | backing name | `backing[32] \|\| u8 role \|\| successor[32] \|\| predecessor[32] \|\| u64 effective \|\| signature[64] \|\| successorSignature[64]`, exactly 233 bytes |
+| 3 revocation | obligor key K | `obligor[32] \|\| signature[64]`, exactly 96 bytes |
+| 4 publication | backing name | Section 6 `publicationBytes`, at most 131914 bytes |
+
+These are the existing records as the venue carries them, after the venue
+profile's reassembly and before any decoding under the construction. Their
+signed messages are unchanged; for readers they are: a commitment signs
+`"moe/commitment/v2" || u64 sequence || root[32]` under `operator`, the
+reference's current context, which pool-v2 §9 leaves the implementation free
+to version, a versioned context being a new record kind here; a replacement's
+rule holder and its successor each sign `"moe/replacement/v1" || backing[32]
+|| u8 role || successor[32] || predecessor[32] || u64 effective`, with role 1
+the operator (C2.5.1–2); a revocation signs `"moe/revocation/v1" ||
+obligor[32]` under K (C2b.1). The kind-4 bound is §6's 92 framing bytes over
+its largest body, a kind-6 record of 131822 bytes. All signatures use
+pool-v2's strict Ed25519 rule. This transport changes no record, message or
+signature. The four kinds are the closed set this section answers; other
+venue objects, such as C3's bundle commits and the state-reading extension's
+locks and refusals, are not answerable under this frame.
+
+An entry is an object the venue witnessed at the subject's location; nothing
+here says it is a record the venue holds or a valid one. An object that does
+not decode as its kind, does not verify, or names a subject other than the
+answer's is not a record under C2.3.3 and is disregarded by §13.3. The answer
+carries it nonetheless, because the verifier applies no signature, sequence,
+kind or content rule: the construction's rules are applied in one place, by
+the reader. The venue profile attributes objects to a kind and subject by
+their location and shape at the venue and reassembles their exact bytes. That
+attribution rule, like the finality rule and the lag (C2.3.2, C2.3.5), is part
+of what the venue identity names; two attribution rules are two venues. The
+profile omits an object only where it does not reassemble to the profile's
+shape, or its length is not the kind's exact length (kinds 1–3) or exceeds
+the kind's bound (kind 4), since no such object can be a record of the
+construction. Two entries with identical bytes at two positions are two
+witnessings of one object.
+
+The exact size is `102 + sum(20 + length)` bytes. Before allocating or decoding
+entries, a reader checks the context, the request against the request it made,
+`fromIndex <= toIndex`, a local total-byte budget and entry budget, every
+entry's index, length and boundary, the order of entries — by `(index,
+ordinal)` for kind 4, by index and record bytes with a zero ordinal for kinds
+1–3 — and the exact end. Count
+must fit the remaining bytes even for empty records, and arithmetic must not
+wrap or round through unchecked machine numbers. Readers own answer bytes
+before asynchronous work and refuse shared mutable storage. Encoders apply
+the same checks before allocating output. Budgets are local processing
+limits, not consensus bounds; exceeding one leaves the read unresolved.
+Objects a stranger publishes at a location cost the reader bytes and
+signature checks, priced by the venue's publication cost; a budget the
+reader later raises leaves nothing unresolved for good.
+
+### 13.2 What the verifier establishes
+
+An answer is the output of the venue-evidence verifier the reader independently
+selected (§12.1), computed under the reader's control from retained venue
+evidence for exactly this request. The verifier establishes that `toIndex` is
+witnessed under the venue's finality rule and that the answer holds every
+object the venue profile attributes to the kind and subject at an index in the
+range, with its exact bytes, witnessed index and ordinal, and nothing else. It
+establishes this from evidence it can authenticate over the whole range, so
+that absence is proven by exhaustion rather than reported: a source's word on
+its own completeness, an inclusion proof, a latest-value answer or an answer
+for another range does not meet the contract. A verifier that cannot establish
+this — unsupported evidence, a failed or incomplete source, an unauthenticated
+order, an index not yet witnessed, a local budget — returns no answer, and the
+read is unresolved (C2.10.11). It retains the venue evidence it consumed, so
+the answer can be reproduced (C2.10.13). The venue's lag (C2.3.5) and its
+current witnessed index are constants and reads of the venue profile, not
+fields of this frame; a reader asking about the present sets `toIndex` from
+that read.
+
+The frame carries no signature and creates no authority. Supplied by an
+operator, a replica, a package or any other party — including under §12 kind
+11, which carries venue evidence for the verifier to consume, not answers — it
+is not an answer and establishes nothing, as a cached verdict establishes
+nothing. A reader's own components, including a separately contained decoding
+process, are under its control; the frame is their interface and the form of
+conformance vectors. A reader may keep its own answers for reuse across reads
+of one request while the venue's finality rule stands, beside the evidence
+that reproduces them; a reorganization past the declared depth is the venue's
+failure, not a fact an answer survives.
+
+### 13.3 What the reader derives
+
+**Commitments (kind 1).** Which commitments the venue holds is C2.3.3 read
+index by index, from the records alone. Among the entries at one index that
+decode, name the subject and verify, a commitment is **held** where its
+sequence exceeds every sequence held at earlier indices. The held commitments
+at one index are read in ascending sequence order, which is the same-index
+sequence order of C2.3.4, C2.10.4 and C2.10.13. Two such records with one
+sequence at one index are one held sequence, the lesser record in unsigned
+byte order standing for it, the first of the two in a canonical answer. The
+highest sequence held before an answer's first index is zero where
+`fromIndex` is zero. Otherwise it is either the highest the reader itself
+derived through `fromIndex − 1` from the adjacent earlier answer for the same
+venue, kind and subject, or the sequence of a commitment the reader has
+already established as held at `fromIndex` itself, whose lower same-index
+sequences belong to its own prefix and were read with it. A prior highest
+supplied by anyone else is not evidence. A held commitment's witnessed index
+is its entry's index. A checkpoint's own record prefix (C2.10.4, C2.10.11) is
+therefore the held commitments at earlier indices and those with lower
+sequences at its own index. A sequence between held sequences is one the
+record moved past (C2.3.3, C2b.4). A record that is not held supplies nothing to the record: no state, no hole,
+no era. Whether two roots at one sequence, at one index or at two, are the
+operator's provable fault is invariant 22's question over the records
+themselves, not this rule's.
+
+**Replacements (kind 2).** A record's identity is the SHA256 of its signed
+message, the value its successor names as predecessor; two entries with one
+identity are one record, witnessed at the first, whatever their signature
+bytes. A backing's chain is C2.5's walk over the kind-2 answers for the
+backing from index zero. A record counts where it decodes, names the backing,
+has role 1 and verifies under the replacement-rule key the backing's terms
+declare and under its successor; a backing whose terms declare no rule has no
+chain beyond its original operator (C2b.5). The lead floor (C2.5.3), the
+strictly-later rule (C2.5.4) and supersession (C2.5.5) read the record's
+witnessed index, and two records witnessed at one index resolve by the lesser
+identity. The party in force for the
+backing at every index in the range follows.
+
+**Revocations (kind 3).** K is revoked from the index of the first entry that
+decodes, names K and verifies (C2b.1); later entries are copies. An answer
+with no such entry over `[0, t]` establishes that K is not revoked at `t` on
+this venue; an answer over a shorter range establishes that for its range only.
+
+**Publications (kind 4).** A backing's publications are read under C2b.3.2 in
+venue order: by index, then ordinal, and across the answers for every scoped
+backing where a rule reads them together, as C2b.4.2's adopted block does.
+Each is judged at its entry's index against the record strictly before that
+index. An entry that does not decode under §6, whose routing backing is not
+the subject, or whose statement names another backing has no force and is no
+evidence; an acceptance's or withdrawal's routing backing is checked beside
+the demand it names (§6), which this answer does not resolve. Identical bytes
+at two positions are one publication, with force at the first index at which
+it has any. A request's index for the count is the first entry index of its
+identity (C2b.5.2).
+
+The range each read needs is the rule's, not the frame's: the snapshot and the
+clock read the party in force's commitments from the last valid carrying
+checkpoint to `t` (C2.10.13, C2b.6.1), anchored on that checkpoint as above;
+the adopted block reads publications from the adoption index through `r`
+(C2b.4.2); the chain and revocation are read from index zero. A read that
+spans a change of the party in force reads each operator's held commitments
+and the chain that places it in force. Answers establish the record and
+nothing else: no directory, snapshot, trail, classification, term, force or
+verdict, and every other item of C2.10.13 still applies.
+
+**C0a cost and replacement.** This fixes the answer form §12.1 deferred, over
+the existing record encodings and the existing venue rules C2.3.3–4, C2.5,
+C2b.1 and C2b.3.2. It costs 102 fixed bytes and 20 per entry beside the
+records themselves. It fixes the reading of C2.3.3 within one index, ascending
+sequence from the records alone, and carries the venue's order within an index
+for the rules that read it; it adds no signature, identity, authority or
+publication requirement. A signed answer would add a trust anchor the reader
+must select and a party whose word replaces the record. An answer carrying
+only held or decodable records would apply the construction's rules inside the
+venue profile and let two profiles read one record differently. A held flag or
+an asserted prior sequence would be a redundant assertion with a consistency
+rule. One frame over several subjects would add parser states without adding
+an order the ordinal does not already carry. Reading one index's commitments
+in the venue's order rather than by sequence would let the position of a
+transaction in a block decide which of an operator's commitments the record
+holds; the sequence rule answers alike from the records, as C2.5.5 does. A
+venue profile fixed before its source is shown able to read complete ranges
+would assume evidence not yet demonstrated. Venue-specific evidence, its
+verifier and the runtime's adoption of this profile remain prerequisites in
+§1; every v2 byte and rule is unchanged.

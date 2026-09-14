@@ -466,6 +466,8 @@ snapshot clock, segment continuity, separate evidence chain and exact receipt
 comparison. It uses real hashes over explicit bytes with ideal proof and
 authentication oracles; adopted events retain their witnessed evidence. It is
 not the production claim layer or a later construction's byte layout. Compact
-certificates, production retention and authenticated record ranges remain open.
+certificates, production retention and venue-specific range sources remain
+open; [pool-v3 §13](pool-v3.md#13-record-range-evidence) fixes the
+source-neutral record-range answer.
 The reference's [fault coverage](https://github.com/mediumofexchange/reference-ts/blob/main/docs/POOL_FAULT_RECOVERY.md)
 records the executable evidence and limits. Runtime stays pinned to v2.

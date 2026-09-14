@@ -405,6 +405,19 @@ opening validate the later events or a claimed history root. This fixes the
 hash-opening relation described in pool-fault §7, not a standalone certificate
 wire format, a signed directory format or a complete exclusion verdict.
 
+A later checkpoint of a segment extends an earlier valid checkpoint of that
+segment (C2.10.4, C2.10.12) exactly where its trail carries at least that
+checkpoint's `n` events and the recurrences above over its first `n` events
+reproduce that checkpoint's `historyHash_n` and `evidenceHash_n`. Equal length
+is extension, and `n = 0` is extended by every trail of the segment. The reader
+compares against the segment's last valid checkpoint in the child's own record
+prefix (C2.10.11), passing excluded and lapsed ones, and reads no other
+checkpoint's roots or totals. A trail that is shorter, or that reproduces
+either hash differently at `n`, does not extend the prefix: the checkpoint is
+excluded where its own trail authenticates (§10.1) and unresolved otherwise.
+This adds no hash; both chains already bind every statement, proof and
+authorization byte at each position.
+
 ### 7.2 Receipts bind the exact event evidence
 
 The receipt's signed bytes retain pool-v2 §9's fields under the v3 context:

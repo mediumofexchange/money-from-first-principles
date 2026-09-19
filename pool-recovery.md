@@ -496,8 +496,15 @@ replicated waits, as Construction §C2b.3 says it will.
 **C2b.4.1 The return is a new segment.** Return to service after silence
 requires the **opening checkpoint** of a new segment — an empty local history
 at the segment's opening sequence (C2.10.9a's form) — whose opening for each scoped
-backing is that backing's snapshot at the commitment's index (C2.7.1,
-C2.10.4), witnessed by whoever is then in force (C2b.6.1). What the
+backing is that backing's canonical predecessor relative to this checkpoint
+(C2.10.4–5), witnessed by whoever is then in force (C2b.6.1). This predecessor
+includes a valid carrying checkpoint of the same operator at the opening's
+index with a lower sequence. Where there is none at that index, it is the
+backing's snapshot at that index (C2b.3.1). The snapshot used to judge the gap
+and publication force remains strictly before the index; it does not replace
+a newer canonical predecessor. An empty opening inherits its predecessor's
+adoption index (C2b.3.1), so further openings at that index preserve the full
+adopted block still owed under C2b.4.2. What the
 returning operator co-signed after its last witnessed commitment was never
 witnessed, and finality means witnessed (Construction §C2b.4): that tail is
 discarded as a unit, and its receipts read under C2b.4.3 and C2.10.9b.

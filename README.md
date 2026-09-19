@@ -52,8 +52,11 @@ design constraints; they are not additional active implementations.
 
 [reference-ts](https://github.com/mediumofexchange/reference-ts) is the experimental
 TypeScript reference. It implements private notes, public supply replay,
-canonical history, receipt readers and durable sequencing. Runtime recovery,
-a pool wallet and external witness publication remain to be built. It has no
+canonical history, receipt readers and durable sequencing. A local wallet and
+service exercise real-proof payments, private delivery and encrypted handoff;
+qualified custody, runtime recovery and external witness publication remain open.
+See its [implementation status](https://github.com/mediumofexchange/reference-ts/blob/main/docs/IMPLEMENTATION_STATUS.md)
+for evidence and limitations. It has no
 published npm release or completed security audit.
 
 The implementation README provides source setup and pins the specification

@@ -155,8 +155,8 @@ obtained its evidence. The classes, in the order they are judged:
   under every key that kind names — the obligor **K** for an issue, the
   presenter for a withdrawal, and both **K** over the acceptance and the
   presenter over the release for a settlement — where its kind carries one.
-- **Excluded.** The checkpoint is not lapsed, its served trail reproduces its
-  signed snapshot digests, and validity fails deterministically on that
+- **Excluded.** The checkpoint is not lapsed, its committed evidence is
+  authenticated as specified below, and validity fails deterministically on that
   evidence: a committed proof that does not verify, or an authorization that
   does not verify under every key its kind names; a
   statement the applicable admission rules, including C2b.4.2's adopted-statement
@@ -176,7 +176,8 @@ obtained its evidence. The classes, in the order they are judged:
   Exclusion is a function of the checkpoint's bytes and the record before it:
   a fact witnessed later never turns a valid checkpoint into an excluded one.
 - **Unresolved.** The reader lacks, or cannot authenticate, something either
-  verdict needs: the trail or any part of it, the directory, the scope or its
+  verdict needs: the trail or any part not replaced by an explicitly permitted
+  compact certificate, the directory, the scope or its
   terms, an imported prefix or its evidence, a checkpoint its descent or
   clock must classify first, or the record range and same-index order
   (C2.10.13). A trail that does not reproduce the signed digests is
@@ -187,6 +188,17 @@ obtained its evidence. The classes, in the order they are judged:
   read that depends on it refuses. Evidence obtained later resolves it at
   the same prefix and reverses nothing, because the classes are functions of
   the bytes and the record.
+
+Authentication ordinarily requires the complete served trail: its exact ordered
+statement/proof/authorization bytes reproduce the snapshot's evidence hash, and
+the snapshot preimage reproduces the signed directory digest. Successful replay
+also reproduces history, roots and totals. A deterministic replay failure can
+establish exclusion before that successful-state comparison finishes; it supplies
+no state and need not make the operator's false state assertions true. This does
+not turn an unauthenticated or incomplete trail into evidence. Only an explicit
+construction rule may replace the faulting checkpoint's event trail by compact
+evidence; [pool-v3 §9.1](pool-v3.md#91-compact-intrinsic-exclusion) defines the
+permitted replacement. All other missing dependencies remain unresolved.
 
 A valid verdict for a checkpoint requires every checkpoint its descent passes
 and every prefix it imports to be classified, as valid, excluded or lapsed;
@@ -338,7 +350,8 @@ about `b` at `t`, a reader establishes:
 2. for every commitment in the range, its authenticated directory, to read
    whether it carries `b` (C2.4.2);
 3. for every commitment carrying `b`, the evidence C2.10.11 names: scope and
-   terms, the served trail with its committed evidence, the imports, and the
+   terms, the served trail with its committed evidence (or its explicitly
+   permitted compact replacement), the imports, and the
    classification of every checkpoint its own descent passes;
 4. no classification of a non-carrying checkpoint solely for the clock.
    The dependencies of the carrying checkpoints in item 3 still apply.

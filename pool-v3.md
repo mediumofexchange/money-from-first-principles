@@ -387,7 +387,8 @@ It reproduces the evidence chain over the exact supplied evidence before
 using a deterministic verification failure as grounds for exclusion. A
 mismatching chain means unresolved evidence, not operator fault. Complete
 classification still requires C2.10.11–13's record prefix, scope, terms,
-imports, last-valid continuity and replay; unsupported verifiers, resource
+imports, last-valid continuity and replay, except that §9.1 may replace the
+target's local event trail with its required dependencies intact; unsupported verifiers, resource
 failures and programming failures remain unresolved, never exclusion.
 
 To authenticate the evidence triple at a known position i against a held
@@ -606,7 +607,8 @@ prefix or later events are valid, or that the checkpoint is live, complete,
 current or final. The target's configuration and verification key, relevant
 terms and authorization identities, record prefix, lapse priority, imports
 and continuity are still resolved under C2.10.11–13 before an exclusion
-verdict. The snapshot's history hash and totals are authenticated assertions,
+verdict. Section 9.1 permits only the stated replacement of the target's event
+trail. The snapshot's history hash and totals are authenticated assertions,
 not replayed state. Capsules are not fields of this evidence triple: this
 record neither attests that a capsule was served nor proves its absence or
 corruption. Their association is separately checked against the statement's
@@ -620,6 +622,74 @@ bytes a verifier rejects. A tree would shorten the suffix but replace the
 selected chain; a new certificate signature would add an authority without
 establishing record completeness. Neither is added. No v2 bytes, v3 proof
 relation, valid record bound or checkpoint classification rule changes.
+
+### 9.1 Compact intrinsic exclusion
+
+This rule permits a reader to replace only the event trail of a non-opening
+checkpoint for C2.10.11's **excluded** verdict. It does not supply a valid
+checkpoint, state, clock reset, receipt verdict or import target. It applies
+only when all the following hold:
+
+1. The reader establishes the checkpoint's held signed commitment, complete
+   authenticated directory, snapshot preimages for every scoped backing,
+   authenticated header and every scoped signed term under the independently
+   selected configuration and venue. The scoped snapshots name that segment and
+   agree on the shared history and evidence hashes. All record-range and
+   same-index-order evidence required by C2.10.13 is retained.
+2. At the checkpoint's own record prefix, every scoped term is in force and the
+   checkpoint is not lapsed. Silence, where declared, still requires every
+   applicable carrying clock dependency. A lapsed checkpoint remains lapsed even
+   when these target bytes prove a fault; unknown lapse remains unresolved.
+3. The reader resolves the segment's valid opening, its canonical imports and
+   transitive state, the last valid prefix and every checkpoint the relevant
+   descent passes. It derives the adopted block under C2b.4.2 from the complete
+   required publication evidence. These dependencies must be classified under
+   their own original prefixes. They cannot be omitted, inferred from the target
+   or replaced by the target's asserted state. The target need not successfully
+   extend or replay against that state to be excluded, but its required
+   predecessor state and adoption context must be known.
+4. A §9 record authenticates the exact failing target fields and position against
+   a scoped snapshot of that same commitment. The position is outside the
+   required adopted block. The statement decodes canonically under §5, its domain
+   equals the selected configuration, and one of these intrinsic failures holds:
+   - For kind 1, 2, 3, 4 or 6, the committed proof satisfies §5's length/encoding
+     bounds, has an encoding the selected verifier supports, and
+     the configuration's verifier for that kind returns rejection on the exact
+     ordered public inputs and proof bytes.
+   - For kind 1, the statement names a scoped backing, the exact 64-byte committed
+     authorization fails §5's strict signature verification over the exact
+     statement bytes under that backing's K from its authenticated signed terms.
+   A verifier exception, unsupported encoding/verifier or resource failure is
+   not rejection. No supplied signer hint or cached verdict is evidence.
+
+Only the target checkpoint's local event trail is replaced. Its §9 preceding
+hash and suffix do not establish prefix validity, admission of any event,
+capsule association or reproduction of history/totals. The excluded checkpoint
+still occupies its held sequence and supplies nothing under C2.10.12. Passing it
+reaches the actual last valid state; it never licenses selecting an older one.
+A later repaired checkpoint must extend that last valid prefix, including its
+committed evidence, and satisfy all ordinary validity rules. Removing any still
+required dependency leaves the dependent read unresolved, even with an authentic
+intrinsic failure. Existing complete-trail exclusion remains available.
+
+This exception does not cover opening checkpoints, targets inside the adopted
+block, malformed statements, admission/state/capsule faults or other signature
+roles. Those require their ordinary evidence. Adopted statements retain their
+original segment, proof and authorization identities and admission context;
+this rule does not recheck them against a successor's segment or current standing.
+An unsupported compact case is no permission to skip that checkpoint. A reader
+may support a bounded subset of these cases only by refusing unresolved cases;
+it must not label an unsupported case valid or excluded.
+
+**C0a cost and replacement.** This replaces the full target event-trail
+availability requirement only for the two stated intrinsic failure classes.
+The existing §9 bytes and §12 kind-7 item suffice: 250 framing/snapshot bytes,
+the exact target fields and 96 bytes per later event, plus the unchanged required
+dependency closure. No wire tag, new signature, hash tree, private witness,
+configuration authority or verifier key is added. Retaining full trails is the
+unchanged alternative; a smaller target proof cannot replace range or predecessor
+evidence. This changes the conditional v3 evidence contract, not v2 or any
+adopted configuration. It does not close §1's complete-certificate/adoption gates.
 
 ## 10. Served-trail transport
 
@@ -709,8 +779,12 @@ for every scoped backing, all scoped signed terms, the complete record prefix
 and same-index order, recursively supplied opening evidence, passed checkpoints
 needed for descent/clock classification, last-valid-prefix continuity and the
 record-derived adopted block. The reader deduplicates and checks the imported
-closure, replays every event and reproduces every scoped snapshot, with lapse
-priority and C2.10.11–13's dependency rules. Missing dependencies remain
+closure and, for validity, replays every event and reproduces every scoped
+snapshot, with lapse priority and C2.10.11–13's dependency rules. A deterministic
+failure after complete evidence authentication can establish exclusion without
+finishing successful state replay. Section 9.1 alone permits replacing a target's
+event trail by compact intrinsic evidence with its stated dependencies intact.
+Other missing dependencies remain
 unresolved; they are not empty openings or permission to fall back to an older
 checkpoint. The complete certificate/dependency format and replay integration
 remain prerequisites in §1.

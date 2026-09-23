@@ -100,7 +100,8 @@ run `node scripts/check-links.mjs ../money-from-first-principles` from its root
 and `npm run check:docs` when its handoff/decision index changes.
 Fetch and inspect upstream, preserve unrelated work and branch protections,
 satisfy required checks/reviews, merge/push and verify remote parity. Do not
-bypass failed gates or report unavailable evidence as passed.
+bypass failed gates or report unavailable evidence as passed. After a verified
+merge, delete the merged branch locally and on the remote.
 
 Keep instructions here and `CLAUDE.md` exactly `@AGENTS.md`. Keep one current
 document per topic; history belongs in Git and decisions, active status in the
@@ -111,12 +112,9 @@ record larger opportunities in the companion handoff without derailing the slice
 Before stopping or compaction, update that handoff with goal/status, branches and
 relevant commits, exact evidence, next action, blockers/review owed and decision links.
 
-Use the reference's production requirements and handoff for the coarse effort
-estimate. Reassess from gathered evidence after meaningful product progress or a
-consequential blocker; no extra research/delegation just to estimate. Credit
-reusable progress before release gates close; never infer progress from counts.
-Report rounded changed/requested estimates and blockers; omit unchanged percentages
-for routine work. Workflow cleanup is not product progress.
+The coarse effort estimate lives only in the companion WORK.md, made by the
+method in the reference's production requirements; report it only when it
+materially changes or is requested. Specification cleanup is not product progress.
 
 Final reports state delivered behavior, evidence/review, integration and limits.
 After each completed slice, recommend staying with the instance or switching,

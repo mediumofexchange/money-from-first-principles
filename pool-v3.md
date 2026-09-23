@@ -715,11 +715,15 @@ v3 before §1's configuration and adoption work is complete. An outer codec
 treats the terms and signature as supplied bytes; a reader must independently
 decode them, derive the expected backing name, verify K's strict signature,
 and check the terms for every scoped entry against the record. Supplying an
-opaque byte field does not satisfy those checks.
+opaque byte field does not satisfy those checks. A field that fails is
+ignored and the backing's terms are resolved from another supplied field
+(§12.1).
 
 The count n is a u64, including zero. Events occupy consecutive positions
-1 through n, without repeated position fields. A trail is cut at the checkpoint
-being read: it carries exactly those n records, with no uncommitted tail.
+1 through n, without repeated position fields. A checkpoint's served trail
+carries exactly its n records, with no uncommitted tail; a reader may obtain
+it as the prefix of a longer supplied trail (§12.1), whose later records are
+not evidence for that checkpoint.
 Each record carries §5's exact bytes, including capsules. An adopted event
 retains the source publication's record without changing its segment binding;
 the trail carries no asserted adoption flag or force index. The reader derives
@@ -764,6 +768,7 @@ also checks the supplied capsules against the authenticated statement digest.
 A substituted proof, signature or capsule cannot stand in for committed bytes.
 For inner bytes §5 cannot decode, this procedure is inconclusive; §9 can
 authenticate raw target fields without strict decoding within its own bounds.
+Section 12.1 states when a prefix of a longer supplied trail is the served trail.
 
 This check authenticates neither the supplied terms/signatures nor their force.
 It does not recompute the history hash, roots, totals or imported state. Even
@@ -987,9 +992,10 @@ reserializing their inner fields. Empty or malformed inner evidence can be
 transported; it does not become valid. Unknown kinds are unsupported evidence
 and leave a read unresolved. Separate header and signed-terms objects permit
 a reader to retain lapse evidence without pretending to possess a complete
-trail. Overlap between those objects and a supplied trail must agree wherever
-the reader uses it; merely sharing a header identity does not make two trails
-evidence for the same checkpoint.
+trail. Where they overlap a supplied trail, the reader uses only authenticated
+bytes: a header by its segment identity and a signed-terms field by its
+backing name and strict signature (§12.1). Merely sharing a header identity
+does not make two trails evidence for the same checkpoint.
 
 The exact package size is `23 + sum(5 + length)` bytes. Before allocating
 payloads or hashing them, a reader checks explicit local total-byte and item
@@ -1012,6 +1018,55 @@ an older checkpoint. Distinct inventory keys do not resolve conflicting
 evidence for one required identity. Identical shared dependencies may be used
 by several reads without duplicating their payloads. A flat inventory adds no
 global graph traversal or global cycle-detection requirement.
+
+**Served trails and signed terms.** A checkpoint's served-trail dependency
+(C2.10.13 item 3) is resolved by any supplied trail of its segment whose
+first n records decode under §5 and whose §7 evidence recurrence over them
+reproduces the evidence hash of the scoped snapshot being authenticated; at
+n = 0 the seed is compared. That prefix, the trail's header, the count n
+and those n records with each scoped signed-terms field resolved as below,
+is the checkpoint's served trail under §10.1. It is the complete trail, not
+a compact replacement under §9.1. Records after n,
+decodable or not, neither block nor affect it, and receipt inclusion or
+omission for that checkpoint (§7.2) reads only positions 1 through n.
+Barring a SHA256 collision the recurrence binds each position, so at most
+one n matches a trail and every matching prefix has identical header and
+records: the matching prefixes of several trails are one dependency, not
+conflicting evidence. Matching reads the evidence recurrence alone; whether the
+checkpoint extends another (§7.1) is decided afterwards by replay, as for a
+separately supplied trail. Where a checkpoint's scoped snapshots disagree,
+each is authenticated separately and judged as before.
+
+Each scoped signed-terms field is resolved separately by its backing name.
+Any supplied field, in a trail or as a kind-8 item, whose terms reproduce
+the name and whose obligor signature verifies strictly is that backing's
+terms evidence, checked further under §11.3. A field that fails either check
+is ignored: it is not conflicting evidence, and no outcome depends on which
+valid field is used, since every field reproducing the name carries the same
+terms bytes.
+
+A package may therefore carry, per segment, one trail for each set of trails
+whose records are prefixes of one another, and a reader accepts either form.
+A producer must not drop a trail whose prefix is some required checkpoint's
+served trail unless a remaining trail also supplies it. Reading an
+early checkpoint from a longer trail still scans that trail's outer frame to
+its exact end (§10): a local budget that refuses the longer trail, or a
+trail the outer codec refuses, leaves the dependency unresolved as any
+budget refusal does.
+
+**C0a cost and replacement.** No field, identity, hash, signature or
+authority is added; a reader computes each supplied trail's recurrence once
+and compares hashes. This replaces repeating every carrying checkpoint's
+full trail, whose bytes grow as the sum of prefix lengths: about N²/2K
+records for N events and a checkpoint every K, 8.5 times the unique records
+at 1,024 events every 64 in the reference measurement. The cost is that an
+early checkpoint read from a long trail is budgeted by the long trail's
+bytes. A suffix trail form or record items referenced by hash would reach
+linear bytes only by adding a frame, a base reference and consistency
+rules. Treating differing unauthenticated terms bytes as conflicting would
+let an added copy leave a classified checkpoint unresolved, which C2.10.11
+excludes ("evidence obtained later ... reverses nothing"); the conflict rule
+governs authenticated bytes only.
 
 In particular a venue-evidence verifier is selected independently of the
 package. Its request fixes the venue, whose identity carries the finality rule,

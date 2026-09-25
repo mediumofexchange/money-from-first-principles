@@ -12,12 +12,15 @@ This profile is selected for pool-v3 §13: it is the rule an Ergo venue
 identity names, and each reader still selects its own verifier implementing
 it (§12.1). It makes neither pool-v3 adoptable nor any backing's declaration
 of pool-v3 valid before pool-v3 §1's remaining items are approved. A backing
-of an adopted construction, such as pool-v2, may declare a venue under this
-profile: its commitments, replacements and revocations are then the kind 1–3
-objects §6 attributes, read under §§2–7 with pool-v3 §13.3's derivation, which
-states C2.3.3 index by index. That derivation holds a sequence only above
-zero, and pool-v2 commitment sequences count from one. No record, message or
-signature changes.
+of an adopted construction whose venue records are only commitments,
+replacements and revocations, such as pool-v2, may declare a venue under
+this profile: those records are then the kind 1–3 objects §6 attributes,
+read under §§2–7 with pool-v3 §13.3's derivation, which states C2.3.3 index
+by index. That derivation holds a sequence only above zero, and pool-v2
+commitment sequences count from one. A construction that also publishes
+other venue records, such as the transparent setting's operations and
+commits, cannot be read here, since §6 attributes no such object. No record,
+message or signature changes.
 
 The **reference node** is the Ergo node release v6.0.6 (source tag `v6.0.6`
 of `ergoplatform/ergo`; release `ergo-6.0.6.jar`, SHA-256

@@ -18,6 +18,7 @@ relevant to that slice, not the full decision history.
 | `pool-v3.md` | Successor layouts: approved artifacts and adoption remain unset; no backing may declare v3 |
 | `pool-recovery.md`, `pool-fault.md` | Later-version presentation, recovery, checkpoint classification and clock |
 | `pool-delivery.md`, `pool-fees.md`, `pool-spent.md` | Later-version delivery, transfer/fee and spent-set contracts |
+| `venue-ergo.md` | Selected venue profile for pool-v3 §13 record ranges on Ergo |
 | `pool-v1.md` | Historical layouts, superseded by v2; never reinterpret |
 | [Reference decision index](https://github.com/mediumofexchange/reference-ts/blob/main/DECISIONS.md) | Durable choices; follow only the relevant entry |
 | [Reference implementation status](https://github.com/mediumofexchange/reference-ts/blob/main/docs/IMPLEMENTATION_STATUS.md) | Runtime/model/experiment evidence and specification pins |

@@ -43,6 +43,7 @@ the implementation supports it.
 | [Pool v3](pool-v3.md) | Successor proof, record, configuration and signed-root-terms layouts. Incomplete: approved artifacts and adoption remain undefined. |
 | [Recovery](pool-recovery.md), [fault evidence](pool-fault.md) | Presentation, settlement, operator silence and faulty checkpoints for a later construction. |
 | [Delivery](pool-delivery.md), [fees](pool-fees.md), [spent set](pool-spent.md) | Successor note delivery, transfer shape, fee and replay contracts. |
+| [Ergo venue](venue-ergo.md) | The selected venue profile for pool-v3 record ranges: identity, header chain, block sections and attribution on the Ergo mainnet. |
 
 [Pool v1](pool-v1.md) is retained as a historical layout reference, superseded
 by v2. Earlier versions and rejected alternatives explain compatibility and

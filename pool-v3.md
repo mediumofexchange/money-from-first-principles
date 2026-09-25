@@ -13,8 +13,9 @@ reinterpreting any [v2](pool-v2.md) bytes, notes or keys.
 adopted v3 configuration hash or approved circuit/key identity yet. Section 11
 fixes configuration and signed-terms bytes for conformance only. Section 12
 fixes source-neutral evidence transport, not a complete-certificate verdict.
-Section 13 fixes the record-range answer a venue-evidence verifier returns;
-no venue profile is selected.
+Section 13 fixes the record-range answer a venue-evidence verifier returns,
+and the [Ergo venue profile](venue-ergo.md) is the selected profile that
+establishes it; each reader still selects its own verifier of that profile.
 No backing may declare `moe/pool/v3` on the basis of this document, and no
 runtime may accept its statements as v2. A synthetic domain used to test these
 relations is not a construction domain. Conformance tooling may compile and
@@ -1112,8 +1113,9 @@ witnessed index and the venue's order within an index. Section 12.1 requires
 the venue-evidence verifier to establish exactly that for the reader's request.
 This section fixes the request, the answer the verifier returns and the rules
 by which the reader consumes it. It is source-neutral: which venue evidence
-establishes an answer, and how, is the venue profile's, and no venue profile
-is selected here.
+establishes an answer, and how, is the venue profile's. The selected profile
+is the [Ergo venue profile](venue-ergo.md); another venue needs a profile of
+its own, which is a new venue identity, not a reading of this section.
 
 ### 13.1 Requests and answers
 
@@ -1315,6 +1317,6 @@ in the venue's order rather than by sequence would let the position of a
 transaction in a block decide which of an operator's commitments the record
 holds; the sequence rule answers alike from the records, as C2.5.5 does. A
 venue profile fixed before its source is shown able to read complete ranges
-would assume evidence not yet demonstrated. Venue-specific evidence, its
-verifier and the runtime's adoption of this profile remain prerequisites in
-§1; every v2 byte and rule is unchanged.
+would assume evidence not yet demonstrated; the Ergo profile was selected
+after its verifier read complete ranges from real mainnet sections under
+headers the reader verified itself. Every v2 byte and rule is unchanged.

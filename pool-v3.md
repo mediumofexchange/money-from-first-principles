@@ -179,35 +179,42 @@ verify as the other relation. No approved v3 key or configuration hash is
 committed here; §11 fixes the configuration frame for conformance.
 
 **Proving parameters.** The proof system commits with KZG over BN254, using
-the powers of one secret `x` from the Aztec Ignition setup. A verifier reads
-`[1]_1`, `[1]_2` and `[x]_2`. `[x]_2` is the first G2 point of Ignition's
-`transcript00.dat`: as 128 bytes, `x.c0 || x.c1 || y.c0 || y.c1`, each
-32-byte big-endian, its SHA-256 is
+the powers of one secret `x` from the Aztec Ignition setup. Given a key,
+verification reads the generators `[1]_1` and `[1]_2` and the point `[x]_2`.
+`[x]_2` is the first G2 point of Ignition's `transcript00.dat`: as 128 bytes,
+`x.c0 || x.c1 || y.c0 || y.c1`, each 32-byte big-endian, its SHA-256 is
 `01797bfc4de5a96f0e516a9ea4537d18786dc30cb991aca4274c95822b69c32f`, and the
-pinned backend refuses any other G2 point when it loads parameters. The G1
-points are that transcript's leading points `[x^i]_1`. Key derivation commits
-each relation's fixed polynomials with the points below its circuit size, so
-§11.1's key identities bind them: other G1 points yield keys the
-configuration refuses. Neither input enters the configuration; the proof
-system fixes them as it fixes the curve. Soundness assumes that at least one
-Ignition participant destroyed its contribution. This construction adds no
-ceremony and no parameter authority, and a hash of a local parameter file
-only identifies that copy.
+pinned backend's parameter loader refuses any other G2 point. Key derivation
+and proving read that transcript's leading G1 points `[x^i]_1`, those below
+each relation's circuit size. §11.1's key identities fix the key bytes a
+verifier uses, not those points: a key is a few G1 commitments, which other
+points can reproduce. Soundness rests on the key bytes, `[x]_2` and at least
+one Ignition participant having destroyed its contribution. Zero-knowledge
+also assumes the prover's G1 points are the genuine powers. As pool-v2 §12
+requires, an implementation records the hashes of the parameter copies it
+loaded and where they came from; it loads no copy whose hash it has not
+checked. Neither input enters the configuration: the proof system fixes them,
+as it fixes the curve. This construction adds no ceremony and no parameter
+authority.
 
 **Reproduction.** A configuration identity names an artifact, not a compiler
 version. A compiler that reproduces every bytecode identity from the pinned
 sources gives the same relations and is conforming evidence for §11.1's
-check. Key derivation, proof bytes and verification remain the pinned
-backend's.
+check; the manifest names the compiler that was used. An artifact's other
+fields, such as its ABI, lie outside the identity: a prover builds witnesses
+with them, so a mismatch can only make proving fail. Key derivation, proof
+bytes and verification remain the pinned backend's.
 
 **Security margin.** Published estimates put BN254 at about 100-bit security
-against discrete logarithms in its pairing target group (the extended tower
-number field sieve; Barbulescu and Duquesne, Journal of Cryptology, 2019),
-below the 128-bit level it was designed for. This construction accepts that
-margin. Another curve is another proof system and needs a successor
-construction; no configuration, term or served object selects one. These
-three paragraphs state assumptions the proof system already makes; they add
-no field, check or authority.
+against discrete logarithms in its pairing target group, whose prime has the
+special form BN curves give it (the special extended tower number field
+sieve; Barbulescu and Duquesne, "Updating key size estimations for
+pairings", Journal of Cryptology 32, 2019). That is below the 128-bit level
+the curve was designed for. This construction accepts that margin. Another
+curve is another proof system and needs a successor construction; no
+configuration, term or served object selects one. These three paragraphs
+state assumptions the proof system already makes and pool-v2 §12's parameter
+record; they add no field, check or authority.
 
 One combined build must compile all six relations against the same helper
 sources, derive six keys, verify genuine proofs and check every exact public
@@ -861,7 +868,7 @@ there is no count, kind list, optional field or trailing byte. The six pairs
 are in kinds 1, 2, 3, 4, 6, 7 order; withdrawal has no key. The bytecode and
 key hashes have pool-v2 §2's meanings, including decoded compiler bytecode
 and the exact backend key bytes. The helper is pool-v2 §1's SHA-256 of the
-Poseidon2 helper source. Proof system, verifier target, toolchain, common
+Poseidon2 helper source. Proof system, verifier target, backend, common
 relations, public-input orders, record bounds and spent-root rules are fixed
 by this construction and its referenced contracts; the frame is not a way
 to override them. No operator, venue, backing, segment or mutable authority
@@ -869,9 +876,10 @@ enters the configuration.
 
 An implementation holds an independently selected manifest of source,
 shared-helper, compiler/backend/version, verifier-target, bytecode and key
-identities for all six relations. It checks source/toolchain identities,
-compiles the relations together, derives keys under §4, and compares the
-result with that manifest and the configuration. It refuses missing,
+identities for all six relations. It checks source and backend identities,
+compiles the relations together (§4 says which compilers qualify), derives
+keys under §4, and compares the result with that manifest and the
+configuration. It refuses missing,
 reordered or mismatched identities, including for relations absent from a
 particular trail. A served package may supply the configuration preimage,
 but cannot select that manifest or a key. Routing uses the kind's own checked

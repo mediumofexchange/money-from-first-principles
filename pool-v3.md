@@ -22,9 +22,9 @@ relations is not a construction domain. Conformance tooling may compile and
 prove the relations below; passing it does not establish runtime conformance.
 
 Before adoption this document must also approve the configuration's
-source/helper/backend/parameter/bytecode/key identities,
-complete-certificate encoding, replay/import rules and resource
-bounds beyond the records below. The [fault](pool-fault.md) and [spent-set](pool-spent.md) contracts
+source/helper/backend/parameter/bytecode/key identities and
+complete-certificate encoding, together with the replay, retention and
+resource model that §14 consolidates. The [fault](pool-fault.md) and [spent-set](pool-spent.md) contracts
 remain binding requirements for that work. None is replaced by a proof check.
 
 Under Construction C0a this instantiates the existing contracts, replacing
@@ -510,8 +510,8 @@ field count, and adds no signature or privileged state transition. Interior
 evidence openings retain the selected linear suffix cost: 96 digest bytes
 per later position, plus the preceding hash and target evidence. No evidence
 tree, second history or new certificate transport is introduced. The final
-configuration, complete certificate encoding and replay integration remain required
-before v3 adoption.
+configuration and complete certificate encoding remain required before v3
+adoption; §14 consolidates replay.
 
 ## 8. Segment headers
 
@@ -564,7 +564,7 @@ resolves every nonempty opening through the record and its complete evidence
 opening remains unresolved; it is never replaced with an empty opening or
 an older checkpoint. A strict header codec is not a classifier of malformed
 committed evidence and its rejection alone supplies no exclusion verdict.
-Complete certificate formats and replay/import/adoption rules remain required.
+Complete certificate formats remain required; §14 consolidates replay and import.
 
 **C0a cost and replacement.** This replaces the deferred successor header
 layout by reusing v2's fields and bounds with one new context. No scope root,
@@ -833,8 +833,8 @@ finishing successful state replay. Section 9.1 alone permits replacing a target'
 event trail by compact intrinsic evidence with its stated dependencies intact.
 Other missing dependencies remain
 unresolved; they are not empty openings or permission to fall back to an older
-checkpoint. The complete certificate/dependency format and replay integration
-remain prerequisites in §1.
+checkpoint. The complete certificate/dependency format remains a prerequisite
+in §1, and §14 consolidates replay.
 
 **C0a cost and replacement.** This replaces the deferred outer served-trail
 frame by composing the existing header, signed terms and record bytes. It adds
@@ -994,11 +994,11 @@ an independent reader input; the package does not select or change it.
 
 ```text
 packageBytes = "moe/pool/v3/package" || u32 count || item_1 ... item_count
-item = u8 kind || u32 length || payload[length]
+item = u8 kind || u64 length || payload[length]
 ```
 
 The literal context is ASCII; integers are unsigned big-endian. Count may be
-zero, each length may be zero through `2^32-1`, and there are no trailing or
+zero, each length may be zero through `2^64-1`, and there are no trailing or
 optional fields. The following kind numbers select payload interpretations:
 
 | Kind | Payload |
@@ -1040,7 +1040,7 @@ bytes: a header by its segment identity and a signed-terms field by its
 backing name and strict signature (§12.1). Merely sharing a header identity
 does not make two trails evidence for the same checkpoint.
 
-The exact package size is `23 + sum(5 + length)` bytes. Before allocating
+The exact package size is `23 + sum(9 + length)` bytes. Before allocating
 payloads or hashing them, a reader checks explicit local total-byte and item
 budgets, every field boundary and the exact end. Count must fit the remaining
 bytes even for empty payloads. Arithmetic must not wrap or round through
@@ -1138,7 +1138,7 @@ against otherwise valid protocol evidence.
 
 **C0a cost and replacement.** This replaces ad hoc evidence-object transport
 with one source-neutral inventory over existing byte formats. It costs 23
-fixed bytes, five bytes per item, and one SHA256 per payload for canonical
+fixed bytes, nine bytes per item, and one SHA256 per payload for canonical
 ordering; inner verification remains necessary. It adds no package signature,
 publication requirement, proof relation or trusted certificate issuer.
 Nested dependency copies would repeat evidence and impose recursive parsing;
@@ -1362,3 +1362,120 @@ venue profile fixed before its source is shown able to read complete ranges
 would assume evidence not yet demonstrated; the Ergo profile was selected
 after its verifier read complete ranges from real mainnet sections under
 headers the reader verified itself. Every v2 byte and rule is unchanged.
+
+## 14. Replay, retention and resource bounds
+
+This section consolidates, for adoption, how a reader replays and what it
+must hold. It restates rules fixed elsewhere and adds requirements on kept
+replay state and streamed input. The only frame change it records is §12's
+u64 item length.
+
+**Complete replay.** A valid verdict about a backing (C2.10.13) rests on
+replaying each segment its read needs from that segment's seed. The reader
+authenticates the served trail (§10.1, §12.1) and replays its events in
+position order under §§3–7, over the imported closure (C2.10.5–7) counted
+once (C2.10.6). It checks adopted events against the adopted block it derives
+from the record (C2b.4.2, §10), and classifies checkpoints under C2.10.11–12.
+Reads that need force derive it from the record over the ranges §13.3 names
+(C2b.3.2). A successor segment starts its own note tree and positions, but
+its imports are replayed from their own evidence, not read from a
+predecessor's snapshot. Three verdicts read less, as their rules say: an
+exclusion from a deterministic failure found before replay completes
+(C2.10.11), §9.1's compact intrinsic exclusion in place of the target's
+trail, and a term lapse read from scope, terms and the record (C2.10.4). A first
+valid verdict therefore costs time and bytes linear in the closure's events.
+The venue ranges of §13.3 are linear in the deployment's age, since the chain
+and revocation are read from index zero. Nothing in v3 proves a checkpoint's
+history succinctly.
+
+**Resumed replay.** Replaying records 1 through n yields the note roots, the
+spent set, the totals, standing demands and recovery effects, and both chains.
+These are a deterministic function of the replay inputs, which are every
+input the replay reads. They include the configuration, the segment's header,
+its scoped terms, the imported closure, the adopted block and the opening
+index, the venue answers the replay reads through position n, the reader's own
+selected verifier, and the records. Venue answers under the finality rule do not change as the record
+grows. Index-relative conditions are read at the judged checkpoint's own
+index, such as a lock's own bound (C3.7–8). So kept state records each such
+condition with its bound, not with its standing at an earlier checkpoint. It
+may drop one only where it can stand at no later index, as a lock past its
+bound cannot.
+
+A reader that replayed a checkpoint's trail itself may keep that state. For a
+later checkpoint of the same segment that extends it (§7.1), with the same
+replay inputs apart from the new records and the venue answers after them, it
+may replay only positions n + 1 onward. Before resuming, it does two checks.
+First, the whole kept state must match one SHA256 digest held in storage
+only the reader writes. Second, the note and spent roots, the totals and both
+chain values at n, recomputed from that state, must match the checkpoint's
+authenticated snapshot preimages (`historyHash_n`, `evidenceHash_n` and the
+totals), not values stored beside the cache. On any mismatch it discards the
+kept state and replays in full: a damaged cache never grounds an exclusion
+(C2.10.11). The verdict is the one full replay gives. Kept state
+is a local cache. It is not evidence and is never served, and the evidence
+bytes that produced it are still retained (C2.10.13).
+
+**Incremental retrieval.** A reader that holds a checkpoint's authenticated
+trail of n records may assemble a later checkpoint's trail from two parts. It
+fetches the later trail's head (header, scoped terms and count) and the
+records after position n, then checks §10's frame over the assembled bytes to
+the exact end. The retained trail is not a byte prefix of the later one,
+because the count precedes the events. The reader continues §7's evidence
+recurrence from its own `evidenceHash_n`; the history chain follows from
+replay. The assembled trail is the complete trail, which §10.1 and §12.1 read
+unchanged. This is the chunked transport §10 permits. There is no suffix
+frame or base reference, and a supplier's stated position or length
+authenticates nothing. A later checkpoint that does not reproduce by
+continuation is judged from a complete trail from position 1 like any other.
+A failed continuation is no evidence about it.
+
+**Streamed input.** Budgets bound memory and per-object work (§§8, 10, 12,
+13). A total-byte budget over a trail, package or closure also bounds the
+history a reader can judge. So a reader meant for long-lived pools streams
+evidence and keeps its replay state in storage, while the per-record (§5,
+§10) and header (§8) bounds still hold. This extends the rule that readers
+own their input (§§12, 13.1) to input read more than once. Such a reader
+first copies the supplied bytes into storage only it writes. Otherwise it
+takes one SHA256 of the whole input in the first pass, and uses no result of
+a later pass until that pass's SHA256 equals it. A refusal on any budget stays
+unresolved, never exclusion.
+
+**Retention.** Retention is the holders' and the backer's (C2.10.13), and
+replication is the remedy for withheld evidence (Construction §C0b, C2.7.2).
+The complete closure is held by whoever replicates it: the operator, the
+backer, independent readers, and holders that choose to. To redeem in a gap,
+a holder obtains the trail and ancestry from replicas (C2b.3.3). A note whose
+history nobody replicated waits (Construction §C2b.3). Nothing here requires a
+holder to keep the complete closure. A holder's own evidence is its note
+openings, its seed and capsules, its receipts, its own requests and
+publications, and the last state it was given (C2.7.2).
+
+**Format bounds.** Apart from local budgets, a pool's life is bounded only by
+its u64 positions and sequences (§§7–8) and by 2^32 leaves in each segment's
+note tree (§2). Per-object u32 counts remain: a package's item count, a
+directory's entries, a range answer's entries, and a header's scope bound.
+None of them bounds a lifetime, because a reader can split the objects across
+packages, commitments or requests. With u64 item lengths (§12), the package
+frame bounds neither a trail nor venue evidence.
+
+**C0a cost and replacement.** This adds no field, identity, relation or
+authority. The u64 item length costs four bytes per item. It removes a
+per-trail ceiling of `2^32-1` bytes, which §12's u32 imposed: about 276,000
+spend-sized events per segment at the conformance proof size. Four
+alternatives were rejected:
+- *A succinct history relation*, a seventh relation proving a checkpoint's
+  state from genesis. It would replace a reader's proof checks and trail bytes
+  with one proof per checkpoint. It would not remove §13.3's venue ranges,
+  linear in the deployment's age, or a restoring wallet's capsule scan,
+  linear in statements. Its step circuit would have to:
+  - verify all six relations recursively;
+  - compute SHA256 over every proof's bytes;
+  - hash up to 257 spent-set nodes per nullifier (pool-spent C1.2.8–9);
+  - check the Ed25519 authorizations, which are non-native to BN254;
+  - be proved by the operator at every checkpoint.
+- *A trusted or signed snapshot* would replace independent verification by a
+  party's word: a cached verdict is not a certificate (C2.10.13).
+- *Keeping u32 and splitting a segment's trail across items* would need a
+  chunk frame and consistency rules.
+- *A suffix trail frame* was already rejected in §12.1. Incremental retrieval
+  assembles the same trail without one.

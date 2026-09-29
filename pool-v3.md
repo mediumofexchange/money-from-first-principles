@@ -455,11 +455,29 @@ reproduce that checkpoint's `historyHash_n` and `evidenceHash_n`. Equal length
 is extension, and `n = 0` is extended by every trail of the segment. The reader
 compares against the segment's last valid checkpoint in the child's own record
 prefix (C2.10.11), passing excluded and lapsed ones, and reads no other
-checkpoint's roots or totals. A trail that is shorter, or that reproduces
-either hash differently at `n`, does not extend the prefix: the checkpoint is
-excluded where its own trail authenticates (§10.1) and unresolved otherwise.
-This adds no hash; both chains already bind every statement, proof and
-authorization byte at each position.
+checkpoint's roots or totals. Where the segment has no valid checkpoint in that
+prefix, the prefix is the seed, `n = 0`. A trail that is shorter, or that
+reproduces either hash differently at `n`, does not extend the prefix.
+
+The evidence recurrence alone decides a shorter trail, or one whose
+`evidenceHash_n` differs, without replaying any record. The segment identity
+and the record fix the imports and adopted block. So under the same replay
+inputs, equal evidence at `n` means equal records through `n`, and
+therefore equal history. A non-opening checkpoint that does not extend the
+prefix is excluded on that ground, where four things hold:
+- its own trail authenticates (§10.1);
+- it is not lapsed, and its lapse is resolved (C2.10.11);
+- its directory, scope and terms are authenticated;
+- its complete range is established (C2.10.13).
+
+Where a condition fails, non-extension is no ground: the checkpoint is lapsed
+where it is lapsed, and otherwise unresolved unless another rule (C2.10.11,
+§9.1) classifies it. An exclusion needs one ground, so the reader need
+not replay the trail's records looking for an earlier failure. Such a replay
+could meet a different deterministic failure before `n`, or stop there as
+unresolved on an unsupported verifier or a resource refusal. This adds no
+hash; both chains already bind every statement, proof and authorization byte
+at each position.
 
 ### 7.2 Receipts bind the exact event evidence
 
@@ -1076,9 +1094,11 @@ Barring a SHA256 collision the recurrence binds each position, so at most
 one n matches a trail and every matching prefix has identical header and
 records: the matching prefixes of several trails are one dependency, not
 conflicting evidence. Matching reads the evidence recurrence alone; whether the
-checkpoint extends another (§7.1) is decided afterwards by replay, as for a
-separately supplied trail. Where a checkpoint's scoped snapshots disagree,
-each is authenticated separately and judged as before.
+checkpoint extends another (§7.1) is decided afterwards, as for a separately
+supplied trail: from the evidence recurrence where the trail is shorter or its
+evidence value at n differs, and by replay otherwise. Where a checkpoint's
+scoped snapshots disagree, each is authenticated separately and judged as
+before.
 
 Each scoped signed-terms field is resolved separately by its backing name.
 Any supplied field, in a trail or as a kind-8 item, whose terms reproduce
@@ -1379,10 +1399,11 @@ from the record (C2b.4.2, §10), and classifies checkpoints under C2.10.11–12.
 Reads that need force derive it from the record over the ranges §13.3 names
 (C2b.3.2). A successor segment starts its own note tree and positions, but
 its imports are replayed from their own evidence, not read from a
-predecessor's snapshot. Three verdicts read less, as their rules say: an
+predecessor's snapshot. Four verdicts read less, as their rules say: an
 exclusion from a deterministic failure found before replay completes
-(C2.10.11), §9.1's compact intrinsic exclusion in place of the target's
-trail, and a term lapse read from scope, terms and the record (C2.10.4). A first
+(C2.10.11), an exclusion for non-extension decided by the evidence recurrence
+(§7.1), §9.1's compact intrinsic exclusion in place of the target's trail, and
+a term lapse read from scope, terms and the record (C2.10.4). A first
 valid verdict therefore costs time and bytes linear in the closure's events.
 The venue ranges of §13.3 are linear in the deployment's age, since the chain
 and revocation are read from index zero. Nothing in v3 proves a checkpoint's
@@ -1414,6 +1435,40 @@ kept state and replays in full: a damaged cache never grounds an exclusion
 (C2.10.11). The verdict is the one full replay gives. Kept state
 is a local cache. It is not evidence and is never served, and the evidence
 bytes that produced it are still retained (C2.10.13).
+
+**Kept classes.** A reader may also keep the class it derived for each
+checkpoint: valid, excluded or lapsed, with its ground or a lapse's clock
+record. It keeps the class beside the checkpoint's held commitment, its
+witnessed index and the authenticated snapshot preimage of the backing it
+classified it for. It may reuse the class in a later read only under the same
+reader rules, configuration, venue identity and verifier circuit identities.
+The reader rules are the specification revision and the implementation
+version it classified under; any change to either discards the kept classes.
+The reader must also still retain the evidence that grounded the class and its
+dependencies (C2.10.13). A class is a function of the checkpoint's bytes, the
+record strictly before its index and the lower same-operator sequences at that
+index (C2.10.11). Finality fixes that record,
+so reclassifying the checkpoint later under the same rules gives the same
+class. Before reusing a kept class, the reader does three checks:
+- the whole-state digest check above;
+- the venue holds the same commitment at the same index;
+- the kept snapshot preimage authenticates again against the checkpoint's
+  directory.
+
+A kept valid class at position m, at or below its segment's kept tip n,
+supplies state read at m. Its stored chain values at m must equal the
+re-authenticated snapshot's `historyHash_m` and `evidenceHash_m`, and its
+stored totals at m the snapshot's totals. The digest vouches for its other rows
+at or below m. Using the state at n, for a later checkpoint's records or with
+none, also requires §14's resumption check, which recomputes the roots,
+totals and chains from the kept state against the authenticated snapshot.
+An excluded checkpoint supplies no state (C2.10.12), and neither does a lapsed
+one (C2b.4.1). So their kept classes stand on the three checks alone. On any
+mismatch the reader discards its kept state, classes included, and classifies
+again from its retained evidence. A class received from another party is not
+reused, nor is one whose evidence the reader no longer retains: a cached
+verdict is not a certificate (C2.10.13). An unresolved checkpoint has no class
+to keep. A kept class is a local cache, like kept state.
 
 **Incremental retrieval.** A reader that holds a checkpoint's authenticated
 trail of n records may assemble a later checkpoint's trail from two parts. It
@@ -1479,3 +1534,23 @@ alternatives were rejected:
   chunk frame and consistency rules.
 - *A suffix trail frame* was already rejected in §12.1. Incremental retrieval
   assembles the same trail without one.
+
+Kept classes and deciding non-extension by the evidence recurrence (§7.1) add
+no field, identity or authority either. Kept classes replace reclassifying
+every held checkpoint on each read; a replay of each non-extending checkpoint
+from its segment's seed was part of that cost. Deciding non-extension by the
+recurrence removes that replay on a first read too. Without it, an operator
+that commits C non-extending checkpoints makes its own readers replay up to
+C × N records for N records of history. The bytes stay C × N: each such
+checkpoint's complete trail from position 1 is still fetched, stored and
+hashed. Where a replay would have stopped earlier as unresolved, the
+checkpoint is now excluded, and the ground a reader reports can change. Three
+alternatives were rejected:
+- *Keeping only valid classes* would reclassify every excluded checkpoint on
+  every read.
+- *Replaying a non-extending trail to find its first failing position* costs
+  the C × N replay for the same class, or for an unresolved one.
+- *A compact non-extension certificate*, the chain value at n with §7.1's
+  suffix opening at 96 bytes per later position, would also cut the bytes. It
+  would be a new permitted replacement like §9.1, with its own dependency
+  rules. The replay was the cost this removes, so it is deferred.

@@ -877,17 +877,17 @@ by this construction and its referenced contracts; the frame is not a way
 to override them. No operator, venue, backing, segment or mutable authority
 enters the configuration.
 
-An implementation holds an independently selected manifest of source,
-shared-helper, compiler/backend/version, verifier-target, parameter, bytecode
-and key identities for all six relations. It checks source and backend
-identities, compiles the relations together (§4 says which compilers qualify),
-derives keys under §4, and compares the result with that manifest and the
-configuration. It refuses missing, reordered or mismatched identities,
-including for relations absent from a particular trail. A served package may
-supply the configuration preimage, but cannot select that manifest or a key.
-Routing uses the kind's own checked key, never the public-input count. Hash
-equality alone proves neither that a relation is correct nor that its setup is
-trustworthy.
+An implementation holds an independently selected manifest of shared-helper,
+compiler/backend/version, verifier-target and parameter identities, and of
+source, bytecode and key identities for all six relations. It checks source
+and backend identities, compiles the relations together (§4 says which
+compilers qualify), derives keys under §4, and compares the result with that
+manifest and the configuration. It refuses missing, reordered or mismatched
+identities, including for relations absent from a particular trail. A served
+package may supply the configuration preimage, but cannot select that manifest
+or a key. Routing uses the kind's own checked key, never the public-input
+count. Hash equality alone proves neither that a relation is correct nor that
+its setup is trustworthy.
 
 Conformance tooling may use a manifest of reviewed candidate identities and
 the corresponding configHash to remove synthetic-domain fixtures. Such a

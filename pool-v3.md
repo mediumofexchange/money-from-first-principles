@@ -22,7 +22,7 @@ relations is not a construction domain. Conformance tooling may compile and
 prove the relations below; passing it does not establish runtime conformance.
 
 Before adoption this document must also approve the configuration's
-source/helper/toolchain/bytecode/key identities,
+source/helper/backend/parameter/bytecode/key identities,
 complete-certificate encoding, replay/import rules and resource
 bounds beyond the records below. The [fault](pool-fault.md) and [spent-set](pool-spent.md) contracts
 remain binding requirements for that work. None is replaced by a proof check.
@@ -171,12 +171,13 @@ layout and authorization are fixed in §5 under pool-recovery C3.6.
 
 ## 4. Proof and conformance obligations
 
-Use pool-v2 §12's selected UltraHonk proof system and toolchain for this
-conformance milestone. A verifier selects the committed key by statement
-kind, never by public-input count or a key supplied with a proof. In
-particular, spend and burn both have 15 public inputs; neither proof can
-verify as the other relation. No approved v3 key or configuration hash is
-committed here; §11 fixes the configuration frame for conformance.
+Use pool-v2 §12's selected UltraHonk proof system and backend for this
+conformance milestone; compilers qualify under Reproduction below. A verifier
+selects the committed key by statement kind, never by public-input count or a
+key supplied with a proof. In particular, spend and burn both have 15 public
+inputs; neither proof can verify as the other relation. No approved v3 key or
+configuration hash is committed here; §11 fixes the configuration frame for
+conformance.
 
 **Proving parameters.** The proof system commits with KZG over BN254, using
 the powers of one secret `x` from the Aztec Ignition setup. Given a key,
@@ -188,14 +189,15 @@ pinned backend's parameter loader refuses any other G2 point. Key derivation
 and proving read that transcript's leading G1 points `[x^i]_1`, those below
 each relation's circuit size. §11.1's key identities fix the key bytes a
 verifier uses, not those points: a key is a few G1 commitments, which other
-points can reproduce. Soundness rests on the key bytes, `[x]_2` and at least
-one Ignition participant having destroyed its contribution. Zero-knowledge
-also assumes the prover's G1 points are the genuine powers. As pool-v2 §12
-requires, an implementation records the hashes of the parameter copies it
-loaded and where they came from; it loads no copy whose hash it has not
-checked. Neither input enters the configuration: the proof system fixes them,
-as it fixes the curve. This construction adds no ceremony and no parameter
-authority.
+points can reproduce. Soundness rests on the key bytes, the generators,
+`[x]_2` and at least one Ignition participant having destroyed its
+contribution. Zero-knowledge also assumes the prover's G1 points are the
+genuine powers. As pool-v2 §12 requires, an implementation records the hashes
+of the parameter copies it loaded and where they came from, and it loads only
+copies whose hashes match its independently selected manifest (§11.1); a
+copy's hash depends on its file layout, so the manifest names each layout it
+accepts. This construction names both inputs; neither enters the
+configuration. It adds no ceremony and no parameter authority.
 
 **Reproduction.** A configuration identity names an artifact, not a compiler
 version. A compiler that reproduces every bytecode identity from the pinned
@@ -214,7 +216,8 @@ the curve was designed for. This construction accepts that margin. Another
 curve is another proof system and needs a successor construction; no
 configuration, term or served object selects one. These three paragraphs
 state assumptions the proof system already makes and pool-v2 §12's parameter
-record; they add no field, check or authority.
+record. They add one implementation check, the parameter hashes before
+loading, and no field or authority.
 
 One combined build must compile all six relations against the same helper
 sources, derive six keys, verify genuine proofs and check every exact public
@@ -875,16 +878,16 @@ to override them. No operator, venue, backing, segment or mutable authority
 enters the configuration.
 
 An implementation holds an independently selected manifest of source,
-shared-helper, compiler/backend/version, verifier-target, bytecode and key
-identities for all six relations. It checks source and backend identities,
-compiles the relations together (§4 says which compilers qualify), derives
-keys under §4, and compares the result with that manifest and the
-configuration. It refuses missing,
-reordered or mismatched identities, including for relations absent from a
-particular trail. A served package may supply the configuration preimage,
-but cannot select that manifest or a key. Routing uses the kind's own checked
-key, never the public-input count. Hash equality alone proves neither that a
-relation is correct nor that its setup is trustworthy.
+shared-helper, compiler/backend/version, verifier-target, parameter, bytecode
+and key identities for all six relations. It checks source and backend
+identities, compiles the relations together (§4 says which compilers qualify),
+derives keys under §4, and compares the result with that manifest and the
+configuration. It refuses missing, reordered or mismatched identities,
+including for relations absent from a particular trail. A served package may
+supply the configuration preimage, but cannot select that manifest or a key.
+Routing uses the kind's own checked key, never the public-input count. Hash
+equality alone proves neither that a relation is correct nor that its setup is
+trustworthy.
 
 Conformance tooling may use a manifest of reviewed candidate identities and
 the corresponding configHash to remove synthetic-domain fixtures. Such a

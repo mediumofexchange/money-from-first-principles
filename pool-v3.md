@@ -433,6 +433,26 @@ imports, last-valid continuity and replay, except that §9.1 may replace the
 target's local event trail with its required dependencies intact; unsupported verifiers, resource
 failures and programming failures remain unresolved, never exclusion.
 
+A checkpoint's expected segment and scope are the ones its directory's first
+entry names: that entry's snapshot's segment and the segment's authenticated
+header, whichever scoped backing the reader holds. Readers of every backing
+therefore judge a checkpoint in one segment and read one class (C2.10.11).
+After lapse, validity requires every scoped backing's snapshot to name that
+segment with the same history and evidence hashes, so an entry whose snapshot
+names another segment excludes the checkpoint; a reader whose backing that
+scope does not hold finds the directory and scope unequal and excludes it
+too. A first entry whose snapshot does not authenticate against that
+segment's header, or whose segment's head the reader lacks, leaves the
+checkpoint unresolved for every reader, as withheld evidence does. A
+continuation's opening is its segment's where the opening's own first entry
+names that segment, including an opening that omits the reader's backing.
+The rule adds no mechanism: the directory's order is already fixed (§12).
+Its cost falls on a reader of another backing, where the checkpoint is
+lapsed or excluded: it reads the first entry's snapshot preimage, that
+segment's head and scoped terms, and the record views and clocks of the
+backings it scopes, which judging lapse there needs; validity already needs
+every scoped snapshot. §10.1's expected segment is this one.
+
 To authenticate the evidence triple at a known position i against a held
 terminal `evidenceHash_n`, the reader can use the chain value before i, the
 triple at i and the triples at every later position through n. Apply the

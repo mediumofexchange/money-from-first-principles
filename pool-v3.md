@@ -445,7 +445,11 @@ too. A first entry whose snapshot does not authenticate against that
 segment's header, or whose segment's head the reader lacks, leaves the
 checkpoint unresolved for every reader, as withheld evidence does. A
 continuation's opening is its segment's where the opening's own first entry
-names that segment, including an opening that omits the reader's backing.
+names that segment, including an opening that omits the reader's backing. A
+first entry whose backing the segment does not scope cannot name it, so the
+directory alone shows that such an opening is not the segment's, and that
+such a receipt's `after` (§7.2) is not of the receipt's segment, without
+another backing's snapshot.
 The rule adds no mechanism: the directory's order is already fixed (§12).
 Its cost falls on a reader of another backing, where the checkpoint is
 lapsed or excluded: it reads the first entry's snapshot preimage, that

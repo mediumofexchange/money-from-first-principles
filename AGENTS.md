@@ -14,10 +14,10 @@ relevant to that slice, not the full decision history.
 |---|---|
 | `money-from-first-principles.md` | Paper: argument, cited rather than versioned |
 | `construction.md`, `extensions.md` | Normative core and optional/alternative profiles |
-| `pool-v2.md`, `pool-authority.md` | Implemented layouts and authority/history contract |
-| `pool-v3.md` | Successor layouts: approved artifacts and adoption remain unset; no backing may declare v3 |
-| `pool-recovery.md`, `pool-fault.md` | Later-version presentation, recovery, checkpoint classification and clock |
-| `pool-delivery.md`, `pool-fees.md`, `pool-spent.md` | Later-version delivery, transfer/fee and spent-set contracts |
+| `pool-v2.md`, `pool-authority.md` | Predecessor layouts (retired in the reference) and authority/history contract |
+| `pool-v3.md` | Adopted layouts; §11.4 names the one configuration a v3 backing may declare |
+| `pool-recovery.md`, `pool-fault.md` | Presentation, recovery, checkpoint classification and clock, instantiated by v3 |
+| `pool-delivery.md`, `pool-fees.md`, `pool-spent.md` | Delivery, transfer/fee and spent-set contracts, instantiated by v3 |
 | `venue-ergo.md` | Selected Ergo venue profile: pool-v3 §13 record ranges, and any backing declaring it |
 | `pool-v1.md` | Historical layouts, superseded by v2; never reinterpret |
 | [Reference decision index](https://github.com/mediumofexchange/reference-ts/blob/main/DECISIONS.md) | Durable choices; follow only the relevant entry |
@@ -58,6 +58,10 @@ change what implementations must do; clear Construction C0a:
 - Derive the rule from the object/law or a failure they cannot answer.
 - State costs and tradeoffs. Deployment-specific optional needs belong in Extensions.
 - Use plain, numbered, unambiguous rules. Keep retired mechanisms and their costs in Construction's Appendix.
+
+Adopted versions (pool-v1 to v3) and venue-ergo's context are fixed by their names (pool-v3 §1,
+venue-ergo §1): edit them only by corrections that change no byte, identity or verdict. Amend a
+contract pool-v3 instantiates only for a later version, and say which version the change applies to.
 
 When implementation exposes ambiguity, quote the exact rule, explain the conflict
 and pause only dependent code. Compare the smallest alternatives, including reuse

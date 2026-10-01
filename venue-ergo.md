@@ -10,9 +10,9 @@ the header rules by which a reader authenticates that evidence itself.
 
 This profile is selected for pool-v3 §13: it is the rule an Ergo venue
 identity names, and each reader still selects its own verifier implementing
-it (§12.1). It makes neither pool-v3 adoptable nor any backing's declaration
-of pool-v3 valid before pool-v3 §1's remaining items are approved. A backing
-of an adopted construction whose venue records are only commitments,
+it (§12.1). A pool-v3 backing may declare a venue under this profile, as
+under any pool-v3 §13 profile, only with pool-v3 §11.4's configuration. A
+backing of an adopted construction whose venue records are only commitments,
 replacements and revocations, such as pool-v2, may declare a venue under
 this profile: those records are then the kind 1–3 objects §6 attributes,
 read under §§2–7 with pool-v3 §13.3's derivation, which states C2.3.3 index
@@ -59,7 +59,11 @@ The context is literal ASCII. The deployment chooses the parameters:
   record stays in the blocks that carried it.
 
 A different anchor, depth or location is a different venue. The identity is
-hashed over the same parameter bytes that attribution compares.
+hashed over the same parameter bytes that attribution compares. The context
+names this profile's rules as they read when pool-v3 was adopted. A later
+change that alters an object a reader attributes, an index it derives or an
+answer it returns is a new context, and so a new venue; an edit under this
+context may only correct text in a way that changes none of them.
 
 ## 2. Index, finality and lag
 

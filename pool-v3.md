@@ -9,24 +9,35 @@ record-range transport, including the history and exact-evidence chains. It impl
 [delivery](pool-delivery.md) and [transfer/fee](pool-fees.md) contracts without
 reinterpreting any [v2](pool-v2.md) bytes, notes or keys.
 
-**This is an incomplete construction, not an adoptable profile.** There is no
-adopted v3 configuration hash or approved circuit/key identity yet. Section 11
-fixes configuration and signed-terms bytes for conformance only. Section 12
-fixes source-neutral evidence transport, not a complete-certificate verdict.
-Section 13 fixes the record-range answer a venue-evidence verifier returns,
-and the [Ergo venue profile](venue-ergo.md) is the selected profile that
-establishes it; each reader still selects its own verifier of that profile.
-No backing may declare `moe/pool/v3` on the basis of this document, and no
-runtime may accept its statements as v2. A synthetic domain used to test these
-relations is not a construction domain. Conformance tooling may compile and
-prove the relations below; passing it does not establish runtime conformance.
+**`moe/pool/v3` is adopted with one configuration, §11.4's.** That section
+names its configuration hash and approves its source, helper, backend,
+verifier-target, parameter, bytecode and key identities; it records the
+compiler that produced them. The adoption also covers the replay, retention
+and resource model that §14 consolidates. **E** names this construction and
+that configuration hash ([Construction
+§C1.3](construction.md#c13-what-e-declares-for-the-construction)), and
+everything here is fixed by that name: the bytes, identities and verdict
+rules of this document, and the rules of the contracts it instantiates as
+this document reads them, including the limits they state. A change to any
+of them is `moe/pool/v4`, and a backing moves to it by successor. A later
+edit here may only correct text in a way that changes no byte, identity or
+verdict. Those contracts may change for a later version; v3 reads the text
+they had in the revision that added §11.4. A venue profile's rules are fixed
+by the venue identity that names them (§13.1), not by this name.
 
-Before adoption this document must also approve the configuration's
-source/helper/backend/parameter/bytecode/key identities, together with the
-replay, retention and resource model that §14 consolidates. A verdict's
-dependencies are those §12.1 derives; there is no certificate encoding. The
-[fault](pool-fault.md) and [spent-set](pool-spent.md) contracts remain binding
-requirements for that work. None is replaced by a proof check.
+A verdict's dependencies are those §12.1 derives; there is no certificate
+encoding. The [fault](pool-fault.md) and [spent-set](pool-spent.md)
+contracts remain binding, and no proof check replaces either. Section 12
+fixes source-neutral evidence transport, not a complete-certificate verdict.
+Section 13 fixes the record-range answer a
+venue-evidence verifier returns. The [Ergo venue profile](venue-ergo.md) is
+the selected profile that establishes it; each reader still selects its own
+verifier of that profile. A backing may declare `moe/pool/v3` only with
+§11.4's configuration hash. No runtime may accept v3 statements as v2. A
+domain other than §11.4's, such as a synthetic one used to test these
+relations, is not a construction domain. Adoption fixes this construction.
+It is not a deployment: a venue, custody and an implementation's
+release remain each party's own choice.
 
 Under Construction C0a this instantiates the existing contracts, replacing
 their deferred proof-layout descriptions while keeping v2 immutable. Relative
@@ -172,13 +183,12 @@ layout and authorization are fixed in §5 under pool-recovery C3.6.
 
 ## 4. Proof and conformance obligations
 
-Use pool-v2 §12's selected UltraHonk proof system and backend for this
-conformance milestone; compilers qualify under Reproduction below. A verifier
-selects the committed key by statement kind, never by public-input count or a
-key supplied with a proof. In particular, spend and burn both have 15 public
-inputs; neither proof can verify as the other relation. No approved v3 key or
-configuration hash is committed here; §11 fixes the configuration frame for
-conformance.
+This construction uses pool-v2 §12's selected UltraHonk proof system and
+backend; compilers qualify under Reproduction below. A verifier selects the
+committed key by statement kind, never by public-input count or a key
+supplied with a proof. In particular, spend and burn both have 15 public
+inputs; neither proof can verify as the other relation. §11.4 names the
+approved keys and configuration hash.
 
 **Proving parameters.** The proof system commits with KZG over BN254, using
 the powers of one secret `x` from the Aztec Ignition setup. Given a key,
@@ -239,8 +249,8 @@ must label any synthetic domains, capsules and prevalidated state as such.
 
 ## 5. Canonical statement records
 
-This section fixes bytes for conformance before configuration adoption; it
-does not assign a v3 domain or authorize a v3 backing. All contexts below are
+This section fixes the statement bytes; §11.4's configuration hash is the
+domain every v3 statement carries. All contexts below are
 literal ASCII. Integers, fields and identifier limbs use §2 and pool-v2 §1.
 No optional field, alternate spelling or trailing byte is accepted.
 
@@ -552,9 +562,9 @@ snapshot preimage. It preserves the semantic history recurrence and receipt
 field count, and adds no signature or privileged state transition. Interior
 evidence openings retain the selected linear suffix cost: 96 digest bytes
 per later position, plus the preceding hash and target evidence. No evidence
-tree, second history or new certificate transport is introduced. The final
-configuration remains required before v3 adoption; §12.1 derives the
-dependencies without a certificate encoding, and §14 consolidates replay.
+tree, second history or new certificate transport is introduced. §12.1
+derives the dependencies without a certificate encoding, and §14
+consolidates replay.
 
 ## 8. Segment headers
 
@@ -617,8 +627,7 @@ values are already derived from the scope or the record. At maximum scope
 the header is about 8.50 MiB; that is a format bound, not a phone or transport
 budget. The alternative of adding such derived fields would require extra
 consistency rules without authenticating missing history. Every v2 header
-and identity remains unchanged; approved v3 configuration identity and
-adoption remain unset.
+and identity remains unchanged.
 
 ## 9. Fault-evidence records
 
@@ -774,8 +783,8 @@ the exact target fields and 96 bytes per later event, plus the unchanged require
 dependency closure. No wire tag, new signature, hash tree, private witness,
 configuration authority or verifier key is added. Retaining full trails is the
 unchanged alternative; a smaller target proof cannot replace range or predecessor
-evidence. This changes the conditional v3 evidence contract, not v2 or any
-adopted configuration. It does not close §1's adoption gates.
+evidence. This changes the v3 evidence contract, not v2 or §11.4's
+configuration.
 
 ## 10. Served-trail transport
 
@@ -796,8 +805,7 @@ backing order; there is no second scope count or backing-name field. Each
 `terms` field carries the backing's exact canonical terms encoding, with K
 inside it, and the signature is over its name under that encoding's declared
 signature frame (Construction invariants 1–2). This transport does not change
-the terms encoding, name function or signing message, or authorize declaring
-v3 before §1's configuration and adoption work is complete. An outer codec
+the terms encoding, name function or signing message. An outer codec
 treats the terms and signature as supplied bytes; a reader must independently
 decode them, derive the expected backing name, verify K's strict signature,
 and check the terms for every scoped entry against the record. Supplying an
@@ -890,7 +898,7 @@ omitting scoped terms would leave silence/force checks underdetermined. Inner
 terms and record checks remain where their definitions place them. Every v2
 byte, finality rule and private note opening remains unchanged.
 
-## 11. Configuration and backing evidence before adoption
+## 11. Configuration and backing evidence
 
 ### 11.1 Configuration frame
 
@@ -933,16 +941,13 @@ or a key. Routing uses the kind's own checked key, never the public-input
 count. Hash equality alone proves neither that a relation is correct nor that
 its setup is trustworthy.
 
-Conformance tooling may use a manifest of reviewed candidate identities and
-the corresponding configHash to remove synthetic-domain fixtures. Such a
-hash remains a **candidate domain**, not an adopted construction. Successful
-byte, source, key or proof checks cannot enable backing declaration. Section
-1's adoption prerequisites remain binding; no adoption flag in a manifest,
-configuration, terms or served package can close them. Final adoption must
-identify the approved configuration and artifacts in this document, under
-§12.1's dependency rules and §14's replay/import and resource requirements.
-Changing those semantics before adoption requires renewed review and
-conformance; candidate notes carry no migration or spendability promise.
+This document names the adopted configuration and its manifest identities
+(§11.4). An implementation's manifest holds them, checked as above; this
+document is not a key source, and no package, terms or served object
+supplies or selects them. No flag in those objects can adopt another
+configuration. Changing any identity, or the
+semantics this document fixes for them, is a new configuration, hence a new
+E and a new backing (Construction C1.6).
 
 ### 11.2 Constant-payout root terms
 
@@ -999,7 +1004,7 @@ restriction and no ZIP215 decoding.
 For each §10 scoped terms field, decode exact bytes under §11.2, derive the
 name, require equality with that header entry's backing, and verify K's
 signature over the name message. Require the construction to be exactly
-`moe/pool/v3`, configuration to equal the checked §11.1 hash, and venue to
+`moe/pool/v3`, configuration to equal §11.4's hash, and venue to
 equal the header venue. Derive the issuance-verification key from those
 signed terms, never a separately supplied issuer key. A changed payout,
 clause, key or configuration changes the backing name and invalidates reuse
@@ -1018,8 +1023,8 @@ upgrade §10.1 to a complete opening or exclusion verdict.
 
 **C0a cost and replacement.** The 439-byte fixed configuration generalizes
 v2's three-pair frame to six pairs and adds one delivery-profile byte, 193
-additional bytes. It replaces deferred configuration framing, not an adopted
-configuration. Constant-root terms reuse one name and one existing signature;
+additional bytes. It replaces deferred configuration framing. Constant-root
+terms reuse one name and one existing signature;
 there is no certificate signature, configuration authority, registry of
 approved issuers or extra proof relation. A variable list, duplicate source
 hashes inside the domain or a mutable key service would add parsing or
@@ -1027,6 +1032,72 @@ operating costs without replacing manifest verification. Omitting a recovery
 key would let a local-only check silently certify an incomplete configuration.
 The manifest/source checks are local verification work, not a publication
 service or a proof of currentness. V2 bytes, keys and runtime support stay fixed.
+
+### 11.4 The adopted configuration
+
+The adopted configuration's identities are these SHA-256 values, in §11.1's
+order:
+
+| Relation | Kind | Bytecode | Key |
+|---|---|---|---|
+| issue | 1 | `0c6c904321ff16bc8fdce2298257f3cd54035bc20e53bc6e711d0be5356d211c` | `65cc0ada6618c79df403d8276cd6a201e36936fb6264e516a34c4bf225729da0` |
+| spend | 2 | `47f3a125a0fcfc22cd15e482db2c75173ed70eb413f5df43b38ec00f5fa51087` | `850131fcd564ce15a238142051a0780623c8c759ccaffb4e389aad5a5056acba` |
+| burn | 3 | `d36344f2b2424fa6569c01bb7d8450da98fab641251ee385914332f5437c4b72` | `ce55384238c5448505f7c34b938ae92152ea75c3c412c779b20aea57bf82f3be` |
+| demand | 4 | `cab1f519db1b93cb5e2b6ec89052c5c69706990960fc3c0e617f996d843e5187` | `cf3912b74b1c72eef4114049f792b76462cb3cf38f19181a90dd279175b61aa4` |
+| settle | 6 | `ccad2b665539a22c1be4692e05a87bae01ccd6756ce464fc327d8a41b7938b23` | `ea5b3e66ced10ded8cd72bae33c6cf4dd7d2704735713ce3b7f2f76126967654` |
+| request | 7 | `4b1a0e76a48b651a33f19a25dcad2e45e708aabd70d757528153a2098a929084` | `1f048f189568b0b6ffdac39c71957aee34ed3485490d8594aba86d800e2aeaf4` |
+
+The helper is `44f3a3d1abe7d5fa2da5c0339e52018195d55f295c320e530d355f9cc62159d8`.
+With §11.1's five fixed bytes, these give the 439 configuration bytes and
+
+```text
+configHash = 7ddbb7e86dbfaf5e7bbc28541be28fdef04da02b30214109420d840fe664a618
+```
+
+which is the domain of every v3 statement and the hash in every v3 backing's
+construction clause.
+
+The artifacts are compiled from eight sources, together:
+
+| Source | SHA-256 |
+|---|---|
+| `issue.nr` | `0160497d77500bec7a62548b13908f46be122dfaf6f54cc0b720cf328a9c6ad6` |
+| `spend.nr` | `920c4702d2ae0c3e2d0f251fe298c39c0d658a390220b0c4d68b4e06c31ae695` |
+| `burn.nr` | `28548a85406ce232303c8bd7bb8e3506337a7b3999054678f8327ce2d979845d` |
+| `demand.nr` | `b48f7f86c8ee80aa5fea7e6d2ea0b709d2a95f670b3473b2a1abc7a0afd5bf9e` |
+| `settle.nr` | `cb865bea2f8087213f3d79d2eee5e07c5221cc1511d72ae6f5ee727bd690fadd` |
+| `request.nr` | `2da922cbc425297aa09d231562de48eaf6f55fd392a1e060c523bd2ac981baee` |
+| `notes.nr`, the relations' shared module | `034f123da4aafbac55ecaa75a3d37bbb016b70f06040a8c7092f598fbc1662d3` |
+| `poseidon2.nr`, the helper | `44f3a3d1abe7d5fa2da5c0339e52018195d55f295c320e530d355f9cc62159d8` |
+
+They are published in the reference implementation at
+[`103004e`](https://github.com/mediumofexchange/reference-ts/tree/103004e3ad810bda1f68130fc3db5864d423253e/scripts/pool/v3/circuits),
+with the helper under `src/pool/circuits/vendor/`. Noir `1.0.0-beta.26`
+compiled the bytecode; any compiler that reproduces it qualifies (§4,
+Reproduction). The pinned backend, `@aztec/bb.js` 5.2.0, derives the keys under the
+verifier target `noir-recursive`, its zero-knowledge target.
+
+The proving parameters are §4's. In the layout the reference accepts, G1 is
+the leading 2^15 points of `transcript00.dat`, each `x || y` in 32-byte
+big-endian, 2,097,152 bytes with SHA-256
+`50d2f4e9567be2b8e382cedfd078b96a3428a94597b7e88c4116e105d578ce77`. G2 is
+§4's `[x]_2`. Another implementation may accept another layout of the same
+points, under the hashes its manifest names. Spend is the largest relation,
+and it fits the 2^15 points.
+
+The pinned backend proves every relation in 14,656 bytes, and the
+conformance check finds a valid proof refused with a word appended, its last
+word repeated or its last word removed. So the configuration's longest
+publication is a 15,498-byte release, the size [venue-ergo
+§8](venue-ergo.md#8-publishing) requires one transaction to carry.
+
+**C0a cost and replacement.** Adoption adds no field, byte, relation, key or
+authority. It names the identities §11.1's frame already held, unchanged
+since their sources' text was fixed, and the manifest identities §4 already
+required. Its cost is permanence: a defect later found in a relation, the
+helper or the backend needs `moe/pool/v4` with a configuration of its own,
+which every backing reaches only by a successor (C1.6). That is why the
+identities are named after every rule they implement.
 
 ## 12. Evidence packages and dependency retention
 
@@ -1450,9 +1521,9 @@ headers the reader verified itself. Every v2 byte and rule is unchanged.
 
 ## 14. Replay, retention and resource bounds
 
-This section consolidates, for adoption, how a reader replays and what it
-must hold. It restates rules fixed elsewhere and adds requirements on kept
-replay state and streamed input. The only frame change it records is §12's
+This section consolidates how a reader replays and what it must hold. It
+restates rules fixed elsewhere and adds requirements on kept replay state
+and streamed input. The only frame change it records is §12's
 u64 item length.
 
 **Complete replay.** A valid verdict about a backing (C2.10.13) rests on
@@ -1581,7 +1652,7 @@ frame bounds neither a trail nor venue evidence.
 **C0a cost and replacement.** This adds no field, identity, relation or
 authority. The u64 item length costs four bytes per item. It removes a
 per-trail ceiling of `2^32-1` bytes, which §12's u32 imposed: about 276,000
-spend-sized events per segment at the conformance proof size. Four
+spend-sized events per segment at §11.4's 14,656-byte proof length. Four
 alternatives were rejected:
 - *A succinct history relation*, a seventh relation proving a checkpoint's
   state from genesis. It would replace a reader's proof checks and trail bytes

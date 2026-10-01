@@ -4,7 +4,7 @@ Normative contract for the successor to `moe/pool/v2`, implementing
 Construction C1.2 and invariant 9. It adopts [pool delivery](pool-delivery.md)
 C4.1–8 and does not reinterpret v2 bytes, notes, keys or configuration.
 It selects four spend outputs; `pool-v3.md` fixes the final statements,
-relations and configuration together before adoption.
+relations and configuration together, and adopts them.
 The first supported profile uses constant-payout roots and no reliance graph.
 
 ## 1. Ordinary outputs

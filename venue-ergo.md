@@ -67,10 +67,19 @@ The witnessed index of an object is derived from the height of the block
 whose transaction created it, never from a box's own creation height. With
 the anchor at height `A`, index `i` is the block at height `A + 1 + i`, so
 the anchor's child is index 0. Index `t` is witnessed once the best chain's
-tip (§3) is at height `A + 1 + t + depth` or above; the venue's witnessed
-index is `tip − depth − A − 1`, and nothing is witnessed before the tip
-reaches `A + 1 + depth`. The lag (C2.3.5) is `depth + 1`: a transaction
-signed at clock `c` is included at index `c + depth + 1` at the earliest.
+tip (§3) is at height `A + 1 + t + depth` or above, and stays witnessed while
+the best chain keeps its block: a heavier chain can be shorter, where its
+blocks require more work, and one that keeps that block does not move the
+witnessed index back, while one that leaves it is a reorganization deeper
+than the depth. A reader's witnessed index is therefore the highest
+`tip − depth − A − 1` over the best chains it has followed, and nothing is
+witnessed before a tip reaches `A + 1 + depth`; a reader keeps the headers
+that buried its witnessed block at the depth. The lag (C2.3.5) is
+`depth + 1`: a transaction signed at clock `c` is included at index
+`c + depth + 1` at the earliest. A shorter best chain's next block can fall
+inside that lag, so a party publishes no transaction while its best chain's
+tip is below `A + 1 + c + depth`; one already in flight when the chain
+changes is a transaction across a reorganization.
 
 Under C3.3's window a publication authorized at tip `T`, with its instant at
 the latest witnessed index, has force when included at height `T + k` for

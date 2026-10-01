@@ -22,10 +22,11 @@ relations is not a construction domain. Conformance tooling may compile and
 prove the relations below; passing it does not establish runtime conformance.
 
 Before adoption this document must also approve the configuration's
-source/helper/backend/parameter/bytecode/key identities and
-complete-certificate encoding, together with the replay, retention and
-resource model that §14 consolidates. The [fault](pool-fault.md) and [spent-set](pool-spent.md) contracts
-remain binding requirements for that work. None is replaced by a proof check.
+source/helper/backend/parameter/bytecode/key identities, together with the
+replay, retention and resource model that §14 consolidates. A verdict's
+dependencies are those §12.1 derives; there is no certificate encoding. The
+[fault](pool-fault.md) and [spent-set](pool-spent.md) contracts remain binding
+requirements for that work. None is replaced by a proof check.
 
 Under Construction C0a this instantiates the existing contracts, replacing
 their deferred proof-layout descriptions while keeping v2 immutable. Relative
@@ -552,8 +553,8 @@ field count, and adds no signature or privileged state transition. Interior
 evidence openings retain the selected linear suffix cost: 96 digest bytes
 per later position, plus the preceding hash and target evidence. No evidence
 tree, second history or new certificate transport is introduced. The final
-configuration and complete certificate encoding remain required before v3
-adoption; §14 consolidates replay.
+configuration remains required before v3 adoption; §12.1 derives the
+dependencies without a certificate encoding, and §14 consolidates replay.
 
 ## 8. Segment headers
 
@@ -606,7 +607,8 @@ resolves every nonempty opening through the record and its complete evidence
 opening remains unresolved; it is never replaced with an empty opening or
 an older checkpoint. A strict header codec is not a classifier of malformed
 committed evidence and its rejection alone supplies no exclusion verdict.
-Complete certificate formats remain required; §14 consolidates replay and import.
+Section 12.1 derives the dependencies without a certificate format; §14
+consolidates replay and import.
 
 **C0a cost and replacement.** This replaces the deferred successor header
 layout by reusing v2's fields and bounds with one new context. No scope root,
@@ -773,7 +775,7 @@ dependency closure. No wire tag, new signature, hash tree, private witness,
 configuration authority or verifier key is added. Retaining full trails is the
 unchanged alternative; a smaller target proof cannot replace range or predecessor
 evidence. This changes the conditional v3 evidence contract, not v2 or any
-adopted configuration. It does not close §1's complete-certificate/adoption gates.
+adopted configuration. It does not close §1's adoption gates.
 
 ## 10. Served-trail transport
 
@@ -875,8 +877,8 @@ finishing successful state replay. Section 9.1 alone permits replacing a target'
 event trail by compact intrinsic evidence with its stated dependencies intact.
 Other missing dependencies remain
 unresolved; they are not empty openings or permission to fall back to an older
-checkpoint. The complete certificate/dependency format remains a prerequisite
-in §1, and §14 consolidates replay.
+checkpoint. Section 12.1 derives these dependencies without a certificate
+format, and §14 consolidates replay.
 
 **C0a cost and replacement.** This replaces the deferred outer served-trail
 frame by composing the existing header, signed terms and record bytes. It adds
@@ -937,8 +939,8 @@ hash remains a **candidate domain**, not an adopted construction. Successful
 byte, source, key or proof checks cannot enable backing declaration. Section
 1's adoption prerequisites remain binding; no adoption flag in a manifest,
 configuration, terms or served package can close them. Final adoption must
-identify the approved configuration and artifacts in this document after
-complete-certificate, replay/import and resource requirements are fixed.
+identify the approved configuration and artifacts in this document, under
+§12.1's dependency rules and §14's replay/import and resource requirements.
 Changing those semantics before adoption requires renewed review and
 conformance; candidate notes carry no migration or spendability promise.
 
@@ -1049,13 +1051,15 @@ optional fields. The following kind numbers select payload interpretations:
 | 2 | Existing signed commitment record: `u64 sequence || root[32] || operator[32] || signature[64]` |
 | 3 | Complete directory preimage, as defined below |
 | 4 | Section 7 snapshot bytes |
-| 5 | Section 8 segment-header bytes |
 | 6 | Section 10 served-trail bytes |
 | 7 | Section 9 fault-evidence bytes |
-| 8 | Section 10's single `signedTerms` field, including its length and signature |
-| 9 | Section 6 publication bytes |
 | 10 | Section 7.2 `receiptRecord` bytes (355 bytes, including operator and signature) |
-| 11 | Venue-specific retained evidence bytes; interpretation requires the independently selected venue evidence verifier |
+
+Kinds 5, 8, 9 and 11 are unassigned and are not reassigned within v3, so a
+package carrying one is unsupported like any unknown kind (below). A segment
+header with its scoped signed terms travels as a trail of count zero (§10).
+Publications are venue records, and venue evidence is read only through the
+reader's own venue-evidence verifier (§12.1, §13), so no kind carries either.
 
 The complete directory preimage is the existing directory-root frame:
 `0x4d4f4544 || u8(1) || u32 m || (name[32] || digest[32])_1 ... _m`.
@@ -1075,12 +1079,15 @@ defined. Packaging the same objects in a different order is noncanonical.
 The outer codec preserves all payloads without decoding, repairing or
 reserializing their inner fields. Empty or malformed inner evidence can be
 transported; it does not become valid. Unknown kinds are unsupported evidence
-and leave a read unresolved. Separate header and signed-terms objects permit
-a reader to retain lapse evidence without pretending to possess a complete
-trail. Where they overlap a supplied trail, the reader uses only authenticated
-bytes: a header by its segment identity and a signed-terms field by its
-backing name and strict signature (§12.1). Merely sharing a header identity
-does not make two trails evidence for the same checkpoint.
+and leave a read unresolved. A trail of count zero is the served trail
+exactly of a checkpoint whose snapshot's evidence hash is the segment's seed
+(n = 0), such as its opening checkpoint (§12.1). For any other checkpoint of
+the segment it supplies only the header and scoped terms, from which a lapse
+is read (C2.10.4, C2b.4.1), and claims no records. Where trails
+of one segment overlap, the reader uses only authenticated bytes: a header by
+its segment identity and a signed-terms field by its backing name and strict
+signature (§12.1). Merely sharing a header identity does not make two trails
+evidence for the same checkpoint.
 
 The exact package size is `23 + sum(9 + length)` bytes. Before allocating
 payloads or hashing them, a reader checks explicit local total-byte and item
@@ -1125,12 +1132,12 @@ scoped snapshots disagree, each is authenticated separately and judged as
 before.
 
 Each scoped signed-terms field is resolved separately by its backing name.
-Any supplied field, in a trail or as a kind-8 item, whose terms reproduce
-the name and whose obligor signature verifies strictly is that backing's
-terms evidence, checked further under §11.3. A field that fails either check
-is ignored: it is not conflicting evidence, and no outcome depends on which
-valid field is used, since every field reproducing the name carries the same
-terms bytes.
+Any field supplied in a trail of the segment, including a trail of count
+zero, whose terms reproduce the name and whose obligor signature verifies
+strictly is that backing's terms evidence, checked further under §11.3. A
+field that fails either check is ignored: it is not conflicting evidence, and
+no outcome depends on which valid field is used, since every field
+reproducing the name carries the same terms bytes.
 
 A package may therefore carry, per segment, one trail for each set of trails
 whose records are prefixes of one another, and a reader accepts either form.
@@ -1168,9 +1175,11 @@ of inclusion alone, a latest-value response, a caller-supplied completeness
 flag, or a response for another range cannot meet that contract. Unsupported
 venue evidence, a failed source, missing history or a local budget refusal
 leaves the read unresolved. The package must not choose the verifier, a trust
-anchor or an executable decoder. No venue wire profile, finality rule or new
-authority is created here. Section 13 fixes the answer such a verifier returns;
-venue-specific evidence and its verifier remain adoption prerequisites.
+anchor or an executable decoder. No finality rule or new authority is created
+here. Section 13 fixes the answer such a verifier returns, and a venue profile
+(for Ergo, [venue-ergo](venue-ergo.md)) fixes the evidence that establishes it.
+The verifier takes that evidence from suppliers it uses itself, as the profile
+permits; a package carries none.
 
 Only after deriving and verifying the complete closure may the reader give
 the verdict its requested read permits. Package decoding or local replay
@@ -1180,6 +1189,24 @@ place of it. A local experiment limited to one configuration and checkpoint
 may refuse other package shapes; that is unsupported coverage, not a judgment
 against otherwise valid protocol evidence.
 
+**No certificate encoding.** A verdict's certificate is its closure: the
+objects this section derives from the requested read and the existing rules,
+with the venue answers the reader's own verifier establishes. To show another
+reader a verdict, a reader hands it a package of the closure's objects, which
+it must still hold to do so (C2.10.13). The receiving reader derives the same
+dependencies, makes its own venue reads and judges as any reader does. A
+stranger shown one excluded checkpoint is handed that verdict's closure; where
+§9.1 applies, its compact evidence replaces the target's trail with §9.1's
+dependencies intact. Section 9.1 is the only compact replacement of part of a
+closure. The smaller set C2.10.13 lists shows the operator's provable fault;
+the excluded verdict also needs §9.1's dependencies.
+
+In v3, C4.6's complete restoration package is likewise a §12 package of the
+closure's objects together with the reader's own venue reads. The venue
+evidence behind those reads is retained by the reader's verifier (§13.2) and
+passed on only as a supplier the venue profile admits; its continued
+availability is the venue's and its suppliers', not the package's.
+
 **C0a cost and replacement.** This replaces ad hoc evidence-object transport
 with one source-neutral inventory over existing byte formats. It costs 23
 fixed bytes, nine bytes per item, and one SHA256 per payload for canonical
@@ -1187,9 +1214,24 @@ ordering; inner verification remains necessary. It adds no package signature,
 publication requirement, proof relation or trusted certificate issuer.
 Nested dependency copies would repeat evidence and impose recursive parsing;
 serialized dependency assertions would duplicate the rules that derive them.
-Fixing a venue-specific dependency graph before range-source feasibility is
-established would assume evidence not yet demonstrated. This frame therefore
-fixes neither that graph nor full replay, and leaves all v2 behavior unchanged.
+This frame leaves all v2 behavior unchanged.
+
+No certificate encoding is added, and four kinds are removed. A certificate
+encoding would have to serialize the dependency graph §12.1 already derives,
+or assert a range's completeness, which only the reader's own verifier
+establishes. Either would duplicate rules or add an authority. The kinds
+removed are 5 (a header), 8 (one signed-terms field), 9 (a publication) and
+11 (venue evidence). Kinds 5 and 8 duplicated a trail of count zero. It
+carries the header and every scoped field for 29 framing bytes, and a field it
+leaves empty costs 68 bytes: about 4.5 MB at §8's largest scope, beside the
+header itself. A field one trail of the segment lacks is supplied by any other
+trail of the segment that carries it. Kinds 9 and 11 would have given a
+package a second path to the record. Kind 2 stays because it names the read's
+selection under the operator's signature; its standing still comes from the
+range answer (§13). A reader authenticates a venue profile's evidence itself,
+whatever supplies it (venue-ergo §3's header work from the anchor, §4's
+section roots), within §3's light-client limit. Packaging that evidence would
+add an encoding without adding evidence.
 
 ## 13. Record-range evidence
 
@@ -1311,10 +1353,9 @@ fields of this frame; a reader asking about the present sets `toIndex` from
 that read.
 
 The frame carries no signature and creates no authority. Supplied by an
-operator, a replica, a package or any other party — including under §12 kind
-11, which carries venue evidence for the verifier to consume, not answers — it
-is not an answer and establishes nothing, as a cached verdict establishes
-nothing. A reader's own components, including a separately contained decoding
+operator, a replica, a package or any other party — a §12 package carries no
+venue evidence (§12) — it is not an answer and establishes nothing, as a
+cached verdict establishes nothing. A reader's own components, including a separately contained decoding
 process, are under its control; the frame is their interface and the form of
 conformance vectors. A reader may keep its own answers for reuse across reads
 of one request while the venue's finality rule stands, beside the evidence

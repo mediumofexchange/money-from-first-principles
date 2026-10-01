@@ -376,7 +376,7 @@ rules.
 ## 8. The amendments
 
 The amendment checklist below records the changes applied to Construction,
-authority and recovery. The pool-v3 row remains future layout work. Historical
+authority and recovery. The pool-v3 row is laid out in pool-v3 §§7–9 and 12. Historical
 alternatives are retained at the [proposal revision](https://github.com/mediumofexchange/money-from-first-principles/blob/a6edadc/pool-fault.md).
 
 | Document, rule | Previous | Adopted |
@@ -395,7 +395,7 @@ alternatives are retained at the [proposal revision](https://github.com/mediumof
 | Recovery C2b.4.1 | "It is lapsed for its whole scope: it is held at its exact sequence, supplies no finalized state for any scoped backing, closes no interval" | Add: "An excluded checkpoint of the segment (C2.10.12) is likewise held and closes no interval; it neither retires the segment nor moves its silence boundary." |
 | Recovery §8 | The bullet recording the invalid-live-evidence remedy as open. | Replaced by a pointer to this contract. |
 | Construction Appendix | — | Two retired sentences with their cost: an invalid commitment resets the clock (a stream of bad commitments suppresses redemption forever); a commitment carrying nothing for a backing closes its interval (a dropped backing has only the count, and its clock reads other scopes' evidence). |
-| pool-v3 | — | The evidence chain, `evidenceHash_n` in the snapshot digest, the served trail's exact evidence (C2.10.10). Its form is decided (2026-09-09): `SHA256` over frames under two prefix-free contexts, binding the position. New with it: one authorization field per kind, `signatureHash` over that field, and `proofHash` as thirty-two zero bytes for a kind carrying no proof. The certificate encoding remains open. |
+| pool-v3 | — | The evidence chain, `evidenceHash_n` in the snapshot digest, the served trail's exact evidence (C2.10.10). Its form is decided (2026-09-09): `SHA256` over frames under two prefix-free contexts, binding the position. New with it: one authorization field per kind, `signatureHash` over that field, and `proofHash` as thirty-two zero bytes for a kind carrying no proof. No certificate encoding is added: a verdict's certificate is the closure pool-v3 §12.1 derives. |
 
 ## 9. What this adds, replaces and costs
 
@@ -478,9 +478,12 @@ The reference's `model/pool-fault.ts` models the selected classification,
 snapshot clock, segment continuity, separate evidence chain and exact receipt
 comparison. It uses real hashes over explicit bytes with ideal proof and
 authentication oracles; adopted events retain their witnessed evidence. It is
-not the production claim layer or a later construction's byte layout. Compact
-certificates, production retention and venue-specific range sources remain
-open; [pool-v3 §13](pool-v3.md#13-record-range-evidence) fixes the
-source-neutral record-range answer.
+not the production claim layer or a later construction's byte layout. For its
+own construction, pool-v3 fixes [§9.1](pool-v3.md#91-compact-intrinsic-exclusion)
+the one compact replacement, [§12.1](pool-v3.md#121-a-package-is-not-a-complete-certificate)
+the dependencies without a certificate encoding, [§13](pool-v3.md#13-record-range-evidence)
+the source-neutral record-range answer, [§14](pool-v3.md#14-replay-retention-and-resource-bounds)
+retention, and [venue-ergo](venue-ergo.md) the Ergo range source.
 The reference's [fault coverage](https://github.com/mediumofexchange/reference-ts/blob/main/docs/POOL_FAULT_RECOVERY.md)
-records the executable evidence and limits. Runtime stays pinned to v2.
+records the executable evidence and limits; its implementation status records
+the runtime's specification pin.

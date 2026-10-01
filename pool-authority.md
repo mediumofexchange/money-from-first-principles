@@ -187,7 +187,8 @@ authorization that names the segment or the statement, and only those: a
 settlement's release is signed again because it signs the settlement, while
 the obligor's acceptance stands, since it names the demand's identity and the
 demand keeps it; note nullifiers and deterministically chosen outputs remain
-unchanged.
+unchanged, except a settlement's output, which is derived per segment
+([pool-recovery C3.5](pool-recovery.md#1-objects)).
 
 **C2.10.9 Change scope at a committed boundary.** The C2.6.1 schedule applies
 to the earliest boundary of any scope backing, and the operator keeps itself

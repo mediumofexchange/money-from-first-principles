@@ -137,7 +137,9 @@ spend secret behind `owner` and never reveals it (invariant 25); `owner` is
 public. The acceptance deadline is a witnessed index at or before the demand's
 deadline, or the object is not an acceptance. Its identity is the hash of
 those fields. The acceptance need not be published: it is carried by the
-release (C3.6). A backer publishes it at the venue where it wants the
+release (C3.6). **K** names a distinct `owner` in its acceptances of
+distinct demands: naming one twice lets either demand's settlement take the
+other's release (C3.8). A backer publishes it at the venue where it wants the
 evidence that it answered, and it is evidence of an answer only where its
 deadline is later than the index it was witnessed at by more than the lag,
 since no release could otherwise be witnessed inside it (C3.8).
@@ -170,7 +172,21 @@ came from beyond the anchors. `rho_out` is public so that the backer rebuilds
 the note's opening from the record alone: every other field of that opening is
 public already, so publishing it discloses nothing the lit settlement did not,
 and it removes the delivery a private `rho_out` would need from the party the
-settlement is a remedy against.
+settlement is a remedy against. The holder derives `rho_out`
+deterministically, as it derives every rho (invariant 26), from its root
+secret, the settlement's input nullifiers, the segment identity and a
+**disclosure count**: the number of releases of this demand bound to this
+segment that the venue witnessed without force. The derivation's bytes are
+the wallet's own, since the backer reads `rho_out` from the record. A wallet
+rebuilt from its seed reads the count from the record and re-proves the same
+settlement, while a re-proof after a release without force, in the same
+segment or a new one, names an output nobody has seen: a settlement re-proven
+under a new segment keeps its nullifiers but not its output (C2.10.8). An
+output disclosed only to an operator — a settle it refused or held, or one in
+a discarded tail — is not counted; that is the operator's refusal of service
+(§8). Otherwise a backer that read the
+disclosed output could insert it first with a spend of its own notes under
+service, and leave the holder's settle refused.
 
 **C3.6 The release and the withdrawal.** The release is the presenter key's
 strict signature over the demand identity, the acceptance identity and the
@@ -338,6 +354,23 @@ unanswered at the earlier indices and is read there as it stood, which is
 [Extensions](extensions.md#the-trigger)'s latch: a void is prospective, so a
 holder that takes its liquidity back does not erase the dishonour already
 recorded. No reader re-judges the index at which a door read its lock.
+
+A release **taken** by another demand's settlement means its acceptance
+does not stand unreleased: it reads as released for the lapse reading above,
+and changes no recovery state, so a later release under that acceptance can
+still have force. A taken release is one witnessed at the venue that met
+every condition of C2b.3.2 at its index except that its `cm_out` was
+already an output of the snapshot inserted by a settlement of another
+demand, or the output of a settlement of another demand with force earlier
+in venue order since the snapshot's adoption index. Equal outputs have
+equal owners and quantities, so **K** had named this acceptance's `owner`
+in its acceptance of that other demand (C3.4). A backer that sees a release
+waiting at the venue and settles notes of its own to the same output first,
+under a demand and acceptance of its own, gains no lapse by it. Only **K**
+signs acceptances, so no holder or stranger can produce such a settlement;
+a backer that names one owner for two demands of one quantity bears the
+dishonour a taken release leaves. A settle refused under service, or an
+output created by a spend or an issue, takes no release.
 
 ## 3. Non-service
 
@@ -726,6 +759,42 @@ the same rule that the layout work read back:
   let a holder erase a recorded dishonour by taking its liquidity back —
   which §C1.5 tells it to do — and would contradict the latch
   [Extensions](extensions.md#the-trigger) reads.
+
+Decided on 2026-10-01:
+
+- C3.4, C3.5, C3.8: a release taken by another demand's settlement releases
+  its acceptance, and a release that disclosed its output without effect
+  sends the holder's next attempt to a fresh `rho_out` (its disclosure
+  count, read from the record). A settlement publishes its output's whole
+  opening, so a backer that sees a release waiting at the venue in a gap can
+  settle notes of its own to the same `cm_out` first, under a demand and an
+  acceptance of its own naming the holder's `owner`; the holder's release is
+  refused, and its acceptance would read as the holder's lapse. In a gap, on
+  its own, a fresh `rho_out` per retry only asks the backer for another
+  prepared note. The reading needs no byte, relation or admission change,
+  and only **K** can produce the taking settlement; the fresh `rho_out`
+  keeps a disclosed output from being inserted first by a spend under
+  service, where no release can be taken. Four alternatives were refused. An
+  acceptance naming `rho_out`, with an acceptance void once its output
+  exists, lets anybody who learns the acceptance pay the backer the quantity
+  into that output and turn the holder's lapse into the backer's dishonour,
+  at no net cost to a holder the backer has already paid in kind; voiding
+  only on outputs the backer signs for reopens the attack, since the backer
+  then knows the output in advance and can spend its own notes to it. A
+  commitment tag of its own for settlement outputs changes every relation
+  that authenticates a note, and their keys. A `rho_out` fixed by the
+  settlement's segment and nullifiers alone, with no disclosure count, takes
+  the holder's retry away: a release that a commitment landing first leaves
+  without force discloses an output the live segment then admits from
+  anybody. Counting any release refused for its output as released lets a
+  holder take its own release with a spend. What stays open is refusal of
+  service: an operator that holds or refuses a settle, or that returns
+  before a waiting release and then refuses its re-proof, leaves the
+  acceptance unreleased in the record. The count (C2b.5.2) does not reach it
+  where the operator admits the notes' spends, since a spent tag is served,
+  nor where a holder files fewer than `m` requests. Cost: a reader of C3.8
+  keeps, for each output, the demand of the settlement that inserted it, if
+  any.
 
 **It costs** what Construction §C2b already prices — illiquidity during a
 silence, the discarded tail, re-proof under the new segment — and, on top: a

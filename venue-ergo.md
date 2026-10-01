@@ -303,15 +303,29 @@ transaction the network relays and includes. A pool-v3 configuration is
 publishable on a venue under this profile only where its largest publication
 fits one such transaction as pieces at that venue's kind-4 location. §13.1's
 131,914-byte bound is the frame's parser bound over pool-v2 §12's generic
-proof limit, not a size the chain must carry. For a pay-to-public-key
-location, under the reference node's consensus limit of 4,096 bytes a box
-and its default relay policy of 98,304 bytes a transaction, a piece of 3,981
-bytes fills a box and 24 pieces, 95,544 bytes of publication, fill a
-transaction, which holds every publication of a configuration whose proofs
-are at most 94,702 bytes; a longer location tree leaves less room in each
-box. Each box carries at least the network's minimum value for its
-size, which a publisher pays; objects a stranger publishes at a location
-cost a reader their bytes and signature checks, priced by the same minimum.
+proof limit, not a size the chain must carry. A configuration's largest
+publication is set by its proof length, which its pinned backend fixes: pool-v2
+§12's backend proves every relation in 14,656 bytes and refuses a valid proof
+with a word added or removed, so pool-v3's largest publication is a release of
+15,498 bytes. The reference node's consensus limit is 4,096 bytes a box,
+counted with the creating transaction's id and the output's index, a one-byte
+VLQ below 128; its default relay policy admits at most 98,304 bytes a
+transaction. A publisher fills each piece's box to the limit and gives the
+run's last piece the room the transaction leaves. For a pay-to-public-key
+location, with one input, change and the fee, at any height, with any value
+and fee a box can hold and any per-byte minimum up to 10⁶ nanoERG, one
+transaction carries 95,910 bytes of publication, 24 full boxes and a shorter
+one, which holds every publication of a configuration whose proofs are at most
+95,040 bytes. A
+longer location tree leaves less room in each box; one of more than 3,368
+bytes cannot carry a 15,498-byte release. Each box carries at least the
+network's minimum value for its size, which a publisher pays. The reference
+node admits any fee of at least its minimum, but by default each node orders
+its pool by fee per byte or per execution cost, one chosen at random, so a
+long publication at a short one's fee waits behind shorter transactions where
+a pool or block fills; a publisher whose deadlines matter pays for its length.
+Objects a stranger publishes at a location cost a reader their bytes and
+signature checks, priced by the same minimum.
 
 ## 9. Forks
 

@@ -77,13 +77,15 @@ witnessed before a tip reaches `A + 1 + depth`; a reader keeps the headers
 that buried its witnessed block at the depth. The lag (C2.3.5) is
 `depth + 1`: a transaction signed at clock `c` is included at index
 `c + depth + 1` at the earliest. A shorter best chain's next block can fall
-inside that lag, so a party publishes no transaction while its best chain's
-tip is below `A + 1 + c + depth`; one already in flight when the chain
-changes is a transaction across a reorganization.
+inside that lag, so a party sends no transaction, its own signed at or below
+its clock `c`, while its best chain's tip is below `A + 1 + c + depth`; one
+sent before its best chain changed is a transaction across a
+reorganization.
 
 Under C3.3's window a publication authorized at tip `T`, with its instant at
-the latest witnessed index, has force when included at height `T + k` for
-`1 <= k <= depth + 2`; proving and propagation spend the same margin. A
+the latest witnessed index and `T` at least `A + 1 + instant + depth`, has
+force when included at height `T + k` for `1 <= k <= depth + 2`; proving
+and propagation spend the same margin. A
 reorganization deeper than the depth is the venue's failure (§13.2), not a
 fact an answer survives. Choosing the depth trades that margin and the
 reorganization bound against a wait of one block interval (120 s target) per

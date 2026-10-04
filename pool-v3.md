@@ -1606,6 +1606,37 @@ reused, nor is one whose evidence the reader no longer retains: a cached
 verdict is not a certificate (C2.10.13). An unresolved checkpoint has no class
 to keep. A kept class is a local cache, like kept state.
 
+**Kept positions.** The three checks bind a kept class where a read uses it:
+where the read takes the class's state, ground or index, as a canonical
+checkpoint, a predecessor, an opening, a publication's snapshot or a silence
+clock's last snapshot. Kept classes replace reclassifying every held
+checkpoint on each read (below), and checking every class on each read would
+undo that. So a reader may also keep, with its classes and under the same
+digest, how far it has classified:
+- per backing, the term it has reached, by its link, and the last held
+  checkpoint it classified there. It never passes the last term, which stays
+  open as the record grows;
+- per silence clock, its boundary if found and the last index it read;
+- per backing, the venue position of the last publication it classified.
+
+It also keeps the judging index it read through, raised before it keeps any
+progress, whether the read completes or refuses. A later read at that judging
+index or a later one may resume from these positions. It needs the same
+reader rules, configuration, venue identity and verifier circuit identities.
+It also needs the evidence those classes were derived from, held in storage
+the reader neither prunes nor restores to an earlier state. The read
+classifies only the held checkpoints and publications after the kept
+positions, and does the three checks on each kept class it uses. A class
+behind a kept position is a function of the checkpoint's bytes and its record
+prefix under the venue's finality rule (C2.10.11). No replacement witnessed
+later takes effect at or before the kept index (C2.5.3), and the venue
+answers the classes rest on are the kept ones a later read extends (§13.3).
+So the verdict is the one a read of every checkpoint gives. A read at an
+earlier judging index does not resume and leaves the kept positions as they
+were. A read from other retained evidence, or from evidence restored to an
+earlier state, classifies from the start, as a reader does that discards its
+kept positions.
+
 **Incremental retrieval.** A reader that holds a checkpoint's authenticated
 trail of n records may assemble a later checkpoint's trail from two parts. It
 fetches the later trail's head (header, scoped terms and count) and the

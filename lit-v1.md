@@ -273,8 +273,11 @@ scope's receipts would read `after` across both (pool-v2 §9, C2.10.9a), and
 each construction's readers would need the other's directories (C2.10.13): a
 failure of one would reach the other's payments. An operator serving both
 constructions uses two keys. A key that commits for both bears those
-consequences as its own conduct: its readers read the other construction's
-checkpoints as directories its scope does not match (pool-v3 §7.1).
+consequences as its own conduct, and no reader rule refuses it: readers pass
+the other construction's checkpoints as non-carrying, by their directories
+alone (C2.10.13, C2b.6.1), and a receipt whose `after` names one of them is not
+of the receipt's segment (pool-v3 §7.1). A payee checks that its receipt's
+`after` is of the receipt's segment before it relies on the receipt (C4.5).
 
 ## 7. Admission and validity
 
@@ -349,25 +352,33 @@ ownerSecret_i  = HMAC-SHA256(ownerRoot, u64 i)
 settlementRoot = HKDF-SHA256(seed, salt=domain, info="moe/wallet/lit/v1/settlement")
 acceptSecret   = HMAC-SHA256(settlementRoot, demand[32] || u64 acceptanceDeadline)
 presenterRoot  = HKDF-SHA256(seed, salt=domain, info="moe/wallet/lit/v1/presenter")
-presentSecret  = HMAC-SHA256(presenterRoot, tag_1[32] || u64 instant)
+presentSecret  = HMAC-SHA256(presenterRoot, tag_1[32] || tag_2[32] || u64 instant || u64 deadline)
 ```
 
 Each secret is an Ed25519 private seed (RFC 8032), whose public key is always a
 key (§1). A wallet allocates owner indices in order for every output it
 expects, change included, and persists the next index before exposing a key.
 **K** names `acceptSecret`'s public key as an acceptance's owner. A demand's
-presenter key is `presentSecret`'s, from the demand's first input's tag and its
-instant, so a restored wallet finds its standing demands and can release or
-withdraw them.
+presenter key is `presentSecret`'s, from the demand's tags (`tag_2` is 32 zero
+bytes for one input), instant and deadline, all public in the demand, so a
+restored wallet finds its standing demands and can release or withdraw them.
 
 Restoration (C4.6's scope and evidence) replays the authenticated trails and
 recognizes outputs by their owner keys. It derives owner keys from index 0
 until 256 consecutive indices appear in no output; for each settlement it
 derives `acceptSecret` from its demand and deadline, and for each demand over
-its notes `presentSecret` from the demand's first tag and instant. A wallet
-exposes no owner key more than 256 indices past the highest index in its
-finalized history (indices 0–255 where there is none); past that it creates no
-request until a payment to an exposed key finalizes. **K** derives an issue's
+its notes `presentSecret` from the demand's tags, instant and deadline. A
+wallet exposes no owner key more than 256 indices past the highest index `h` in
+its finalized history (indices 0–255 where there is none); past that it creates
+no request until `h` moves. A restored wallet cannot see which indices it
+exposed in requests nobody paid, so it treats every index through `h + 256` as
+exposed. A wallet whose window is full, whether by restoration or by abandoned
+requests, moves `h` itself: it closes any request that named its highest
+exposed index and pays itself an output to that index, at the cost of one
+statement and its fee, and creates requests again once that statement
+finalizes. No request is ever credited with an output of a statement the
+wallet itself signed. A wallet with no notes waits for a payment to an
+exposed key. **K** derives an issue's
 nonce and a holder its refresh values deterministically from its own secrets
 (invariant 26), in derivations this document does not fix, since no reader or
 restoring wallet reads them; **K** keeps an issuance's nonce to sign it again
@@ -416,8 +427,11 @@ records §6 does not attribute (venue-ergo §1); lit's records are kinds 1–4,
 and §6 attributes a kind-4 object by its location and shape without reading
 its content. Its largest publication, 569 bytes, fits one box, which venue-ergo
 §8's condition for publishing asks. Pool-v3 §14's replay, kept state, kept
-classes, incremental retrieval and retention apply with §5's roots and chains
-in place of v3's.
+classes, incremental retrieval and retention apply with §5's spent root and
+chains in place of v3's roots and chains. A reader resuming kept state
+recomputes the spent root, the totals and both chains against the
+authenticated snapshot, as §14 requires, and rebuilds the output set from the
+kept statements and imports, since no root in the snapshot checks it.
 
 ## 11. Shape, visibility and supply
 
@@ -455,8 +469,9 @@ Costs: the profile's lit visibility (§11 and Extensions). Records are 189 to
 Ed25519 signature per input and a few SHA-256 hashes per note, beside the
 spent-root update the pool also pays, in place of a proof; both effects are estimated, not measured. A restored wallet scans owner
 keys within a 256-index look-ahead, so a key exposed past it is not
-seed-recoverable, which §8's rule prevents, and a wallet with 256 unpaid
-requests outstanding cannot make another. An operator serving both
+seed-recoverable, which §8's rule prevents, and a wallet whose 256-key window
+is full, after a restoration or abandoned requests, pays itself once before it
+can make another request. An operator serving both
 constructions holds two keys (§6). Limits of v1: no identified-issuance
 clause, though Extensions names a lender wanting it as one of the profile's
 needs; no compact membership proof (§5); no reliance.

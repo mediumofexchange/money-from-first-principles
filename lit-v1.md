@@ -140,10 +140,10 @@ and the presenter key's release signs the settlement. The settlement consumes
 the notes its demand names, which it does not repeat.
 
 **Derived values.** A demand's backing is its inputs' common backing and its
-quantity their summed value. A burn's backing is its inputs' common backing.
-A settlement's output is `(the demand's backing, the demand's quantity, owner)`
-at position 0, derived over the demand's nullifiers in the demand's input
-order. A request's backing is its input's.
+quantity their summed value, which must be a `u64` (§7). A burn's backing is
+its inputs' common backing. A settlement's output is `(the demand's backing,
+the demand's quantity, owner)` at position 0, derived over the demand's
+nullifiers in the demand's input order. A request's backing is its input's.
 
 Decoding establishes structure, key encodings and positive values. It does
 not establish signatures, membership, spentness, locks, time, conservation or
@@ -249,9 +249,10 @@ and one of:
 - a signature of its authorization fails strict verification, where the key is
   one the statement itself names (an input's owner, for kinds 2–4) or the
   scoped backing's **K** from its authenticated signed terms (kind 1);
-- the statement's own arithmetic fails §7: an output whose backing no input
-  names, inputs of more than one backing in a burn or a demand, or unequal
-  widened sums in a spend or burn.
+- the statement's own arithmetic fails §7: two inputs with one nullifier, an
+  output whose backing no input names, inputs of more than one backing in a
+  burn or a demand, unequal widened sums in a spend or burn, or a demand's
+  summed value past a `u64`.
 
 A withdrawal's or settlement's signature failure needs the demand, which is
 state, so it is not intrinsic. Every other case needs its ordinary evidence.
@@ -304,8 +305,9 @@ closure's plus the local prefix's, as in C2.10.6–7; there is no forest.
   inputs' sum equals `quantity` plus the output's value. `outstanding(backing)`
   is at least `quantity`. Effect: as a spend, and `burned` rises.
 - **Demand.** Every input is live, its tag neither locked nor spent; owner
-  signatures verify; the inputs share one backing whose terms are held; the
-  instant and deadline pass C3.3 and C3.8 at the door. Effect: C3.7's lock.
+  signatures verify; the inputs share one backing whose terms are held, and
+  their summed value is a `u64`; the instant and deadline pass C3.3 and C3.8
+  at the door. Effect: C3.7's lock.
 - **Withdraw.** C3.7's rule; the presenter's signature is over the withdraw
   statement's bytes.
 - **Settle.** C3.7's rule: the demand stands, the acceptance verifies under
@@ -361,9 +363,10 @@ Each secret is an Ed25519 private seed (RFC 8032), whose public key is always a
 key (§1). A wallet allocates owner indices in order for every output it
 expects, change included, and persists the next index before exposing a key.
 **K** names `acceptSecret`'s public key as an acceptance's owner. A demand's
-presenter key is `presentSecret`'s, from the demand's tags (`tag_2` is 32 zero
-bytes for one input), instant and deadline, all public in the demand, so a
-restored wallet finds its standing demands and can release or withdraw them.
+presenter key is `presentSecret`'s, from the demand's tags in its input order
+(`tag_2` is 32 zero bytes for one input), instant and deadline, all public in
+the demand, so a restored wallet finds its standing demands and can release
+or withdraw them.
 
 Restoration (C4.6's scope and evidence) replays the authenticated trails and
 recognizes outputs by their owner keys. It derives owner keys from index 0

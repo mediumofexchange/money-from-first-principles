@@ -355,6 +355,8 @@ presenterRoot  = HKDF-SHA256(seed, salt=domain, info="moe/wallet/lit/v1/presente
 presentSecret  = HMAC-SHA256(presenterRoot, tag_1[32] || tag_2[32] || u64 instant || u64 deadline)
 ```
 
+Each root is HKDF's 32-byte output (RFC 5869, `L = 32`), as pool-delivery's
+roots are, and `domain` is the configuration hash (§9).
 Each secret is an Ed25519 private seed (RFC 8032), whose public key is always a
 key (§1). A wallet allocates owner indices in order for every output it
 expects, change included, and persists the next index before exposing a key.

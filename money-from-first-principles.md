@@ -352,7 +352,7 @@ The sequencer failing earns a **silence clause** with two grades. First, transfe
 
 The protocol answers with two honest settings, declared in **E**, inside the hash, so a holder knows the setting before accepting: the shielded pool is the core construction, and the transparent ledger is a profile ([Extensions](extensions.md#the-transparent-profile)). Which one is each backing's priced choice; [Construction §C5](construction.md#c5-deploying-it) carries the defaults.
 
-**Transparent: exact supply, no unlinkability.** A public ledger of key-controlled balances. Transfer still needs nobody's permission, has no clawback, and identifies a key rather than a person, so it is bearer in [§4](#4-letting-it-pass)'s sense. It gives up unlinkability, and with it resistance to a refusal aimed at one person, a resistance blinding itself supplies only together with an anonymising transport. It is the setting a lender wants, and the honest choice where the crowd to hide in is too small for the pool to buy anything, which is where [§20](#20-in-practice) starts.
+**Transparent: exact supply, no unlinkability.** A public ledger of key-controlled claims. Transfer still needs nobody's permission, has no clawback, and identifies a key rather than a person, so it is bearer in [§4](#4-letting-it-pass)'s sense. It gives up unlinkability, and with it resistance to a refusal aimed at one person, a resistance blinding itself supplies only together with an anonymising transport. It is the setting a lender wants, and the honest choice where the crowd to hide in is too small for the pool to buy anything, which is where [§20](#20-in-practice) starts.
 
 **Shielded: unlinkable, checkable at the boundary.** Claims live in a shielded pool, with histories and amounts hidden. Spending publishes a nullifier, a one-time tag marking the claim spent without revealing which claim it was, and a zero-knowledge proof that value is conserved; the accumulator profile counts per denomination instead ([Extensions](extensions.md#the-accumulator-profile-and-the-denomination-ladder)). Supply stays checkable because every spend carries that proof and the pool's boundary is lit: every entry a logged issuance, every exit a published burn, and redemption an internal transfer to the backer. It costs a proof on the spender's device, no spending without resync, and verification standing in for the arithmetic a transparent ledger gives away free.
 
@@ -717,7 +717,7 @@ There is a substitute you can write, and it fails for a different reason. Let th
 
 **That difference is the real divide.** A shared-balance ledger socialises losses, since Oskar's negative balance is a claim on the whole membership. The grammar keeps losses in compartments, and Nadia's exposure to Oskar is capped at what Nadia chose to issue against him.
 
-**A circle that wants shared balances should not force them into the object, because a plain ledger builds them simpler**: one balance per member, one tracker keeping it, which is Basis's design ([§21](#21-what-is-new-here-and-what-is-not)).
+**A circle that wants shared balances should not force them into the object, because a plain ledger builds them simpler**: one balance per member, one tracker keeping it; Basis's tracker, keeping members' debts to one another, is the nearest design ([§21](#21-what-is-new-here-and-what-is-not)).
 
 The grammar earns its cost at the circle's edge instead. The circle faces outward through one threshold key, as a single identified backer, and the claims issued under that key are ordinary backings, priced and traded with strangers and with other circles. The operator that keeps the internal ledger is the natural sequencer for those backings too, and issuance stays with the threshold key, since a sequencer never issues ([§9](#9-the-law)). A ledger inside, a backer outside: the grammar's edge runs through the circle, and to mutual credit the four-field object is a boundary object, met exactly where the grammar ends.
 
@@ -803,7 +803,7 @@ The same freedom produces monies nobody has run. Each is a tuple rather than a p
 | **sink** | somebody who will take a claim in settlement of something already owed to them |
 | **substitutability** | any backing can name a different operator without asking the rest, which is why no operator is mandatory |
 | **successor** | new terms published as a separate backing with a standing swap offer, since a backing has no edit operation |
-| **transparent** | the core setting: a public ledger of key-controlled balances. Exact supply, no unlinkability |
+| **transparent** | a profile: a public ledger of key-controlled claims. Exact supply, no unlinkability |
 | **unit** | a backing's own count: the quantity issuance creates and burning destroys. Not the unit of account it pays in |
 | **unit of account** | the thing prices are quoted in. Defined wherever some backer redeems in kind at a fixed quantity ([§12](#12-units-of-account-and-prices)) |
 | **unitload(z)** | leverage through denomination: the *z* owed by every backing whose denomination chain reaches *z*, divided by outstanding *z* ([Extensions](extensions.md)) |

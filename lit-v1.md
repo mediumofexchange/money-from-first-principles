@@ -376,8 +376,8 @@ exposed. A wallet whose window is full, whether by restoration or by abandoned
 requests, moves `h` itself: it closes any request that named its highest
 exposed index and pays itself an output to that index, at the cost of one
 statement and its fee, and creates requests again once that statement
-finalizes. No request is ever credited with an output of a statement the
-wallet itself signed. A wallet with no notes waits for a payment to an
+finalizes. No request is ever credited with an output of a statement whose
+inputs are all the wallet's own. A wallet with no notes waits for a payment to an
 exposed key. **K** derives an issue's
 nonce and a holder its refresh values deterministically from its own secrets
 (invariant 26), in derivations this document does not fix, since no reader or
@@ -471,7 +471,8 @@ spent-root update the pool also pays, in place of a proof; both effects are esti
 keys within a 256-index look-ahead, so a key exposed past it is not
 seed-recoverable, which §8's rule prevents, and a wallet whose 256-key window
 is full, after a restoration or abandoned requests, pays itself once before it
-can make another request. An operator serving both
+can make another request: anyone who takes requests from a public source and
+never pays costs it one such fee per 256 requests. An operator serving both
 constructions holds two keys (§6). Limits of v1: no identified-issuance
 clause, though Extensions names a lender wanting it as one of the profile's
 needs; no compact membership proof (§5); no reliance.

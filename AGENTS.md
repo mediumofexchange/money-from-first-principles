@@ -18,6 +18,7 @@ relevant to that slice, not the full decision history.
 | `pool-v3.md` | Adopted layouts; §11.4 names the one configuration a v3 backing may declare |
 | `pool-recovery.md`, `pool-fault.md` | Presentation, recovery, checkpoint classification and clock, instantiated by v3 |
 | `pool-delivery.md`, `pool-fees.md`, `pool-spent.md` | Delivery, transfer/fee and spent-set contracts, instantiated by v3 |
+| `lit-v1.md` | Transparent profile's layouts (`moe/lit/v1`), draft until adopted; reads pool-v3 and its contracts by reference |
 | `venue-ergo.md` | Selected Ergo venue profile: pool-v3 §13 record ranges, and any backing declaring it |
 | `pool-v1.md` | Historical layouts, superseded by v2; never reinterpret |
 | [Reference decision index](https://github.com/mediumofexchange/reference-ts/blob/main/DECISIONS.md) | Durable choices; follow only the relevant entry |

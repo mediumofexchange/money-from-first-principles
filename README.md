@@ -56,7 +56,8 @@ design constraints; they are not additional active implementations.
 TypeScript reference. It implements private notes, public supply replay,
 canonical history, receipt readers and durable sequencing. A local wallet and
 service exercise real-proof payments, private delivery and encrypted handoff;
-qualified custody, runtime recovery and external witness publication remain open.
+runtime recovery and Ergo publication run on reference venues and live on the
+Ergo testnet; qualified custody remains open.
 See its [implementation status](https://github.com/mediumofexchange/reference-ts/blob/main/docs/IMPLEMENTATION_STATUS.md)
 for evidence and limitations. It has no
 published npm release or completed security audit.

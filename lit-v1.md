@@ -350,7 +350,7 @@ of pool-delivery C4.1's exact output: the payer cannot prepare the output's
 randomness, so the receiver names only what it controls. **Each request names
 its own owner key**, never one another request named: outputs are public, so a
 payer could otherwise present another payer's statement to a reused key as its
-own. The payee checks that the statement carries an output to that key, of
+own. The payee checks that the statement carries or derives an output to that key, of
 that backing and quantity, holds the receipt, and credits each output
 commitment to one request only, persisting that before reporting it; final
 acceptance needs canonical finality and current spentness, as C4.5 says. There
@@ -375,8 +375,9 @@ the key receives, so each backing's indices, window and restoration below read
 that backing's trails alone, and one seed used for backings in several scopes
 or on several venues never names one key for two of them. A wallet allocates
 a backing's indices in order for every output of it that it expects, change
-included, never at or below an index it has exposed or its history shows, and
-persists the next index before exposing a key.
+included, never at or below an index it has exposed or its history shows
+(except the window move below), and persists the next index before exposing a
+key.
 **K** names `acceptSecret`'s public key as an acceptance's owner. A demand's
 presenter key is `presentSecret`'s, from the demand's tags in its input order
 (`tag_2` is 32 zero bytes for one input), instant and deadline, all public in
@@ -386,21 +387,26 @@ or withdraw them.
 Restoration (C4.6's scope and evidence) replays, for each backing it
 restores, that backing's authenticated trails and recognizes outputs by their
 owner keys. It derives the backing's owner keys from index 0 until 256
-consecutive indices appear in no output of those trails; for each settlement it
+consecutive indices appear in no output of the backing in those trails; an
+output of another backing to one of these keys is the wallet's note but moves
+no index. For each settlement it
 derives `acceptSecret` from its demand and deadline, and for each demand over
 its notes `presentSecret` from the demand's tags, instant and deadline. Let `h`
-be the highest index of a backing that this rule reaches in the backing's
-finalized history (−1 where it reaches none). A wallet exposes no owner key of
+be the highest index this rule finds in an output of the backing in the
+backing's finalized history (−1 where it finds none). A wallet exposes no owner key of
 the backing past index `h + 256`; past that it creates no request for the
 backing until `h` moves. A restored wallet cannot see which indices it exposed
 in requests nobody paid, so it treats every index through `h + 256` as
 exposed. A wallet whose window is full, whether by restoration or by abandoned
 requests, moves `h` itself: it closes any request that named its highest
 exposed index and pays itself an output to that index, at the cost of one
-statement and its fee, and creates requests again once that statement
-finalizes. No request is ever credited with an output of a statement that
-consumes notes, all of them the wallet's own: a spend's or burn's inputs, or the
-notes a settlement's demand names (an issue consumes none). A wallet with no
+statement and its fee (one statement may move the windows of several backings,
+each output to its own backing's highest exposed index), and creates requests
+again once that statement finalizes. No request is ever credited with an
+output of a statement that consumes notes, all of them the wallet's own (notes
+to keys its seed derives): a spend's or burn's inputs, or the notes a
+settlement's demand names. An issue consumes none, and is credited unless the
+wallet itself made it. A wallet with no
 notes of a backing waits for a payment to an exposed key of it. **K** derives an issue's
 nonce and a holder its refresh values deterministically from its own secrets
 (invariant 26), in derivations this document does not fix, since no reader or

@@ -260,7 +260,17 @@ state, so it is not intrinsic. Every other case needs its ordinary evidence.
 **Served trail.** Pool-v3 §10's frame with the context `"moe/lit/v1/trail"`
 (28 fixed bytes), this document's header and records, and record lengths 0
 through 8200, two fields at the 4096-byte bound with their lengths. Pool-v3
-§10.1 applies with §5's evidence pair.
+§10.1 applies with §5's evidence pair. The pair needs only §3's split, so
+§10.1's procedure, and §12.1's match of a checkpoint's served trail, cover
+every record that splits where pool-v3's cover records that decode: they
+authenticate both fields whether or not the statement decodes. A record that
+splits but whose statement does not decode under §3, or whose authorization
+is not §3's length for its kind, fails replay at its position, as a committed
+kind-7 record does, so its checkpoint can be excluded on its complete trail
+(C2.10.11). A record that does not split remains inconclusive under §10.1.
+The 8200-byte bound is on the record; a field longer than the fault
+evidence's 4096-byte bound (above) splits and fails replay, but no fault
+evidence carries it.
 
 **Evidence package.** Pool-v3 §12 with the context `"moe/lit/v1/package"`
 (22 fixed bytes). Kind 1 carries §9's configuration bytes and kinds 4, 6, 7
@@ -466,7 +476,10 @@ outputs; recovery capsules and the delivery digest (pool-delivery C4.1–4.4 and
 C4.7); C3.5's `rho_out` and disclosure count and C2.10.8's settlement
 exception; the proof digest in the evidence chain, receipt and fault evidence;
 and the challenge window. It adds the output derivation (§2), owner signatures
-in place of proofs, and an issue nonce. Every other mechanism is the pool's.
+in place of proofs, and an issue nonce. It authenticates a served trail's
+records by §3's split rather than their decoding, so a committed record that
+splits but does not decode can exclude its checkpoint instead of leaving it
+unresolved until a term ends (§6). Every other mechanism is the pool's.
 The pool's note root has no lit counterpart (§5).
 
 Costs: the profile's lit visibility (§11 and Extensions). Records are 189 to

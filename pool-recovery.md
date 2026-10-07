@@ -174,12 +174,18 @@ public already, so publishing it discloses nothing the lit settlement did not,
 and it removes the delivery a private `rho_out` would need from the party the
 settlement is a remedy against. The holder derives `rho_out`
 deterministically, as it derives every rho (invariant 26), from its root
-secret, the settlement's input nullifiers, the segment identity and a
-**disclosure count**: the number of releases of this demand bound to this
-segment that the venue witnessed without force. The derivation's bytes are
+secret, the settlement's input nullifiers, the segment identity, the acceptance
+identity and a **disclosure count**: the number of releases of this demand
+bound to this segment that the venue witnessed without force. The
+acceptance names its demand, and the count is the demand's own: without the
+acceptance, two demands presenting the same notes in one segment (one
+presented again after the first was withdrawn or lapsed) would both start
+from zero and share outputs, and two acceptances of one demand at one count
+would share `rho_out`, so a release under either would disclose what a
+settlement under the other names, for any owner. The derivation's bytes are
 the wallet's own, since the backer reads `rho_out` from the record. A wallet
-rebuilt from its seed reads the count from the record and re-proves the same
-settlement, while a re-proof after a release without force, in the same
+rebuilt from its seed reads the count from the record and re-proves, for the
+same acceptance, the same settlement, while a re-proof after a release without force, in the same
 segment or a new one, names an output nobody has seen: a settlement re-proven
 under a new segment keeps its nullifiers but not its output (C2.10.8). An
 output disclosed only to an operator — a settle it refused or held, or one in
@@ -795,6 +801,22 @@ Decided on 2026-10-01:
   nor where a holder files fewer than `m` requests. Cost: a reader of C3.8
   keeps, for each output, the demand of the settlement that inserted it, if
   any.
+
+Decided on 2026-10-07:
+
+- C3.5: `rho_out` reads the acceptance identity. Two demands can present the
+  same notes in one segment, each with its own count from zero, and a wallet
+  that cannot know every release its seed made (one restored from a copy or
+  its seed while a release it made waits unwitnessed) can settle a demand at
+  the count of a release it lost; without the acceptance either settles to an
+  output an earlier release disclosed, for any owner. No reader reads the
+  derivation, so no byte, identity or verdict changes. Two alternatives were
+  refused: the demand identity alone closes the first case but not the
+  second, and refusing a restored wallet's settlement of a demand it did not
+  save takes C3.5's re-proof from it. What stays: a backer that holds an
+  unwitnessed release and presents its acceptance again can insert that
+  output first, which leaves the holder's settle refused before it discloses
+  anything, as a release withheld from the record does.
 
 **It costs** what Construction §C2b already prices — illiquidity during a
 silence, the discarded tail, re-proof under the new segment — and, on top: a

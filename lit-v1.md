@@ -128,7 +128,7 @@ spelling or trailing byte is accepted, and the statement length is exactly
 | 1 issue | 64 bytes | the backing's **K** | `statementBytes` |
 | 2 spend, 3 burn, 4 demand | 64k bytes, one signature per input in input order | the owner of that input | `statementBytes` |
 | 5 withdraw | 64 bytes | the demand's presenter key | `statementBytes` |
-| 6 settle | `u64 acceptanceDeadline \|\| acceptanceSignature[64] \|\| releaseSignature[64]`, 136 bytes | **K**; the presenter key | `acceptanceBytes`; `releaseBytes` (§4) |
+| 6 settle | `u64 acceptanceDeadline \|\| acceptanceSignature[64] \|\| ownerSignature[64] \|\| releaseSignature[64]`, 200 bytes | **K**; the settlement's `owner`; the presenter key | `acceptanceBytes`; `acceptanceBytes`; `releaseBytes` (§4) |
 | 7 request | 64 bytes | the owner of the input | `statementBytes` |
 
 The authorization length must equal the table. Two inputs owned by one key
@@ -136,7 +136,8 @@ carry one signature each. The statement context and kind byte separate every
 signed statement from every other message a key signs, so one key may be an
 owner, a presenter key and **K**. Settlement is authorized as in the pool
 (invariant 27): the owners' signatures on the demand name the presenter key,
-and the presenter key's release signs the settlement. The settlement consumes
+and the presenter key's release signs the settlement. The acceptance carries
+the signatures of **K** and of the owner it names (§4). The settlement consumes
 the notes its demand names, which it does not repeat.
 
 **Derived values.** A demand's backing is its inputs' common backing and its
@@ -163,12 +164,16 @@ publicationBytes = "moe/lit/v1/publication" || configHash[32] || backing[32] ||
 publicationId    = SHA256(publicationBytes)
 ```
 
-**K** signs `acceptanceBytes`; its `owner` is a key **K** generates (§8). The
-presenter key signs `releaseBytes`. A settlement reconstructs the acceptance
+**K** signs `acceptanceBytes`. Its `owner` is a key **K** generates (§8), and
+that key signs the same `acceptanceBytes` too, so an acceptance shows its
+signer holds the owner key's secret (§7). An acceptance is both signatures; with either
+missing or invalid it is no acceptance. The presenter key signs `releaseBytes`.
+A settlement reconstructs the acceptance
 from its own demand and owner and its authorization's deadline, and the release
 from that acceptance's identity and its own `statementHash`, as pool-v3 §6
 does. Publication kinds, bodies and the routing rule are pool-v3 §6's: 1 a
-demand's record, 2 `acceptanceBytes || signature[64]` (exactly 189 bytes),
+demand's record, 2 `acceptanceBytes || signature[64] || ownerSignature[64]`
+(exactly 253 bytes),
 3 a settlement's record, 4 a withdrawal's record, 5 a request's record. The
 routing backing must equal the backing the body names or derives (§3): a
 demand's and a request's from their own openings. An acceptance, a release and
@@ -247,15 +252,17 @@ exactly §3's length for its kind (a wrong length is malformed, not intrinsic),
 and one of:
 
 - a signature of its authorization fails strict verification, where the key is
-  one the statement itself names (an input's owner, for kinds 2–4) or the
-  scoped backing's **K** from its authenticated signed terms (kind 1);
+  an input's owner (kinds 2–4) or the scoped backing's **K** from its
+  authenticated signed terms (kind 1);
 - the statement's own arithmetic fails §7: two inputs with one nullifier, an
   output whose backing no input names, inputs of more than one backing in a
   burn or a demand, unequal widened sums in a spend or burn, or a demand's
   summed value past a `u64`.
 
-A withdrawal's or settlement's signature failure needs the demand, which is
-state, so it is not intrinsic. Every other case needs its ordinary evidence.
+A withdrawal's signature failure needs the demand, which is state, so it is
+not intrinsic. A settlement's release and **K**'s acceptance signature need
+it too, and a settlement has no intrinsic failure, its acceptance owner's
+signature included: all three of its signatures are judged with its demand. Every other case needs its ordinary evidence.
 
 **Served trail.** Pool-v3 §10's frame with the context `"moe/lit/v1/trail"`
 (28 fixed bytes), this document's header and records, and record lengths 0
@@ -321,7 +328,7 @@ closure's plus the local prefix's, as in C2.10.6–7; there is no forest.
 - **Withdraw.** C3.7's rule; the presenter's signature is over the withdraw
   statement's bytes.
 - **Settle.** C3.7's rule: the demand stands, the acceptance verifies under
-  **K** with this owner and a deadline not behind the horizon, the release
+  **K** and under this owner with a deadline not behind the horizon, the release
   verifies under the presenter key, the demand's nullifiers are unspent and its
   tags under no other demand's standing lock. Effect: the demand's nullifiers
   and the derived output are inserted, and the demand is discharged.
@@ -331,7 +338,8 @@ closure's plus the local prefix's, as in C2.10.6–7; there is no forest.
 
 At the venue, C2b.3.2's force rules read the same substitutions: a demand's
 inputs must be outputs of the snapshot's state, where the pool reads anchors in
-the snapshot's forest, and a release's settlement needs no proof.
+the snapshot's forest, a release's settlement needs no proof, and a release's
+acceptance verifies under its owner as well as under **K**.
 
 **What reads differently, named rather than branched.** C3.5's per-segment
 `rho_out` and its disclosure count, and C2.10.8's settlement exception, are
@@ -339,7 +347,19 @@ replaced by §2's derivation: a settlement signed again keeps its output,
 since nobody can create it first. C3.8's taken release cannot occur: equal
 settlement outputs need equal nullifiers, so a release whose output was taken
 has also lost its notes. For the same reason C3.4's distinct acceptance owner
-is not needed; reusing one only links the backer's settlements. C2b.5's request
+is not needed; reusing one only links the backer's settlements. That **K** holds C3.4's
+owner (Construction §C3: owner values the backer generated) is checked rather
+than trusted. Every key in a lit statement is public, and **K** sees the keys
+of a holder who presents to it: the presenter key, the inputs' owners, and keys
+the spend graph links to them, such as a change key. An acceptance naming one
+of them would send the settlement's output back to the holder, and left
+unreleased it would read as the holder's lapse under C3.8, so **K** would
+never take the claims and never be dishonoured. The owner key's signature on
+the acceptance (§4) closes this for every reading at once: only a party with a
+key's secret can produce it, and a holder signs no `acceptanceBytes` (§8).
+C3.8 reads an acceptance, published or carried by a release, as an answer only
+where both its signatures verify. An acceptance whose owner is **K** itself
+carries two equal signatures and is valid. C2b.5's request
 is the holder's act by its owner's signature, and C2b.7's targeted refusal is in
 scope for transfers, since a lit statement shows its keys.
 
@@ -378,7 +398,11 @@ a backing's indices in order for every output of it that it expects, change
 included, never at or below an index it has exposed or its history shows
 (except the window move below), and persists the next index before exposing a
 key.
-**K** names `acceptSecret`'s public key as an acceptance's owner. A demand's
+**K** names `acceptSecret`'s public key as an acceptance's owner and signs the
+acceptance with `acceptSecret` as well as with its own key (§4). A wallet signs
+`acceptanceBytes` only as a backing's **K**, for a demand of that backing,
+and with no key but its own **K** and the `acceptSecret` of that demand and
+acceptance deadline. A demand's
 presenter key is `presentSecret`'s, from the demand's tags in its input order
 (`tag_2` is 32 zero bytes for one input), instant and deadline, all public in
 the demand, so a restored wallet finds its standing demands and can release
@@ -491,7 +515,7 @@ outputs; recovery capsules and the delivery digest (pool-delivery C4.1–4.4 and
 C4.7); C3.5's `rho_out` and disclosure count and C2.10.8's settlement
 exception; the proof digest in the evidence chain, receipt and fault evidence;
 and the challenge window. It adds the output derivation (§2), owner signatures
-in place of proofs, and an issue nonce. It authenticates a served trail's
+in place of proofs, an issue nonce, and the acceptance owner's signature (§4). It authenticates a served trail's
 records by §3's split rather than their decoding, so a committed record that
 splits but does not decode can exclude its checkpoint instead of leaving it
 unresolved until a term ends (§6). Every other mechanism is the pool's.
@@ -499,7 +523,7 @@ The pool's note root has no lit counterpart (§5).
 
 Costs: the profile's lit visibility (§11 and Extensions). Records are 189 to
 719 bytes against the pool's records of about 15 KB, and a reader checks one
-Ed25519 signature per input and a few SHA-256 hashes per note, beside the
+Ed25519 signature per input (three per settlement) and a few SHA-256 hashes per note, beside the
 spent-root update the pool also pays, in place of a proof; both effects are estimated, not measured. A restored wallet scans owner
 keys within a 256-index look-ahead per backing, so a key exposed past it is not
 seed-recoverable, which §8's rule prevents, and a wallet whose 256-key window
@@ -511,7 +535,8 @@ clause, though Extensions names a lender wanting it as one of the profile's
 needs; no compact membership proof (§5); no reliance.
 
 Falsifiers: a reader that admits an output it did not derive; a path by which
-someone other than a note's owner moves, presents, withdraws or locks it; a
+someone other than a note's owner moves, presents, withdraws or locks it; an
+acceptance read as an answer under C3.8 whose owner key's secret **K** did not hold; a
 pool rule in C2b or C3 that needs a lit branch beyond §7's readings; or a
 measurement showing lit replay not materially cheaper than pool replay at the
 design point.

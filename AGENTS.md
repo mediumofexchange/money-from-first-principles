@@ -18,7 +18,7 @@ relevant to that slice, not the full decision history.
 | `pool-v3.md` | Adopted layouts; §11.4 names the one configuration a v3 backing may declare |
 | `pool-recovery.md`, `pool-fault.md` | Presentation, recovery, checkpoint classification and clock, instantiated by v3 |
 | `pool-delivery.md`, `pool-fees.md`, `pool-spent.md` | Delivery, transfer/fee and spent-set contracts, instantiated by v3 |
-| `lit-v1.md` | Transparent profile's layouts (`moe/lit/v1`), draft until adopted; reads pool-v3 and its contracts by reference |
+| `lit-v1.md` | Adopted transparent-profile layouts (`moe/lit/v1`), §9 names its configuration; reads pool-v3 and its contracts by reference |
 | `venue-ergo.md` | Selected Ergo venue profile: pool-v3 §13 record ranges, and any backing declaring it |
 | `pool-v1.md` | Historical layouts, superseded by v2; never reinterpret |
 | [Reference decision index](https://github.com/mediumofexchange/reference-ts/blob/main/DECISIONS.md) | Durable choices; follow only the relevant entry |
@@ -60,9 +60,9 @@ change what implementations must do; clear Construction C0a:
 - State costs and tradeoffs. Deployment-specific optional needs belong in Extensions.
 - Use plain, numbered, unambiguous rules. Keep retired mechanisms and their costs in Construction's Appendix.
 
-Adopted versions (pool-v1 to v3) and venue-ergo's context are fixed by their names (pool-v3 §1,
-venue-ergo §1): edit them only by corrections that change no byte, identity or verdict. Amend a
-contract pool-v3 instantiates only for a later version, and say which version the change applies to.
+Adopted versions (pool-v1 to v3, lit-v1) and venue-ergo's context are fixed by their names (pool-v3 §1,
+lit-v1 §1, venue-ergo §1): edit them only by corrections that change no byte, identity or verdict. Amend a
+contract pool-v3 or lit-v1 instantiates only for a later version, and say which version the change applies to.
 
 When implementation exposes ambiguity, quote the exact rule, explain the conflict
 and pause only dependent code. Compare the smallest alternatives, including reuse

@@ -259,10 +259,10 @@ and one of:
   burn or a demand, unequal widened sums in a spend or burn, or a demand's
   summed value past a `u64`.
 
-A withdrawal's or settlement's signature failure needs the demand, which is
-state, so it is not intrinsic; a settlement has no intrinsic failure, its
-acceptance owner's signature included, and all three of its signatures are
-judged with its demand. Every other case needs its ordinary evidence.
+A withdrawal's signature failure needs the demand, which is state, so it is
+not intrinsic. A settlement's release and **K**'s acceptance signature need
+it too, and a settlement has no intrinsic failure, its acceptance owner's
+signature included: all three of its signatures are judged with its demand. Every other case needs its ordinary evidence.
 
 **Served trail.** Pool-v3 §10's frame with the context `"moe/lit/v1/trail"`
 (28 fixed bytes), this document's header and records, and record lengths 0
@@ -401,7 +401,8 @@ key.
 **K** names `acceptSecret`'s public key as an acceptance's owner and signs the
 acceptance with `acceptSecret` as well as with its own key (§4). A wallet signs
 `acceptanceBytes` only as a backing's **K**, for a demand of that backing,
-and with no key but that demand's `acceptSecret`. A demand's
+and with no key but its own **K** and the `acceptSecret` of that demand and
+acceptance deadline. A demand's
 presenter key is `presentSecret`'s, from the demand's tags in its input order
 (`tag_2` is 32 zero bytes for one input), instant and deadline, all public in
 the demand, so a restored wallet finds its standing demands and can release

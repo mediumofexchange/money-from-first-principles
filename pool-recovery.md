@@ -810,7 +810,9 @@ Decided on 2026-10-07:
   its seed while a release it made waits unwitnessed) can settle a demand at
   the count of a release it lost; without the acceptance either settles to an
   output an earlier release disclosed, for any owner. No reader reads the
-  derivation, so no byte, identity or verdict changes. Two alternatives were
+  derivation, so no byte, identity or verdict changes: this is a correction
+  for pool-v3's wallets, and a wallet following the earlier text stays valid
+  at every reader but is exposed to both cases. Two alternatives were
   refused: the demand identity alone closes the first case but not the
   second, and refusing a restored wallet's settlement of a demand it did not
   save takes C3.5's re-proof from it. What stays: a backer that holds an

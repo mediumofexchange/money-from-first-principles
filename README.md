@@ -43,7 +43,7 @@ the implementation supports it.
 | [Pool v3](pool-v3.md) | The adopted construction: proof, record, configuration and signed-root-terms layouts, and its one configuration's identities (§11.4). |
 | [Recovery](pool-recovery.md), [fault evidence](pool-fault.md) | Presentation, settlement, operator silence and faulty checkpoints, which pool-v3 instantiates. |
 | [Delivery](pool-delivery.md), [fees](pool-fees.md), [spent set](pool-spent.md) | Successor note delivery, transfer shape, fee and replay contracts. |
-| [Lit notes v1](lit-v1.md) | The transparent profile's layouts, a draft until adopted: lit notes under the pool's rules, each output named by the statement that creates it. |
+| [Lit notes v1](lit-v1.md) | The transparent profile's adopted layouts: lit notes under the pool's rules, each output named by the statement that creates it. |
 | [Ergo venue](venue-ergo.md) | The selected venue profile for pool-v3 record ranges: identity, header chain, block sections and attribution on the Ergo mainnet. |
 
 [Pool v1](pool-v1.md) is retained as a historical layout reference, superseded

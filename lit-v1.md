@@ -15,12 +15,21 @@ instantiates the [authority](pool-authority.md), [recovery](pool-recovery.md),
 because openings are public. It replaces the [delivery](pool-delivery.md)
 contract and changes the [transfer](pool-fees.md) shape (§§8, 11).
 
-**Status: draft until adopted.** No backing may declare `moe/lit/v1` before a
-decision adopts it, which needs the reference implementation's conformance
-with this text. Until then an edit here is a reviewed change, not a new
-version. Once adopted, everything here is fixed by the name, as pool-v3 §1
-fixes v3: a change to a byte, identity or verdict rule is `moe/lit/v2`, and a
-backing moves to it by successor (Construction §C1.6).
+**`moe/lit/v1` is adopted with one configuration, §9's.** **E** names this
+construction and that configuration hash ([Construction
+§C1.3](construction.md#c13-what-e-declares-for-the-construction)), and
+everything here is fixed by that name, as pool-v3 §1 fixes v3: the bytes,
+identities and verdict rules of this document, and the rules of pool-v3 and
+of the contracts it instantiates as this document reads them, including the
+limits they state. A change to any of them is `moe/lit/v2`, and a backing
+moves to it by successor (Construction §C1.6). A later edit here may only
+correct text in a way that changes no byte, identity or verdict. Pool-v3 is
+fixed by its own name, and v1 reads the contracts in the text pool-v3 §1
+fixes, whatever a later version changes in them. A venue
+profile's rules are fixed by the venue identity that names them (pool-v3
+§13.1). A backing may declare `moe/lit/v1` only with §9's configuration hash.
+Adoption fixes this construction. It is not a deployment: a venue, custody
+and an implementation's release remain each party's own choice.
 
 A lit backing's scope holds lit backings only, and each scope has its own
 segments, history, commitments and directory (Construction §C1.2: a scope is

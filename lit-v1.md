@@ -44,8 +44,8 @@ ASCII with no length prefix, integers are unsigned big-endian of the stated
 width, and `SHA256` is SHA-256 over the concatenation. No context in this
 document is a prefix of another or of any context the pool or the reference
 declared when this document was adopted, and no context declared later may be
-a prefix of one of this document's or have one as its prefix. A **key** is a 32-byte Ed25519 public key that is canonical and not
-of small order; a **signature** is 64 bytes under pool-v3 §11.2's strict
+a prefix of one of this document's or have one as its prefix. A **key** is a
+32-byte Ed25519 public key that is canonical and not of small order; a **signature** is 64 bytes under pool-v3 §11.2's strict
 Ed25519 rule. A **value** or **quantity** is a `u64` and is positive; sums are
 widened and never wrap.
 
@@ -111,8 +111,8 @@ recordBytes    = u32 statementLength || statementBytes[statementLength] ||
 
 The statement's identity, `statementHash`, excludes the authorization. An
 exact replay is the same statement bytes, and returns the prior answer whatever
-the signatures in its authorization, which has its kind's length (invariant 26). The two length fields let a reader split a
-committed record without decoding it (§5); the record splits only where
+the rest of its authorization, which has its kind's length (invariant 26). The
+two length fields let a reader split a committed record without decoding it (§5); the record splits only where
 `8 + statementLength + authorizationLength` is its whole length. In the bodies below, `input` is an
 `opening` (§2) and `output` is the 72-byte output of §2.
 
@@ -488,10 +488,11 @@ context included: the range request and answer are construction-neutral, and
 kind 4's records are §4's publications under §13.1's parser bound. A lit
 backing may declare a venue under the [Ergo venue profile](venue-ergo.md)
 without a change to it (venue-ergo §1 names lit): that profile excludes only a
-construction whose venue records §6 does not attribute, and lit's records are kinds 1–4,
-and §6 attributes a kind-4 object by its location and shape without reading
-its content. Its largest publication, 569 bytes, fits one box, which venue-ergo
-§8's condition for publishing asks. Pool-v3 §14's replay, kept state, kept
+construction whose venue records §6 does not attribute, and lit's records are
+kinds 1–4, and §6 attributes a kind-4 object by its location and shape without
+reading its content. Its largest publication, 569 bytes, fits one transaction
+at any kind-4 location where pool-v3's 15,498-byte release fits; venue-ergo §1
+admits a venue only where §8's condition holds. Pool-v3 §14's replay, kept state, kept
 classes, incremental retrieval and retention apply with §5's spent root and
 chains in place of v3's roots and chains. A reader resuming kept state
 recomputes the spent root, the totals and both chains against the

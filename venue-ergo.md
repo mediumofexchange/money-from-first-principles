@@ -18,7 +18,7 @@ this profile: those records are then the kind 1–3 objects §6 attributes,
 read under §§2–7 with pool-v3 §13.3's derivation, which states C2.3.3 index
 by index. That derivation holds a sequence only above zero, and pool-v2
 commitment sequences count from one. A backing of an adopted construction
-whose venue records are the kind 1–4 objects §6 attributes, such as
+other than pool-v3 whose venue records are the kind 1–4 objects §6 attributes, such as
 [lit-v1](lit-v1.md) (its §10), may declare a venue under this profile where
 §8's condition holds for its configuration. A construction that also publishes
 other venue records, such as the transparent setting's operations and
@@ -279,7 +279,7 @@ is not an object here.
   omitted where that exceeds §13.1's 131,914 bytes. A publisher separates two
   publications of one subject in one transaction by another output, or uses
   two transactions; a run that merges two does not decode under §6 of
-  pool-v3 and has no force, which is the publisher's cost.
+  pool-v3, or the construction's own publication frame, and has no force, which is the publisher's cost.
 
 The **ordinal** of an object is `position · 2^32 + output`, where `position`
 is its transaction's index in the block's section and `output` its first
@@ -307,8 +307,8 @@ unresolved.
 
 A kind-4 object is one transaction's run, so a publication must fit one
 transaction the network relays and includes. A configuration, pool-v3's or
-another construction's (§1), is publishable on a venue under this profile only where its largest publication
-fits one such transaction as pieces at that venue's kind-4 location. §13.1's
+another construction's (§1), is publishable on a venue under this profile
+only where its largest publication fits one such transaction as pieces at that venue's kind-4 location. §13.1's
 131,914-byte bound is the frame's parser bound over pool-v2 §12's generic
 proof limit, not a size the chain must carry. A pool configuration's largest
 publication is set by its proof length, which its pinned backend fixes: pool-v2

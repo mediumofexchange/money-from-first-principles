@@ -43,7 +43,8 @@ Notation follows pool-v3: `||` is byte concatenation, contexts are literal
 ASCII with no length prefix, integers are unsigned big-endian of the stated
 width, and `SHA256` is SHA-256 over the concatenation. No context in this
 document is a prefix of another or of any context the pool or the reference
-declares. A **key** is a 32-byte Ed25519 public key that is canonical and not
+declared when this document was adopted, and no context declared later may be
+a prefix of one of this document's or have one as its prefix. A **key** is a 32-byte Ed25519 public key that is canonical and not
 of small order; a **signature** is 64 bytes under pool-v3 §11.2's strict
 Ed25519 rule. A **value** or **quantity** is a `u64` and is positive; sums are
 widened and never wrap.
@@ -110,7 +111,7 @@ recordBytes    = u32 statementLength || statementBytes[statementLength] ||
 
 The statement's identity, `statementHash`, excludes the authorization. An
 exact replay is the same statement bytes, and returns the prior answer whatever
-its signature bytes (invariant 26). The two length fields let a reader split a
+the signatures in its authorization, which has its kind's length (invariant 26). The two length fields let a reader split a
 committed record without decoding it (§5); the record splits only where
 `8 + statementLength + authorizationLength` is its whole length. In the bodies below, `input` is an
 `opening` (§2) and `output` is the 72-byte output of §2.
@@ -368,7 +369,8 @@ the acceptance (§4) closes this for every reading at once: only a party with a
 key's secret can produce it, and a holder signs no `acceptanceBytes` (§8).
 C3.8 reads an acceptance, published or carried by a release, as an answer only
 where both its signatures verify. An acceptance whose owner is **K** itself
-carries two equal signatures and is valid. C2b.5's request
+carries two signatures by one key, each verified on its own (they need not be
+equal), and is valid. C2b.5's request
 is the holder's act by its owner's signature, and C2b.7's targeted refusal is in
 scope for transfers, since a lit statement shows its keys.
 
@@ -485,8 +487,8 @@ A lit backing reads its venue through pool-v3 §13 unchanged, frame and
 context included: the range request and answer are construction-neutral, and
 kind 4's records are §4's publications under §13.1's parser bound. A lit
 backing may declare a venue under the [Ergo venue profile](venue-ergo.md)
-without a change to it. That profile excludes only a construction whose venue
-records §6 does not attribute (venue-ergo §1); lit's records are kinds 1–4,
+without a change to it (venue-ergo §1 names lit): that profile excludes only a
+construction whose venue records §6 does not attribute, and lit's records are kinds 1–4,
 and §6 attributes a kind-4 object by its location and shape without reading
 its content. Its largest publication, 569 bytes, fits one box, which venue-ergo
 §8's condition for publishing asks. Pool-v3 §14's replay, kept state, kept

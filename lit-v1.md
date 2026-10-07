@@ -385,11 +385,11 @@ the demand, so a restored wallet finds its standing demands and can release
 or withdraw them.
 
 Restoration (C4.6's scope and evidence) replays, for each backing it
-restores, that backing's authenticated trails and recognizes outputs by their
-owner keys. It derives the backing's owner keys from index 0 until 256
-consecutive indices appear in no output of the backing in those trails; an
-output of another backing to one of these keys is the wallet's note but moves
-no index. For each settlement it
+restores, that backing's authenticated trails and recognizes outputs, in every
+trail it replays, by the owner keys of every backing it restores. It derives
+each backing's owner keys from index 0 until 256 consecutive indices appear in
+no output of that backing in its trails; an output of another backing to one
+of a backing's keys is the wallet's note but moves no index of either. For each settlement it
 derives `acceptSecret` from its demand and deadline, and for each demand over
 its notes `presentSecret` from the demand's tags, instant and deadline. Let `h`
 be the highest index this rule finds in an output of the backing in the
@@ -406,7 +406,8 @@ again once that statement finalizes. No request is ever credited with an
 output of a statement that consumes notes, all of them the wallet's own (notes
 to keys its seed derives): a spend's or burn's inputs, or the notes a
 settlement's demand names. An issue consumes none, and is credited unless the
-wallet itself made it. A wallet with no
+wallet itself made it; **K**'s wallet tells by its own nonce derivation, and
+one that cannot credits no issue to its own requests. A wallet with no
 notes of a backing waits for a payment to an exposed key of it. **K** derives an issue's
 nonce and a holder its refresh values deterministically from its own secrets
 (invariant 26), in derivations this document does not fix, since no reader or

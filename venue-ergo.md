@@ -21,9 +21,8 @@ commitment sequences count from one. A backing of an adopted construction
 other than pool-v3 whose venue records are the kind 1–4 objects §6 attributes, such as
 [lit-v1](lit-v1.md) (its §10), may declare a venue under this profile where
 §8's condition holds for its configuration. A construction that also publishes
-other venue records, such as the transparent setting's operations and
-commits, cannot be read here, since §6 attributes no such object. No record,
-message or signature changes.
+other venue records cannot be read here, since §6 attributes no such object.
+No record, message or signature changes.
 
 The **reference node** is the Ergo node release v6.0.6 (source tag `v6.0.6`
 of `ergoplatform/ergo`; release `ergo-6.0.6.jar`, SHA-256

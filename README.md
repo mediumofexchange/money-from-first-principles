@@ -45,6 +45,7 @@ the implementation supports it.
 | [Delivery](pool-delivery.md), [fees](pool-fees.md), [spent set](pool-spent.md) | Successor note delivery, transfer shape, fee and replay contracts. |
 | [Lit notes v1](lit-v1.md) | The transparent profile's adopted layouts: lit notes under the pool's rules, each output named by the statement that creates it. |
 | [Ergo venue](venue-ergo.md) | The selected venue profile for pool-v3 record ranges: identity, header chain, block sections and attribution on the Ergo mainnet. |
+| [Succinct reading](succinct-read.md) | A reader's option, for a phone first: proofs that a pool-v3 trail's statement proofs verified and that an Ergo range was read in full, in place of those bytes. No circuit set is adopted yet. |
 
 [Pool v1](pool-v1.md) is retained as a historical layout reference, superseded
 by v2. Earlier versions and rejected alternatives explain compatibility and

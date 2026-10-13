@@ -20,6 +20,7 @@ relevant to that slice, not the full decision history.
 | `pool-delivery.md`, `pool-fees.md`, `pool-spent.md` | Delivery, transfer/fee and spent-set contracts, instantiated by v3 |
 | `lit-v1.md` | Adopted transparent-profile layouts (`moe/lit/v1`), §9 names its configuration; reads pool-v3 and its contracts by reference |
 | `venue-ergo.md` | Selected Ergo venue profile: pool-v3 §13 record ranges, and any backing declaring it |
+| `succinct-read.md` | A reader's option (`moe/succinct/v1`): check proofs in place of a trail's proofs and a venue range's bytes; no verdict rule, no circuit set adopted yet |
 | `pool-v1.md` | Historical layouts, superseded by v2; never reinterpret |
 | [Reference decision index](https://github.com/mediumofexchange/reference-ts/blob/main/DECISIONS.md) | Durable choices; follow only the relevant entry |
 | [Reference implementation status](https://github.com/mediumofexchange/reference-ts/blob/main/docs/IMPLEMENTATION_STATUS.md) | Runtime/model/experiment evidence and specification pins |

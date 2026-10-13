@@ -40,11 +40,10 @@ out in pool-v3 §13.1's frame for the reader's own pool-v3 §13.3 derivation.
 
 No backing, term or operator declares this document, and **E** does not name
 it. It adds no byte, identity, record, signature or authority to any
-construction or venue. The name `moe/succinct/v1` fixes these rules; once a
-set is adopted under it, a change to a digest, frame or check is a later name.
-Until then a correction that restores this section's agreement with the
-complete read keeps the name, and any other change to a digest, frame or
-check is a later name. A reader relies on a circuit set
+construction or venue. The name `moe/succinct/v1` fixes these rules; a change
+to a digest, frame or check is a later name, except that before a set is
+adopted under it, a correction restoring this section's agreement with the
+complete read keeps the name. A reader relies on a circuit set
 only under an adoption (§6), and none is adopted yet; until one is, an
 implementation runs these rules only over test identities labelled as such.
 
@@ -154,9 +153,9 @@ its kind. A succinct reader instead receives each record's proof-free form
 (§3.3), whose `proofHash` the evidence recurrence authenticates. It takes "the
 proof verifies" from a check proof over a span covering the record (§3.2), or
 checks the record natively (§3.5). Kind 5 has no proof. A committed kind-7
-record fails replay (pool-v3 §7, §10.1) and its proof is never verified, but
-its proof field must still decode under pool-v3 §5, so its bytes are fetched
-for their length (§3.4). Venue publications are not replaced (§3.6).
+record fails replay where it decodes (pool-v3 §7, §10.1) and its proof is
+never verified, but its proof field must still decode under pool-v3 §5, so
+its bytes are fetched for their length (§3.4). Venue publications are not replaced (§3.6).
 
 ### 3.2 Digests, spans and their proofs
 
@@ -246,8 +245,8 @@ every statement, authorization and `proofHash`. Barring a SHA-256 collision,
 each `proofHash` names the committed proof's bytes, and the zero sentinel an
 empty proof. Capsules are bound by the delivery association for kinds 1–3 and
 by the fixed count zero for the others, as pool-v3 §10.1 binds them. A trail
-that fails to authenticate, or a form whose capsules fail their count or the
-delivery association, is a supplier's failure: the reader obtains another, or
+that fails to authenticate, or a form whose capsules fail pool-v3 §5 (count,
+profile or delivery association), is a supplier's failure: the reader obtains another, or
 the complete trail (pool-v3 §10), or the trail stays unresolved unless
 C2.10.11 or pool-v3 §9.1 classifies the checkpoint. Where an authenticated
 field of a form among the served trail's records does not decode (its
@@ -271,7 +270,8 @@ For each served trail the complete read would replay, the reader:
    records. Each span in the partition must be covered (§3.2); a span the
    reader finds no cover for, it splits, down to single records. Each proved
    record outside every covered span, and each kind-7 record, has its proof's
-   bytes fetched, without verifying them (§3.5);
+   bytes fetched, or in the adopted block read from the held publication,
+   without verifying them (§3.5);
 3. establishes the proof length of every record of the served trail (its
    first `n` records, `n` being the position whose evidence value is the
    snapshot's `evidenceHash_n`, pool-v3 §12.1) of a kind other than 5, before

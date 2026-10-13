@@ -29,9 +29,10 @@ accept, barring a false proof and collisions of SHA-256, Blake2b-256 and `H`
 An act other parties judge is judged by them completely: an operator's
 admission, imports, adoption, openings and commitments, a backer's
 acceptances, a replica's evidence. A party that decides such an act on a
-succinct judgment bears the risk that complete readers judge it otherwise;
-an operator or backer reads completely. A party that excludes a checkpoint,
-or shows another party a verdict, reads completely.
+succinct judgment bears the risk that complete readers judge it otherwise,
+so an operator or backer should read completely. A party that shows another
+party an exclusion or a verdict reads completely; a succinct reader's own
+exclusions (§3.4) serve only its own descent.
 
 The option is not a venue-evidence verifier under pool-v3 §13.2 or
 venue-ergo §7: §4's result is not an answer in their sense, though it is laid
@@ -68,7 +69,10 @@ relations do (§6); verification reads none beyond those pool-v3 §4 names.
    admits each child by its key hash, from a fixed list of hashes it holds as
    constants. Where a circuit admits proofs of itself, its own key hash cannot
    be a constant: it takes that hash as a public input and requires every
-   such child to carry the same value.
+   child to carry the same value. That input is free in the circuit, so
+   whoever admits a proof of such a circuit under its key, a parent holding
+   the key as a constant or the reader under the pinned key (rule 2),
+   requires the proof's key-hash input to equal that key's hash.
 2. **The reader's checks of a proof.** The reader verifies each check proof
    it uses with the pinned backend, under the pinned key of the circuit the
    rule names, and compares every public input with a value it derived
@@ -224,7 +228,7 @@ bytes; the complete records of the kinds with a proof are 14,950 to 15,562.
 
 A proof-free form **decodes** where its statement, authorization and capsules
 satisfy pool-v3 §5, and its `proofHash` is the zero sentinel exactly for kind
-5. §5's delivery association is checked as there. The proof's length is not
+5. Pool-v3 §5's delivery association is checked as there. The proof's length is not
 in the form: it is established for each proved record by a cover, which fixes
 14,656 bytes, or by the fetched bytes (§3.5), to which pool-v3 §5's length
 rule applies.
@@ -365,7 +369,10 @@ node, the first fold and the next fold. A first fold proves a period from the
 adopted start. A next fold proves a period and verifies the previous fold,
 under the first fold's key (a constant) or its own (`foldKeyHash`), ending
 where its period starts. Each fold verifies its period's tree under the
-exhaustion-leaf keys or the exhaustion node's key, all constants.
+exhaustion-leaf keys or the exhaustion node's key, all constants, and
+requires a root under the node's key to carry that key's hash as its own
+key-hash input (§2 rule 1): a tree under a made-up circuit otherwise verifies
+under the genuine node key.
 
 A fold proof's public inputs are, in order, `startHi, startLo, startHeight,
 endHi, endLo, endHeight, mapRoot, foldKeyHash`, the ids as limbs. It
@@ -501,8 +508,8 @@ they stay native.
 
 **Why a document of its own (C0a item 6).** Extensions are terms a backing
 declares in **E** and every reader of it must work out. This is neither: no
-backing declares it, and each reader chooses it for its own reads, as it
-chooses its verifier. It is optional per reader, not per deployment, so it
+backing declares it, and each reader chooses it for its own reads. It is
+optional per reader, not per deployment, so it
 belongs neither in the core's verdict rules nor among Extensions.
 
 **Costs (C0a item 5).**
@@ -565,8 +572,9 @@ No circuit set is adopted. An adoption names, under `moe/succinct/v1`:
   pool-v3 §4 does;
 - the exhaustion's start header: its id and height on the Ergo mainnet, at or
   below the anchors of the venues it serves;
-- the **set identity**: SHA-256 over a frame of all the above, which the
-  adoption fixes. A reader pins it, and kept state, classes and tuples record
+- the **set identity**: SHA-256 over a frame that begins with the literal
+  ASCII context `moe/succinct/v1/set` and holds all the above, its bytes given
+  by the adoption, so that no identity carries across a later name. A reader pins it, and kept state, classes and tuples record
   it (§2 rule 8, §4.4);
 - the agreement evidence, with adversarial review of every circuit and the
   argument that each one computes its check:

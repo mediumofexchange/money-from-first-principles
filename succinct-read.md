@@ -151,8 +151,9 @@ its kind. A succinct reader instead receives each record's proof-free form
 (§3.3), whose `proofHash` the evidence recurrence authenticates. It takes "the
 proof verifies" from a check proof over a span covering the record (§3.2), or
 checks the record natively (§3.5). Kind 5 has no proof. A committed kind-7
-record fails replay without its proof (pool-v3 §7, §10.1), so no proof of it
-is read. Venue publications are not replaced (§3.6).
+record fails replay (pool-v3 §7, §10.1) and its proof is never verified, but
+its proof field must still decode under pool-v3 §5, so its bytes are fetched
+for their length (§3.4). Venue publications are not replaced (§3.6).
 
 ### 3.2 Digests, spans and their proofs
 
@@ -229,9 +230,9 @@ bytes; the complete records of the kinds with a proof are 14,950 to 15,562.
 A proof-free form **decodes** where its statement, authorization and capsules
 satisfy pool-v3 §5, and its `proofHash` is the zero sentinel exactly for kind
 5. Pool-v3 §5's delivery association is checked as there. The proof's length is not
-in the form: it is established for each proved record by a cover, which fixes
-14,656 bytes, or by the fetched bytes (§3.5), to which pool-v3 §5's length
-rule applies.
+in the form: it is established for each record of a kind other than 5 by a
+cover, which fixes 14,656 bytes, or by the fetched bytes (§3.5), to which
+pool-v3 §5's length rule applies.
 
 **Authentication** is pool-v3 §10.1's, each record's evidence triple read
 from its proof-free form: `statementHash` from `statementBytes`, `proofHash`
@@ -258,12 +259,14 @@ For each served trail the complete read would replay, the reader:
 2. partitions the proved records into consecutive spans that exist and single
    records. Each span in the partition must be covered (§3.2); a span the
    reader finds no cover for, it splits, down to single records. Each record
-   outside every covered span is fetched (§3.5);
-3. establishes every proved record's proof length before replay: 14,656 for
-   a covered record, the fetched length for the others. A fetched proof that
-   pool-v3 §5 cannot decode leaves the trail inconclusive, as pool-v3 §10.1
-   leaves a complete trail with that record, and a withheld one leaves the
-   read unresolved;
+   outside every covered span, and each kind-7 record, has its proof fetched
+   (§3.5);
+3. establishes the proof length of every record of a kind other than 5
+   before replay, and before the evidence recurrence decides a non-extension:
+   14,656 for a covered record, the fetched length for the others. A fetched
+   proof that pool-v3 §5 cannot decode leaves the trail inconclusive, as
+   pool-v3 §10.1 leaves a complete trail with that record, and a withheld one
+   leaves the read unresolved;
 4. replays under pool-v3 §14, taking "the proof verifies under the
    configuration's key for its kind" from the cover for a covered record and
    from the native check for the others. Every other check of replay runs as
@@ -278,8 +281,10 @@ For each served trail the complete read would replay, the reader:
    forms are equal records, barring a SHA-256 collision, since equal
    `proofHash` values name equal proof bytes and lengths.
 
-A non-extension decided by the evidence recurrence (pool-v3 §7.1) and a lapse
-(C2.10.4) read no proof and are reached as in the complete read.
+A non-extension decided by the evidence recurrence (pool-v3 §7.1) verifies no
+proof and is reached after step 3, as the complete read reaches it only over a
+trail whose every record decodes. A lapse (C2.10.4) reads no trail. Both are
+reached as in the complete read.
 
 The canonical partition of a trail's `N` proved records is one span for each
 set bit of `N`, highest first. A reader that kept its state (pool-v3 §14)
@@ -296,7 +301,9 @@ after the last a cover reaches, usually those no prover has reached yet. Each
 costs its proof's bytes and one verification. A payee judging a receipt's
 checkpoint (pool-v3 §7.2) judges it once every proved record of that
 checkpoint's trail and of its imported closure is covered or checked
-natively.
+natively. A kind-7 record in a trail, which only an operator's fault commits,
+costs its proof's bytes and no verification, and so does each uncovered record
+of a trail that does not extend the reader's last valid checkpoint.
 
 The pinned backend proves a leaf over an inner proof that does not verify,
 and that leaf's proof then fails verification. A prover therefore verifies

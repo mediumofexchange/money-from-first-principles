@@ -41,7 +41,9 @@ out in pool-v3 §13.1's frame for the reader's own pool-v3 §13.3 derivation.
 No backing, term or operator declares this document, and **E** does not name
 it. It adds no byte, identity, record, signature or authority to any
 construction or venue. The name `moe/succinct/v1` fixes these rules; a change
-to a digest, frame or check is a later name. A reader relies on a circuit set
+to a digest, frame or check is a later name, except that before a set is
+adopted under it, a correction restoring this section's agreement with the
+complete read keeps the name. A reader relies on a circuit set
 only under an adoption (§6), and none is adopted yet; until one is, an
 implementation runs these rules only over test identities labelled as such.
 
@@ -151,8 +153,9 @@ its kind. A succinct reader instead receives each record's proof-free form
 (§3.3), whose `proofHash` the evidence recurrence authenticates. It takes "the
 proof verifies" from a check proof over a span covering the record (§3.2), or
 checks the record natively (§3.5). Kind 5 has no proof. A committed kind-7
-record fails replay without its proof (pool-v3 §7, §10.1), so no proof of it
-is read. Venue publications are not replaced (§3.6).
+record fails replay where it decodes (pool-v3 §7, §10.1) and its proof is
+never verified, but its proof field must still decode under pool-v3 §5, so
+its bytes are fetched for their length (§3.4). Venue publications are not replaced (§3.6).
 
 ### 3.2 Digests, spans and their proofs
 
@@ -229,9 +232,9 @@ bytes; the complete records of the kinds with a proof are 14,950 to 15,562.
 A proof-free form **decodes** where its statement, authorization and capsules
 satisfy pool-v3 §5, and its `proofHash` is the zero sentinel exactly for kind
 5. Pool-v3 §5's delivery association is checked as there. The proof's length is not
-in the form: it is established for each proved record by a cover, which fixes
-14,656 bytes, or by the fetched bytes (§3.5), to which pool-v3 §5's length
-rule applies.
+in the form: it is established for each record of a kind other than 5 by a
+cover, which fixes 14,656 bytes, or by the fetched bytes (§3.5), to which
+pool-v3 §5's length rule applies.
 
 **Authentication** is pool-v3 §10.1's, each record's evidence triple read
 from its proof-free form: `statementHash` from `statementBytes`, `proofHash`
@@ -241,11 +244,19 @@ authenticated snapshot's `evidenceHash_n`. That authenticates, in order,
 every statement, authorization and `proofHash`. Barring a SHA-256 collision,
 each `proofHash` names the committed proof's bytes, and the zero sentinel an
 empty proof. Capsules are bound by the delivery association for kinds 1–3 and
-by the fixed count zero for the others, as pool-v3 §10.1 binds them. A form
-that fails to decode or to authenticate is a supplier's failure: the reader
-obtains another, or the complete trail (pool-v3 §10), or the read stays
-unresolved. Pool-v3 §12.1's prefix rule and §14's incremental retrieval apply
-with this frame's head and events.
+by the fixed count zero for the others, as pool-v3 §10.1 binds them. A trail
+that fails to authenticate, or a form whose capsules fail pool-v3 §5 (count,
+profile or delivery association), is a supplier's failure: the reader obtains another, or
+the complete trail (pool-v3 §10), or the trail stays unresolved unless
+C2.10.11 or pool-v3 §9.1 classifies the checkpoint. Where an authenticated
+field of a form among the served trail's records does not decode (its
+statement, its authorization's length, or its `proofHash` against the
+sentinel rule), the operator committed bytes pool-v3 §5 cannot decode: the
+trail is inconclusive, as pool-v3 §10.1 leaves the complete trail, and those
+rules classify the checkpoint as they would. Pool-v3
+§12.1's prefix rule and §14's incremental retrieval apply with this frame's
+head and events; forms after the served trail's last record neither block nor
+affect it.
 
 Whoever holds a complete trail derives its proof-free trail; nothing in it is
 signed, and a replica may serve both.
@@ -257,16 +268,27 @@ For each served trail the complete read would replay, the reader:
 1. obtains and authenticates its proof-free trail (§3.3);
 2. partitions the proved records into consecutive spans that exist and single
    records. Each span in the partition must be covered (§3.2); a span the
-   reader finds no cover for, it splits, down to single records. Each record
-   outside every covered span is fetched (§3.5);
-3. establishes every proved record's proof length before replay: 14,656 for
-   a covered record, the fetched length for the others. A fetched proof that
-   pool-v3 §5 cannot decode leaves the trail inconclusive, as pool-v3 §10.1
-   leaves a complete trail with that record, and a withheld one leaves the
-   read unresolved;
+   reader finds no cover for, it splits, down to single records. Each proved
+   record outside every covered span, and each kind-7 record, has its proof's
+   bytes fetched, or in the adopted block read from the held publication,
+   without verifying them (§3.5);
+3. establishes the proof length of every record of the served trail (its
+   first `n` records, `n` being the position whose evidence value is the
+   snapshot's `evidenceHash_n`, pool-v3 §12.1) of a kind other than 5, before
+   replay and before the evidence recurrence decides a non-extension: 14,656
+   for a covered record, the fetched length for the others. A fetched proof,
+   whose bytes hash to its `proofHash`, that pool-v3 §5 cannot decode leaves
+   the trail inconclusive, as pool-v3 §10.1 leaves a complete trail with that
+   record. A withheld one leaves the trail unresolved unless C2.10.11 or
+   pool-v3 §9.1 classifies the checkpoint, as in a complete read without the
+   bytes. A reader may stop a supplier's answer past pool-v3 §5's bound of
+   131,072 bytes before hashing it: that supply is withheld (§2 rule 3), and
+   another may serve the field;
 4. replays under pool-v3 §14, taking "the proof verifies under the
    configuration's key for its kind" from the cover for a covered record and
-   from the native check for the others. Every other check of replay runs as
+   from the native check for the others, each only where and when replay
+   verifies that proof: never in the adopted block, for a kind-7 record or for
+   a non-extension. Every other check of replay runs as
    the complete read runs it: decoding, delivery association, Ed25519
    authorizations, note and scope paths, the spent set, totals, demands,
    locks, deadlines, clocks, lapse, imports, adoption, recovery, succession
@@ -278,8 +300,10 @@ For each served trail the complete read would replay, the reader:
    forms are equal records, barring a SHA-256 collision, since equal
    `proofHash` values name equal proof bytes and lengths.
 
-A non-extension decided by the evidence recurrence (pool-v3 §7.1) and a lapse
-(C2.10.4) read no proof and are reached as in the complete read.
+A non-extension decided by the evidence recurrence (pool-v3 §7.1) verifies no
+proof and is reached after step 3, as the complete read reaches it only over a
+trail whose every record decodes. A lapse (C2.10.4) reads none of the
+checkpoint's records. Both are reached as in the complete read.
 
 The canonical partition of a trail's `N` proved records is one span for each
 set bit of `N`, highest first. A reader that kept its state (pool-v3 §14)
@@ -290,13 +314,22 @@ after its kept ones, in at most about `2·log2` of their count spans.
 
 The native check of a proved record fetches, from any supplier, the bytes
 whose SHA-256 is its `proofHash`, which authenticate themselves, applies
-pool-v3 §5's length rule to them and verifies them under pool-v3 §11.4's key
-for the record's kind, as the complete read does. The **tail** is the records
-after the last a cover reaches, usually those no prover has reached yet. Each
-costs its proof's bytes and one verification. A payee judging a receipt's
-checkpoint (pool-v3 §7.2) judges it once every proved record of that
-checkpoint's trail and of its imported closure is covered or checked
-natively.
+pool-v3 §5's length rule to them (§3.4 step 3) and, when replay reaches the
+record's proof check, verifies them under pool-v3 §11.4's key for the
+record's kind, as the complete read does. A record in the adopted block whose
+`proofHash` is the adopted publication's takes its length from the
+publication the reader holds (§3.6); otherwise its bytes are fetched as for
+any record. The **tail** is the
+records after the last a cover reaches, usually those no prover has reached
+yet. Each costs its proof's bytes and one verification. A payee judging a
+receipt's checkpoint (pool-v3 §7.2) judges it once every proved record of
+that checkpoint's trail and of its imported closure is covered or checked
+natively, and every other record's proof length is established (§3.4). A
+kind-7 record in a trail, which only an operator's fault commits, costs its
+proof's bytes and no verification, and so does each uncovered record of a
+trail that does not extend its segment's last valid checkpoint in the
+checkpoint's own record prefix (pool-v3 §7.1), unless the checkpoint is
+lapsed.
 
 The pinned backend proves a leaf over an inner proof that does not verify,
 and that leaf's proof then fails verification. A prover therefore verifies
@@ -485,7 +518,8 @@ replaces a range's section bytes, about 6 MB a day of the Ergo mainnet, by a
 fold proof, a path of about 1 KB, the subject's entries and their
 transactions. A succinct reader still accepts every header from its venue's
 anchor, replays every proof-free record, and checks venue publications,
-signatures, failures and the tail natively. Measurements are in the
+signatures, failures, the tail and a kind-7 record's proof length natively.
+Measurements are in the
 reference's
 [aggregation](https://github.com/mediumofexchange/reference-ts/blob/main/docs/POOL_DEPLOYMENT_PROBES.md#the-trails-proof-aggregation-slice-33)
 and [exhaustion](https://github.com/mediumofexchange/reference-ts/blob/main/docs/VENUE_ALTERNATIVES.md#the-complete-exhaustion-leaf-slice-32)

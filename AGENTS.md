@@ -119,8 +119,9 @@ record larger opportunities in the companion handoff without derailing the slice
 Before stopping or compaction, update that handoff with goal/status, branches and
 relevant commits, exact evidence, next action, blockers/review owed and decision links.
 
-The coarse effort estimate lives only in the companion WORK.md, made by the
-method in the reference's production requirements; report it only when it
+The coarse effort estimate, one number for the complete project with no range,
+lives only in the companion WORK.md, made by the method in the reference's
+production requirements; report it only when it
 materially changes or is requested. Specification cleanup is not product progress.
 
 Final reports state delivered behavior, evidence/review, integration and limits.

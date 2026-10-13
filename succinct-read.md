@@ -574,8 +574,8 @@ No circuit set is adopted. An adoption names, under `moe/succinct/v1`:
   below the anchors of the venues it serves;
 - the **set identity**: SHA-256 over a frame that begins with the literal
   ASCII context `moe/succinct/v1/set` and holds all the above, its bytes given
-  by the adoption, so that no identity carries across a later name. A reader pins it, and kept state, classes and tuples record
-  it (§2 rule 8, §4.4);
+  by the adoption, so that no identity carries across a later name. A reader
+  pins it, and kept state, classes and tuples record it (§2 rule 8, §4.4);
 - the agreement evidence, with adversarial review of every circuit and the
   argument that each one computes its check:
   - each trail leaf's verdict equal to pool-v3 §11.4's verifier on genuine

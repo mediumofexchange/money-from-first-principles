@@ -310,6 +310,19 @@ set bit of `N`, highest first. A reader that kept its state (pool-v3 §14)
 and reads a later checkpoint extending it partitions only the proved records
 after its kept ones, in at most about `2·log2` of their count spans.
 
+A cover attests each record of its span by that record's leaf digest (§3.2),
+so it also serves a trail the span does not fit. A reader may take step 2's
+cover for a record from a span of another trail of the same segment that it
+holds, where the proved record with the same number there has the same leaf
+digest. The cover is still checked under §2 rule 2, against a digest the
+reader computed from bytes it holds. A reader that replays a segment
+checkpoint by checkpoint can therefore partition once: it partitions the
+longest trail of the segment it holds, after its kept records, and reads
+each checkpoint's records from that partition. That is about `2·log2 N` asks
+for `N` new proved records, rather than about `C·log2(N/C)` for `C`
+checkpoints partitioned one by one. A record whose leaf digest differs, such
+as one on another fork, is partitioned with its own trail.
+
 ### 3.5 Native checks and the tail
 
 The native check of a proved record fetches, from any supplier, the bytes

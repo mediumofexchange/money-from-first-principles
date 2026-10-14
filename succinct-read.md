@@ -204,10 +204,10 @@ numbers, such as the prefix a later checkpoint of the segment extends.
 
 A cover attests each record of its span by that record's leaf digest. So a
 cover of a span of another served trail of the same segment, one the reader
-authenticated against a checkpoint's snapshot (§3.3), also **covers a
-record** of the trail being read where that trail's proved record with the
-same number has the same leaf digest, whether or not the span exists in the
-trail being read (§3.4).
+authenticated against a checkpoint's snapshot (§3.3), also **covers** the
+proved record `r_i` of the trail being read where the span holds that other
+trail's `r_i` and its leaf digest is `r_i`'s, whether or not the span exists
+in the trail being read (§3.4).
 
 A proof that the backend cannot read as 458 field elements, such as one with a
 word of `p` or more, enters no leaf; the native check (§3.5) reads it as the
@@ -277,7 +277,7 @@ For each served trail the complete read would replay, the reader:
    records. A record its segment's partition covers (below) needs no span of
    its own. Each span in the partition must be covered (§3.2); a span the
    reader finds no cover for, it splits, down to single records. Each proved
-   record outside every covered span, and each kind-7 record, has its proof's
+   record that no cover covers (§3.2), and each kind-7 record, has its proof's
    bytes fetched, or in the adopted block read from the held publication,
    without verifying them (§3.5);
 3. establishes the proof length of every record of the served trail (its
@@ -320,15 +320,18 @@ after its kept ones, in at most about `2·log2` of their count spans.
 
 **A segment's partition.** A reader that replays a segment checkpoint by
 checkpoint may partition one trail of the segment once, as step 2 partitions
-a trail, after its kept records: the served trail of the latest checkpoint of
-the segment that the read judges, authenticated against that checkpoint's
-snapshot, which its operator signed. A longer trail that no checkpoint
-commits, which any supplier could lengthen with records of its own, is never
-partitioned. Each checkpoint's trail then takes that partition's covers for
-its records (§3.2) and partitions its other records under step 2 itself. A
-record the reader already asked about alone, and found no cover for, needs no
-second ask. Only covers pass between trails: each served trail's fetches,
-kind-7 lengths and refusals stay its own (steps 3–5).
+a trail, after its kept records. That trail is the served trail of the latest
+checkpoint of the segment the reader holds within the term of the operator
+whose checkpoints it is judging (C2.5), authenticated against that
+checkpoint's snapshot, which the operator signed. A longer trail that no
+checkpoint commits, which any supplier could lengthen with records of its
+own, is never partitioned, nor one a key signed past its term. Each
+checkpoint's trail then takes that partition's covers for its records (§3.2)
+and partitions its other records under step 2 itself. A record the reader
+already asked about alone, and found no cover for, needs no second ask, nor
+does any span holding it. Only covers and those answers pass between trails:
+each served trail's fetches, kind-7 lengths and refusals stay its own
+(steps 3–5).
 
 A fresh read of `N` proved records over `C` checkpoints then asks about
 `2·log2 N` covers for what the provers reached, rather than about
@@ -586,7 +589,8 @@ belongs neither in the core's verdict rules nor among Extensions.
   every such reader across backings, and acts others judge (§1).
 - Round trips: each cover ask and each fetch is one, which over an onion
   service is about a second. A segment's partition (§3.4) keeps a fresh
-  read's cover asks near `2·log2 N`.
+  read's cover asks for what the provers reached near `2·log2 N`; the tail
+  costs its proofs and its spans' asks.
 - Retention: a succinct reader keeps no proof bytes, so complete closures'
   availability (C2.10.13, C2.7.2) rests on the complete readers and replicas
   that keep them.

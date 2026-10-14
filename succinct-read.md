@@ -41,12 +41,13 @@ out in pool-v3 §13.1's frame for the reader's own pool-v3 §13.3 derivation.
 No backing, term or operator declares this document, and **E** does not name
 it. It adds no byte, identity, record, signature or authority to any
 construction or venue. The name `moe/succinct/v1` fixes these rules; a change
-to a digest a reader computes, a frame or a reader's check is a later name,
-except that before a set is adopted under it, a correction restoring this
-document's agreement with the complete read, or a rule over the circuits'
-internal digests, which the set identity binds, keeps the name. A reader relies on a circuit set
-only under an adoption (§6), and none is adopted yet; until one is, an
-implementation runs these rules only over test identities labelled as such.
+to a digest, frame or check is a later name, except that before a set is
+adopted under it, a correction restoring this document's agreement with the
+complete read, or a rule over the circuits' internal digests, which no
+reader computes and the set identity binds, keeps the name. A reader relies
+on a circuit set only under an adoption (§6), and none is adopted yet; until
+one is, an implementation runs these rules only over test identities
+labelled as such.
 
 Integers are unsigned big-endian, `||` is byte concatenation, `F` is a
 canonical field element of [pool-v2 §1](pool-v2.md#1-fields-hashes-and-encodings),
@@ -458,7 +459,7 @@ increasing order of height, position and output, each joining the entry
 stream, and checks the list against them as a multiset under two challenges,
 each an `H` under `T_EX_CHALLENGE` over the leaf's two state hashes with a
 distinct last input. Its end state carries the entry stream, the id chain,
-the open transaction's Blake2b state and the scan's registers, so the
+the open transaction's Blake2b state and the scan's registers and labels, so the
 challenges follow both multisets.
 
 A fold proof's public inputs are, in order, `startHi, startLo, startHeight,

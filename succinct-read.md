@@ -319,19 +319,23 @@ and reads a later checkpoint extending it partitions only the proved records
 after its kept ones, in at most about `2·log2` of their count spans.
 
 **A segment's partition.** A reader that replays a segment checkpoint by
-checkpoint may partition one trail of the segment once, as step 2 partitions
-a trail, after its kept records. That trail is the served trail of the latest
-checkpoint of the segment the reader holds within the term of the operator
-whose checkpoints it is judging (C2.5), authenticated against that
-checkpoint's snapshot, which the operator signed. A longer trail that no
-checkpoint commits, which any supplier could lengthen with records of its
-own, is never partitioned, nor one a key signed past its term. Each
-checkpoint's trail then takes that partition's covers for its records (§3.2)
-and partitions its other records under step 2 itself. A record the reader
-already asked about alone, and found no cover for, needs no second ask, nor
-does any span holding it. Only covers and those answers pass between trails:
-each served trail's fetches, kind-7 lengths and refusals stay its own
-(steps 3–5).
+checkpoint may, within one read, partition one trail of the segment once, as
+step 2 partitions a trail, after the records it kept (pool-v3 §14). That trail
+is the served trail of a commitment of the operator whose checkpoints the read
+is judging. It is the commitment of highest sequence that is held (C2.3.3)
+within that operator's term in the backing being judged (C2.5), carries that
+backing and names the segment, among those whose directory, snapshot and
+served trail the reader holds. The trail is authenticated against that
+snapshot, which the operator signed. A longer trail that no checkpoint
+commits, which any supplier could lengthen with records of its own, is never
+partitioned, nor one a key signed past its term. Each checkpoint's trail then
+takes that partition's covers for its records (§3.2) and partitions its other
+records under step 2 itself. Within the read, a record the reader already
+asked about alone and found no cover for needs no second ask, nor does any
+span holding it; and a reader may ask about fewer spans than step 2 names (§2
+rule 3), since a missing cover only leaves a record to its native check. Only
+covers and the answers to asks pass between trails: each served trail's
+fetches, kind-7 lengths and refusals stay its own (steps 3–5).
 
 A fresh read of `N` proved records over `C` checkpoints then asks about
 `2·log2 N` covers for what the provers reached, rather than about

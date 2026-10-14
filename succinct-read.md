@@ -42,10 +42,12 @@ No backing, term or operator declares this document, and **E** does not name
 it. It adds no byte, identity, record, signature or authority to any
 construction or venue. The name `moe/succinct/v1` fixes these rules; a change
 to a digest, frame or check is a later name, except that before a set is
-adopted under it, a correction restoring this section's agreement with the
-complete read keeps the name. A reader relies on a circuit set
-only under an adoption (§6), and none is adopted yet; until one is, an
-implementation runs these rules only over test identities labelled as such.
+adopted under it, a correction restoring this document's agreement with the
+complete read, or a rule over the circuits' internal digests, which no
+reader computes and the set identity binds, keeps the name. A reader relies
+on a circuit set only under an adoption (§6), and none is adopted yet; until
+one is, an implementation runs these rules only over test identities
+labelled as such.
 
 Integers are unsigned big-endian, `||` is byte concatenation, `F` is a
 canonical field element of [pool-v2 §1](pool-v2.md#1-fields-hashes-and-encodings),
@@ -130,16 +132,22 @@ backings those readers hold. It changes no complete reader's verdict, though
 an act decided on it can reach other parties (§1). Adoption therefore needs
 the agreement evidence and review §6 names.
 
-**Digests.** Five domain tags continue pool-v2 §1's numbering after pool-v3
-§2's `T_TAG`. They are used only in this document's circuits and digests:
+**Digests.** Eight domain tags continue pool-v2 §1's numbering after pool-v3
+§2's `T_TAG`. They are used only in this document's circuits and digests.
+The last three are internal to the exhaustion circuits (§4.3): their inputs
+after the tag are fixed by the set's sources (§6), and no reader computes
+them.
 
 | Tag | Value | Used for |
 |---|---|---|
 | `T_CHECK_LEAF` | `1008` | a statement proof's digest (§3.2) |
 | `T_CHECK_NODE` | `1009` | two spans' digest (§3.2) |
-| `T_ENTRY` | `1010` | a key's entry chain (§4.2) |
+| `T_ENTRY` | `1010` | a key's entry chain (§4.2); a period's entry stream (§4.3) |
 | `T_MAP_LEAF` | `1011` | a subject-map leaf (§4.2) |
 | `T_MAP_NODE` | `1012` | a subject-map node (§4.2) |
+| `T_EX_ID` | `1013` | a period's chain of transaction ids with their heights and positions (§4.3) |
+| `T_EX_STATE` | `1014` | an exhaustion proof's state at either end (§4.3) |
+| `T_EX_CHALLENGE` | `1015` | a transaction leaf's two challenges (§4.3) |
 
 ## 3. The trail's statement proofs
 
@@ -439,6 +447,21 @@ requires a root under the node's key to carry that key's hash as its own
 key-hash input (§2 rule 1): a tree under a made-up circuit otherwise verifies
 under the genuine node key.
 
+Inside a period the proofs join by their state at either end, hashed under
+`T_EX_STATE`: a node requires its left child's end to be its right child's
+start. The transaction leaves and the tree-and-header leaves each chain the
+period's transaction ids with their heights and positions under `T_EX_ID`;
+the transaction leaves pass the entries they scan to the map-update leaves as
+one chain of all keys' entries in §4.2's `T_ENTRY` form; and a fold requires
+each pair of chains to start at zero at the period's start and to be equal at
+its end. A transaction leaf lists the entries its scan emits, in strictly
+increasing order of height, position and output, each joining the entry
+stream, and checks the list against them as a multiset under two challenges,
+each an `H` under `T_EX_CHALLENGE` over the leaf's two state hashes with a
+distinct last input. Its end state carries the entry stream, the id chain,
+the open transaction's Blake2b state and the scan's registers and labels, so the
+challenges follow both multisets.
+
 A fold proof's public inputs are, in order, `startHi, startLo, startHeight,
 endHi, endLo, endHeight, mapRoot, foldKeyHash`, the ids as limbs. It
 establishes three things. The blocks from the child of the start header
@@ -558,7 +581,7 @@ and [exhaustion](https://github.com/mediumofexchange/reference-ts/blob/main/docs
 probes.
 
 **One mechanism (C0a items 1 and 2).** One contract (§2) with two instances,
-one hash (pool-v2 §1's `H`, five tags), one proof system (pool-v3 §4's) and
+one hash (pool-v2 §1's `H`, eight tags), one proof system (pool-v3 §4's) and
 one frame. Nothing existing is generalised or fenced: the complete read's
 rules stay where they are, and each instance replaces one input of them, a
 proof's verification and a range's bytes, with a proof that the same check
@@ -585,10 +608,11 @@ belongs neither in the core's verdict rules nor among Extensions.
 - Provers, which any party runs. One 4-vCPU machine kept up with the design
   point's mean trail 1.6 times, and with an ordinary Ergo day 3.4 times, in
   those probes. The departures from the probes are unmeasured: the sponge
-  `H` over seven inputs costs three permutations an entry where the probe's
-  chain cost one, big-endian limbs of Blake2b's little-endian words add
-  range checks, and a leaf's digest drops from about ten permutations to
-  seven. Step 4 of the reference's plan measures them.
+  `H` over seven inputs costs three permutations for each chain an entry
+  joins (the stream in two leaves and its key's chain) where the probe's
+  chain cost one, the id chain two a transaction in two leaves where it cost
+  one, big-endian limbs of Blake2b's little-endian words add range checks,
+  and a leaf's digest drops from about ten permutations to seven. Step 4 of the reference's plan measures them.
 - The trust in §2, held alike by every reader of one set: a defect reaches
   every such reader across backings, and acts others judge (§1).
 - Round trips: each cover ask and each fetch is one, which over an onion
@@ -655,8 +679,9 @@ No circuit set is adopted. An adoption names, under `moe/succinct/v1`:
     mainnet days and a hostile set, with the scan's reading of the grammar
     argued from its source;
   - the transaction-tree and header checks, for every header version (parent
-    id, transactions root, height), the map updates, and the joins of nodes
-    and folds, each against hostile witnesses.
+    id, transactions root, height), the map updates, a transaction leaf's
+    multiset check, and the joins of nodes and folds, each against hostile
+    witnesses.
 
 As in pool-v3 §11.4, the identities are named after every rule they
 implement. A defect needs a new adoption, with a new set identity, which each

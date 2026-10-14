@@ -130,8 +130,11 @@ backings those readers hold. It changes no complete reader's verdict, though
 an act decided on it can reach other parties (§1). Adoption therefore needs
 the agreement evidence and review §6 names.
 
-**Digests.** Five domain tags continue pool-v2 §1's numbering after pool-v3
-§2's `T_TAG`. They are used only in this document's circuits and digests:
+**Digests.** Eight domain tags continue pool-v2 §1's numbering after pool-v3
+§2's `T_TAG`. They are used only in this document's circuits and digests.
+The last three join the exhaustion circuits' proofs to one another (§4.3):
+their inputs are the set's own, fixed by its sources (§6), and no reader
+computes them.
 
 | Tag | Value | Used for |
 |---|---|---|
@@ -140,6 +143,9 @@ the agreement evidence and review §6 names.
 | `T_ENTRY` | `1010` | a key's entry chain (§4.2) |
 | `T_MAP_LEAF` | `1011` | a subject-map leaf (§4.2) |
 | `T_MAP_NODE` | `1012` | a subject-map node (§4.2) |
+| `T_EX_ID` | `1013` | a period's chain of transaction ids with their heights and positions (§4.3) |
+| `T_EX_STATE` | `1014` | an exhaustion proof's state at either end (§4.3) |
+| `T_EX_CHALLENGE` | `1015` | a transaction leaf's two challenges (§4.3) |
 
 ## 3. The trail's statement proofs
 
@@ -439,6 +445,16 @@ requires a root under the node's key to carry that key's hash as its own
 key-hash input (§2 rule 1): a tree under a made-up circuit otherwise verifies
 under the genuine node key.
 
+Inside a period the proofs join by their state at either end, hashed under
+`T_EX_STATE`: a node requires its left child's end to be its right child's
+start. The transaction leaves and the tree-and-header leaves each chain the
+period's transaction ids with their heights and positions under `T_EX_ID`;
+the transaction leaves pass the entries they scan to the map-update leaves as
+one chain of all keys' entries in §4.2's `T_ENTRY` form; and a fold requires
+both pairs of chains equal at its end. A transaction leaf lists the entries
+its scan emits and checks the list against them as a multiset, under two
+challenges hashed under `T_EX_CHALLENGE` from the leaf's two state hashes.
+
 A fold proof's public inputs are, in order, `startHi, startLo, startHeight,
 endHi, endLo, endHeight, mapRoot, foldKeyHash`, the ids as limbs. It
 establishes three things. The blocks from the child of the start header
@@ -558,7 +574,7 @@ and [exhaustion](https://github.com/mediumofexchange/reference-ts/blob/main/docs
 probes.
 
 **One mechanism (C0a items 1 and 2).** One contract (§2) with two instances,
-one hash (pool-v2 §1's `H`, five tags), one proof system (pool-v3 §4's) and
+one hash (pool-v2 §1's `H`, eight tags), one proof system (pool-v3 §4's) and
 one frame. Nothing existing is generalised or fenced: the complete read's
 rules stay where they are, and each instance replaces one input of them, a
 proof's verification and a range's bytes, with a proof that the same check

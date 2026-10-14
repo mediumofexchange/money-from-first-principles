@@ -202,6 +202,13 @@ meet. A supplier answers a request for a digest with a proof whose digest it
 is: one proof serves every trail holding those records at those proved-record
 numbers, such as the prefix a later checkpoint of the segment extends.
 
+A cover attests each record of its span by that record's leaf digest. So a
+cover of a span of another served trail of the same segment, one the reader
+authenticated against a checkpoint's snapshot (§3.3), also **covers a
+record** of the trail being read where that trail's proved record with the
+same number has the same leaf digest, whether or not the span exists in the
+trail being read (§3.4).
+
 A proof that the backend cannot read as 458 field elements, such as one with a
 word of `p` or more, enters no leaf; the native check (§3.5) reads it as the
 complete read does.
@@ -267,7 +274,8 @@ For each served trail the complete read would replay, the reader:
 
 1. obtains and authenticates its proof-free trail (§3.3);
 2. partitions the proved records into consecutive spans that exist and single
-   records. Each span in the partition must be covered (§3.2); a span the
+   records. A record its segment's partition covers (below) needs no span of
+   its own. Each span in the partition must be covered (§3.2); a span the
    reader finds no cover for, it splits, down to single records. Each proved
    record outside every covered span, and each kind-7 record, has its proof's
    bytes fetched, or in the adopted block read from the held publication,
@@ -310,18 +318,22 @@ set bit of `N`, highest first. A reader that kept its state (pool-v3 §14)
 and reads a later checkpoint extending it partitions only the proved records
 after its kept ones, in at most about `2·log2` of their count spans.
 
-A cover attests each record of its span by that record's leaf digest (§3.2),
-so it also serves a trail the span does not fit. A reader may take step 2's
-cover for a record from a span of another trail of the same segment that it
-holds, where the proved record with the same number there has the same leaf
-digest. The cover is still checked under §2 rule 2, against a digest the
-reader computed from bytes it holds. A reader that replays a segment
-checkpoint by checkpoint can therefore partition once: it partitions the
-longest trail of the segment it holds, after its kept records, and reads
-each checkpoint's records from that partition. That is about `2·log2 N` asks
-for `N` new proved records, rather than about `C·log2(N/C)` for `C`
-checkpoints partitioned one by one. A record whose leaf digest differs, such
-as one on another fork, is partitioned with its own trail.
+**A segment's partition.** A reader that replays a segment checkpoint by
+checkpoint may partition one trail of the segment once, as step 2 partitions
+a trail, after its kept records: the served trail of the latest checkpoint of
+the segment that the read judges, authenticated against that checkpoint's
+snapshot, which its operator signed. A longer trail that no checkpoint
+commits, which any supplier could lengthen with records of its own, is never
+partitioned. Each checkpoint's trail then takes that partition's covers for
+its records (§3.2) and partitions its other records under step 2 itself. A
+record the reader already asked about alone, and found no cover for, needs no
+second ask. Only covers pass between trails: each served trail's fetches,
+kind-7 lengths and refusals stay its own (steps 3–5).
+
+A fresh read of `N` proved records over `C` checkpoints then asks about
+`2·log2 N` covers for what the provers reached, rather than about
+`C·log2(N/C)` for checkpoints partitioned one by one. The tail costs its
+proofs (§3.5) and, under step 2, the asks for its records' spans.
 
 ### 3.5 Native checks and the tail
 
@@ -572,6 +584,9 @@ belongs neither in the core's verdict rules nor among Extensions.
   seven. Step 4 of the reference's plan measures them.
 - The trust in §2, held alike by every reader of one set: a defect reaches
   every such reader across backings, and acts others judge (§1).
+- Round trips: each cover ask and each fetch is one, which over an onion
+  service is about a second. A segment's partition (§3.4) keeps a fresh
+  read's cover asks near `2·log2 N`.
 - Retention: a succinct reader keeps no proof bytes, so complete closures'
   availability (C2.10.13, C2.7.2) rests on the complete readers and replicas
   that keep them.

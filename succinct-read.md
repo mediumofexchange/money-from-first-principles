@@ -94,8 +94,10 @@ relations do (§6); verification reads none beyond those pool-v3 §4 names.
    point at infinity: the pinned backend's verifier then adopts the proof's own
    opening in place of the object and checks no pairing an inner proof
    deferred, and a prover reaches that by choosing an inner proof's last
-   opening commitment. A circuit that verifies no proof publishes both points
-   at infinity; an honest proof of one that does publishes neither.
+   opening commitment. An object with both points at infinity satisfies the
+   pairing alone, so adopting the opening then drops nothing: a circuit that
+   verifies no proof publishes it, and an honest proof of one that does
+   publishes neither point at infinity, barring negligible chance.
 3. **A passing check only.** A check proof establishes that its check passed,
    and nothing else. A missing, unverifying, malformed or mismatched check
    proof establishes nothing: no failure, absence, exclusion, fault or lapse.
@@ -681,9 +683,10 @@ No circuit set is adopted. An adoption names, under `moe/succinct/v1`:
 - the agreement evidence, with adversarial review of every circuit and the
   argument that each one computes its check:
   - each trail leaf's verdict equal to pool-v3 §11.4's verifier on genuine
-    and hostile proofs, the in-circuit verifier's limb-range and on-curve
-    constraints read from the pinned backend's source, and that backend's
-    native verification of the pairing an inner proof defers (§2 rule 2);
+    and hostile proofs, and the in-circuit verifier's limb-range and on-curve
+    constraints read from the pinned backend's source;
+  - for every circuit that verifies a proof, the pinned backend's native
+    verification of the pairing it defers, with §2 rule 2's refusal;
   - the exhaustion's entries equal to venue-ergo §§5–6 over a named corpus of
     mainnet days and a hostile set, with the scan's reading of the grammar
     argued from its source;

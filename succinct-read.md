@@ -480,8 +480,8 @@ block's transactions are exactly those whose ids, with witness ids where the
 root uses them, reproduce its header's transactions root under one of
 venue-ergo §4's rules, in that order. `mapRoot` is the map at the end header
 (§4.2). The circuits fix a tree's leaves by its root, whatever its shape; that
-the tree is one of §4's rules rests on venue-ergo §3's premise that the
-chain's blocks are valid in full.
+the tree is one of venue-ergo §4's rules rests on venue-ergo §3's premise
+that the chain's blocks are valid in full.
 
 The reader uses a fold proof where, under §2 rule 2:
 1. it verifies under the pinned first-fold or next-fold key;

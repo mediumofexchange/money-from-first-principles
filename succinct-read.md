@@ -570,8 +570,9 @@ Check proofs, fold proofs with their public inputs, paths, entries and
 transactions with inclusion paths travel in any framing a supplier and a
 reader agree. Their bytes carry no protocol meaning: every value is
 recomputed or compared by the rules above, and a malformed object is a
-supplier's failure (§2 rule 5). The proof-free trail (§3.3) is the one frame
-this document fixes, because its bytes are authenticated as such.
+supplier's failure (§2 rule 5). The proof-free trail (§3.3) is the one
+transport frame this document fixes, because its bytes are authenticated as
+such.
 
 ## 5. C0a cost and replacement
 
@@ -592,7 +593,8 @@ probes.
 
 **One mechanism (C0a items 1 and 2).** One contract (§2) with two instances,
 one hash (pool-v2 §1's `H`, eight tags), one proof system (pool-v3 §4's) and
-one frame. Nothing existing is generalised or fenced: the complete read's
+one transport frame; the set identity's frame (§6) names a set and travels
+nowhere. Nothing existing is generalised or fenced: the complete read's
 rules stay where they are, and each instance replaces one input of them, a
 proof's verification and a range's bytes, with a proof that the same check
 passed. No rule here closes a gap another rule here leaves.
@@ -674,12 +676,54 @@ No circuit set is adopted. An adoption names, under `moe/succinct/v1`:
   verifier target. Proving reads Ignition's leading G1 points up to the
   largest circuit, 2^22 in the probes, under hashes the adoption names as
   pool-v3 §4 does;
-- the exhaustion's start header: its id and height on the Ergo mainnet, at or
-  below the anchors of the venues it serves;
+- the exhaustion's start header: its id and height on the Ergo mainnet, the
+  anchor of each venue it serves or an ancestor of it, final when adopted,
+  buried at least as deep as the greatest depth among those venues. A start
+  the chain later orphans is the adoption's failure: no fold under it ends on
+  a reader's chain (§4.3 rule 4), so its readers read ranges natively
+  (§4.6); check proofs of trails (§3) are unaffected;
 - the **set identity**: SHA-256 over a frame that begins with the literal
-  ASCII context `moe/succinct/v1/set` and holds all the above, its bytes given
-  by the adoption, so that no identity carries across a later name. A reader
-  pins it, and kept state, classes and tuples record it (§2 rule 8, §4.4);
+  ASCII context `moe/succinct/v1/set` and holds all the above, so that no
+  identity carries across a later name. A reader pins it, and kept state,
+  classes and tuples record it (§2 rule 8, §4.4). Its bytes are:
+
+  ```text
+  setBytes = "moe/succinct/v1/set"
+    || circuit(trail-issue) || circuit(trail-spend) || circuit(trail-burn)
+    || circuit(trail-demand) || circuit(trail-settle) || circuit(trail-node)
+    || circuit(exhaustion-tx) || circuit(exhaustion-tree)
+    || circuit(exhaustion-map) || circuit(exhaustion-node)
+    || circuit(fold-first) || circuit(fold-next)
+    || text(compiler) || text(backend) || text(verifier target)
+    || u32 points || g1[32] || g2[32]
+    || startId[32] || u32 startHeight
+  circuit(c) = text(c) || u32 n || n × (text(source) || sourceHash[32])
+    || bytecode[32] || vk[32] || keyHash
+  text(s)    = u32 length(s) || s
+  setIdentity = SHA256(setBytes)
+  ```
+
+  The circuits are, in order, the trail leaves of kinds 1, 2, 3, 4 and 6, the
+  trail node (§3.2), the exhaustion leaves for transactions, transaction
+  trees and headers, and map updates, the exhaustion node, the first fold and
+  the next fold (§4.3), each under the ASCII name shown. Each circuit is a
+  Noir binary package with no dependencies but the compiler's standard
+  library. Its sources are the files of its `src` directory it is compiled
+  from, each named by its path below that directory with `/` separators
+  (such as `main.nr`), in strictly ascending byte order of names, with each
+  file's SHA-256; `n` is their count. The package's manifest is not a
+  source. `bytecode` and `vk` have pool-v2 §2's meanings: the SHA-256 of
+  the bytes the compiled artifact's `bytecode` field base64-decodes to, as
+  the compiler emits them, and of the key bytes the pinned backend derives.
+  `keyHash` is the key's hash as the backend derives it, an `F`. The
+  compiler, backend and verifier target are ASCII text as the adoption names
+  them; as in pool-v3 §4 (Reproduction), any compiler reproducing every
+  bytecode identity from the sources qualifies, and the text names the one
+  used. `points` is the count of Ignition's leading G1 points proving reads,
+  `g1` the SHA-256 of their layout the adoption names and `g2` pool-v3 §4's
+  hash of `[x]_2`. `startHeight` is the start header's height. A test
+  identity (§1) takes this frame under a context of its own, so it never
+  equals an adopted one;
 - the agreement evidence, with adversarial review of every circuit and the
   argument that each one computes its check:
   - each trail leaf's verdict equal to pool-v3 §11.4's verifier on genuine

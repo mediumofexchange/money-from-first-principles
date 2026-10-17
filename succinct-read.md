@@ -708,8 +708,8 @@ No circuit set is adopted. An adoption names, under `moe/succinct/v1`:
   trees and headers, and map updates, the exhaustion node, the first fold and
   the next fold (§4.3), each under the ASCII name shown. Each circuit is a
   Noir binary package with no dependencies but the compiler's standard
-  library. Its sources are the files of its `src` directory it is compiled
-  from, each named by its path below that directory with `/` separators
+  library. Its sources are the files of its `src` directory the compiler
+  reads, each named by its path below that directory with `/` separators
   (such as `main.nr`), in strictly ascending byte order of names, with each
   file's SHA-256; `n` is their count. The package's manifest is not a
   source. `bytecode` and `vk` have pool-v2 §2's meanings: the SHA-256 of

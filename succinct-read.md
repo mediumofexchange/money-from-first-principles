@@ -479,7 +479,9 @@ through the end header form one chain by parent ids, one height apart. Each
 block's transactions are exactly those whose ids, with witness ids where the
 root uses them, reproduce its header's transactions root under one of
 venue-ergo §4's rules, in that order. `mapRoot` is the map at the end header
-(§4.2).
+(§4.2). The circuits fix a tree's leaves by its root, whatever its shape; that
+the tree is one of §4's rules rests on venue-ergo §3's premise that the
+chain's blocks are valid in full.
 
 The reader uses a fold proof where, under §2 rule 2:
 1. it verifies under the pinned first-fold or next-fold key;
@@ -731,6 +733,10 @@ No circuit set is adopted. An adoption names, under `moe/succinct/v1`:
     constraints read from the pinned backend's source;
   - for every circuit that verifies a proof, the pinned backend's native
     verification of the pairing it defers, with §2 rule 2's refusal;
+  - for every circuit, each bound its compiled program leaves to the pinned
+    backend's gadgets rather than to a range check of its own, such as an
+    XOR's operand widths or a table's or memory's index range, read from the
+    backend's source;
   - the exhaustion's entries equal to venue-ergo §§5–6 over a named corpus of
     mainnet days and a hostile set, with the scan's reading of the grammar
     argued from its source;
